@@ -1,0 +1,11 @@
+autolab-user-center@autolab-user-center:~/yocto/poky$ runqemu qemux86-64
+runqemu - INFO - Running MACHINE=qemux86-64 bitbake -e  ...
+runqemu - ERROR - /home/autolab-user-center/yocto/poky/build/tmp/deploy/images/qemux86-64 not a directory valid DEPLOY_DIR_IMAGE
+ls: cannot access '/home/autolab-user-center/yocto/poky/build/tmp/deploy/images/qemux86-64/*.qemuboot.conf': No such file or directory
+runqemu - ERROR - Command 'ls -t /home/autolab-user-center/yocto/poky/build/tmp/deploy/images/qemux86-64/*.qemuboot.conf' returned non-zero exit status 2.
+runqemu - INFO - Cleaning up
+runqemu - INFO - Host uptime: 14184.87
+
+
+ошибка в сборке привела к тому, что quemu не заработал :(
+

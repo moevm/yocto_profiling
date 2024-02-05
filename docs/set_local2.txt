@@ -1,0 +1,6 @@
+autolab-user-center@autolab-user-center:~/yocto$ sudo locale-gen en_US.UTF-8
+[sudo] password for autolab-user-center: 
+Generating locales (this might take a while)...
+  en_US.UTF-8... done
+Generation complete.
+

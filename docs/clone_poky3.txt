@@ -1,0 +1,11 @@
+autolab-user-center@autolab-user-center:~/yocto$ git clone git://git.yoctoproject.org/poky
+Cloning into 'poky'...
+remote: Enumerating objects: 634857, done.
+remote: Counting objects: 100% (558/558), done.
+remote: Compressing objects: 100% (266/266), done.
+remote: Total 634857 (delta 345), reused 387 (delta 285), pack-reused 634299
+Receiving objects: 100% (634857/634857), 201.69 MiB | 7.06 MiB/s, done.
+Resolving deltas: 100% (462142/462142), done.
+
+autolab-user-center@autolab-user-center:~/yocto$ git checkout -t origin/nanbield
+## тоже все ок - перешли на ветку nanbield (так написано в инструкции)

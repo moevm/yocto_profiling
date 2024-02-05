@@ -1,0 +1,16 @@
++ ret=0
++ trap  0
++ exit 0
+
+NOTE: Tasks Summary: Attempted 8172 tasks of which 6 didn't need to be rerun and 1 failed.
+
+Summary: 1 task failed:
+  /home/autolab-user-center/yocto/poky/meta/recipes-devtools/gcc/gcc_13.2.bb:do_compile
+Summary: There were 16 WARNING messages.
+Summary: There were 2 ERROR messages, returning a non-zero exit code.
+
+
+Спустя 2.5 долгих часа словили 2 ошибки :( 
+Запускалось с флагом -v -- логирование, но отследить происходящее не было возможности - строка бежала очень быстро. Есть идея перенаправлять поток в файл, что-то типо 
+bitbake core-image-sato -v >> log_build.txt
+

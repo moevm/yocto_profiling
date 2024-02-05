@@ -1,0 +1,6 @@
+autolab-user-center@autolab-user-center:~/yocto/poky$ bitbake core-image-sato -v >> log_build.txt
+ERROR: gcc-13.2.0-r0 do_compile: oe_runmake failed
+ERROR: gcc-13.2.0-r0 do_compile: ExecutionError('/home/autolab-user-center/yocto/poky/build/tmp/work/core2-64-poky-linux/gcc/13.2.0/temp/run.do_compile.3537826', 1, None, None)
+ERROR: Logfile of failure stored in: /home/autolab-user-center/yocto/poky/build/tmp/work/core2-64-poky-linux/gcc/13.2.0/temp/log.do_compile.3537826
+ERROR: Task (/home/autolab-user-center/yocto/poky/meta/recipes-devtools/gcc/gcc_13.2.bb:do_compile) failed with exit code '1'
+
