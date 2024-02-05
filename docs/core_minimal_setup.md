@@ -22,13 +22,6 @@
 #### Попытка запуска qemu
 С помощью команды произведена попытка запуска qemu : `runqemu qemux86-64`
 
-Загрузка очень долгая
-![image](https://github.com/moevm/os_profiling/assets/90711883/70b5d0ff-d73b-45c5-8ef4-50d42bbed127)
+Получилось зайти:  
+![image](https://github.com/moevm/os_profiling/assets/90711883/ee654d14-1206-4e01-acca-7dfa6fdf7c1e)
 
-
-При нажатии на Enter появляются надписи:
-![image](https://github.com/moevm/os_profiling/assets/90711883/13347208-3425-4b95-93d7-56b84a7e15d6)
-
-
-Нажа много раз на Enter - удалось войти в систему
-![image](https://github.com/moevm/os_profiling/assets/90711883/69e2aee7-8c14-4e34-bacf-c8fc1049361e)
