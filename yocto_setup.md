@@ -102,4 +102,4 @@ runqemu - INFO - Host uptime: 2576.12
 runqemu - INFO - Cleaning up
 runqemu - INFO - Host uptime: 2673.65
 ```
-
+![](https://github.com/moevm/os_profiling/blob/2118aa45b8627891556b2beb58235fb37c05d46d/yocto.png)

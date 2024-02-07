@@ -19,6 +19,8 @@ make raspberrypi3_defconfig
 make menuconfig
 ```
 Нам открывается меню, в котором можно изменять различные настройки
+![](https://github.com/moevm/os_profiling/blob/2118aa45b8627891556b2beb58235fb37c05d46d/buildroot.png)
+
 ### 3. Сборка образа
 Сборка осуществляется с помощью простой команды
 ```
