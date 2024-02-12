@@ -115,7 +115,7 @@
 
     runqemu - INFO - Host uptime: 3771.17
     ```
-    ![]()
+    ![](https://github.com/moevm/os_profiling/blob/butylo-docs/docs/YoctoProjectView.png)
     
     Для того, чтобы выйти, необходимо нажать на иконку `shutdown` либо использовать сочетание клавиш `Ctrl + C` в терминале, который использовался для запуска образа.
     Logs:
@@ -123,19 +123,3 @@
     runqemu - INFO - Cleaning up
     runqemu - INFO - Host uptime: 3884.36
     ```
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
