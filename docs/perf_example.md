@@ -1,4 +1,10 @@
 ### Perf installation
+- [x] 1) Установка необходимых пакетов
+- [x] 2) Описание perf
+- [X] 3) Описание perf stat 
+- [X] 4) Описание perf mem
+- [x] 5) Описание iostat
+
 #### Установим необходимые пакеты
 ```Bash
 $ sudo apt install -f linux-tools-common
@@ -25,7 +31,7 @@ $ sudo apt install -f linux-tools-5.15.0-92-generic
 
 Мне кажется, что полезными будут команды `stat, iostat, mem, lock, ftrace, trace`
 
-#### Флаги `sudo perf stat`
+#### sudo perf stat
 1) -С <num process> -- смотрит ресурсы процесса
 2) -D, --delay <n> -- ms задержка перед началом измерения после запуска программы
 3) -a, --all-cpus -- сморит ресурсы всех процессов вместе
@@ -34,6 +40,38 @@ $ sudo apt install -f linux-tools-5.15.0-92-generic
 6) -v, --verbose -- расширенные логи (не очень расширенные). Пример `python tt.py & sudo perf stat -v -p $! -o output_v.txt`
 
 Разницу между режимом v и без [Файле п.5](./logs/output.txt)  и [Файле п.6](./logs/output_v.txt)
+
+
+#### sudo perf mem
+Применяется sudo perf mem:
+1) record  --  запись информации
+2) report  --  представление информации
+
+При выполнении record с различными флагами формиурется файл **perf.data**
+Чтобы его прочитать необходимо выполнить команду 2 `perf mem report`, появится окошко, в котором можно посмотреть вывод файла:
+![image](https://github.com/moevm/os_profiling/assets/90711883/bfded735-c6f2-49be-9ec3-8c68049a7e77)
+
+#### Описание iostat
+Выполним команду, чтобу установить iostat `sudo apt install sysstat`
+Программа имеет малый функционал, я придумал мини-скрипт, который раз в 0.3 секунды вызывает `iostat -t -x`:
+```Bash
+while [ 1 ]
+do
+   iostat -t -x 
+   sleep .3
+   clear
+done
+```
+Результат работы скрипты: 
+![image](https://github.com/moevm/os_profiling/assets/90711883/11f1208e-9da1-433a-8cb5-4b4e6e652a29)
+
+
+Есть идея записывать изменнение выходных значений и какие-то графики, может быть, строить...
+
+
+
+
+
 
 
 
