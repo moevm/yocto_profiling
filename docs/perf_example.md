@@ -73,7 +73,7 @@ done
 
 
 #### Описание perf ftrace и perf trace
-1) `sudo perf trace` - ничего интеренсого, обычная как будто обертка, как в скриптах из [Простых скриптов ftrace](docs/cpu_tracer.md)
+1) `sudo perf trace` - ничего интеренсого, обычная как будто обертка, как в скриптах из [Простых скриптов ftrace](./cpu_tracer.md)
 2) `sudo perf trace` - генерирует тысячу миллионов сторк, которые, такое чувство, что здраво анализировать сложно:
    ![image](https://github.com/moevm/os_profiling/assets/90711883/9d3cdf05-0f75-41c8-a9e3-618e15e00973)
 
