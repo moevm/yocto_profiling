@@ -33,7 +33,7 @@ $ sudo apt install -f linux-tools-5.15.0-92-generic
 5) -o, --output <file> -- имя выходного файла (удобно). Пример `python tt.py & sudo perf stat -p $! -o out.txt`
 6) -v, --verbose -- расширенные логи (не очень расширенные). Пример `python tt.py & sudo perf stat -v -p $! -o output_v.txt`
 
-Разницу между режимом v и без [Файле п.5](./logs/output.txt)  и [Файле п.6](./logs/output.txt)
+Разницу между режимом v и без [Файле п.5](./logs/output.txt)  и [Файле п.6](./logs/output_v.txt)
 
 
 
