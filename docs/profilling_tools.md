@@ -5,6 +5,7 @@
 - [X] 4) Описание perf mem
 - [x] 5) Описание iostat
 - [x] 6) Описание perf ftrace и perf trace
+- [ ] 7) Описание lsof
 
 #### Установим необходимые пакеты
 ```Bash
