@@ -1,11 +1,11 @@
-### Perf installation
+### Task list
 - [x] 1) Установка необходимых пакетов
 - [x] 2) Описание perf
 - [X] 3) Описание perf stat 
 - [X] 4) Описание perf mem
 - [x] 5) Описание iostat
 - [x] 6) Описание perf ftrace и perf trace
-- [ ] 7) Описание lsof
+- [x] 7) Описание lsof
 
 #### Установим необходимые пакеты
 ```Bash
@@ -79,6 +79,52 @@ done
    ![image](https://github.com/moevm/os_profiling/assets/90711883/9d3cdf05-0f75-41c8-a9e3-618e15e00973)
 
 
+#### Описание lsof
+При вводе команды lsof вывод формируется по следующем принципу:
+```
+COMMAND     PID   TID TASKCMD               USER   FD      TYPE             DEVICE  SIZE/OFF       NODE NAME
+chrome     3633                         oumuamua  208r      REG                8,2    126400    8260929 /home/oumuamua/.config/google-chrome/Safe Browsing/UrlUws.store.4_13352470830264015
+chrome     3633                         oumuamua  209u     unix 0x0000000000000000       0t0     107082 type=STREAM
+chrome     3633                         oumuamua  210u     sock                0,8       0t0      90556 protocol: UNIX-STREAM
+```
+
+В системе без нагрузки эта команда генерирует 180.000 строк -- при записи в файл получается файл на 30мб  
++ Опция -U позволяет вывести все файлы сокетов домена Unix.
++ Опция -c позволяет вывести сведения о файлах, которые держат открытыми процессы, выполняющие команды (например -с chrome)
++ Опция +d позволяет выяснить, какие папки и файлы открыты в некоей директории (но не в её поддиректориях) - принимает аргумент - абсолютный или относительный путь
++ Опция -p позволяет вывести все файлы, открытые процессом с указанным при вызове команды PID (например -p 1) 
+
+Более полное описани:
+```
+Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
+  -?|-h list help          -a AND selections (OR)     -b avoid kernel blocks
+  -c c  cmd c ^c /c/[bix]  +c w  COMMAND width (9)    +d s  dir s files
+  -d s  select by FD set   +D D  dir D tree *SLOW?*   +|-e s  exempt s *RISKY*
+  -i select IPv[46] files  -K [i] list|(i)gn tasKs    -l list UID numbers
+  -n no host names         -N select NFS files        -o list file offset
+  -O no overhead *RISKY*   -P no port names           -R list paRent PID
+  -s list file size        -t terse listing           -T disable TCP/TPI info
+  -U select Unix socket    -v list version info       -V verbose search
+  +|-w  Warnings (+)       -X skip TCP&UDP* files     -Z Z  context [Z]
+  -- end option scan     
+  -E display endpoint info              +E display endpoint info and files
+  +f|-f  +filesystem or -file names     +|-f[gG] flaGs 
+  -F [f] select fields; -F? for help  
+  +|-L [l] list (+) suppress (-) link counts < l (0 = all; default = 0)
+                                        +m [m] use|create mount supplement
+  +|-M   portMap registration (-)       -o o   o 0t offset digits (8)
+  -p s   exclude(^)|select PIDs         -S [t] t second stat timeout (15)
+  -T qs TCP/TPI Q,St (s) info
+  -g [s] exclude(^)|select and print process group IDs
+  -i i   select by IPv[46] address: [46][proto][@host|addr][:svc_list|port_list]
+  +|-r [t[m<fmt>]] repeat every t seconds (15);  + until no files, - forever.
+       An optional suffix to t is m<fmt>; m must separate t from <fmt> and
+      <fmt> is an strftime(3) format for the marker line.
+  -s p:s  exclude(^)|select protocol (p = TCP|UDP) states by name(s).
+  -u s   exclude(^)|select login|UID set s
+  -x [fl] cross over +d|+D File systems or symbolic Links
+  names  select named files or files on named file systems
+```
 
 
 
