@@ -6,6 +6,7 @@
 - [x] 5) Описание iostat
 - [x] 6) Описание perf ftrace и perf trace
 - [x] 7) Описание lsof
+- [x] 8) Интересные программы
 
 #### Установим необходимые пакеты
 ```Bash
@@ -125,6 +126,18 @@ Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
   -x [fl] cross over +d|+D File systems or symbolic Links
   names  select named files or files on named file systems
 ```
+
+#### Интересные программы
+0) Узнал, что можно использовать встроенную утилиту time перед запуском скрипта\программы :)   
+1) [python line_profiler](https://github.com/pyutils/line_profiler)   
+Вывод примерно такой `Line #  Hits Time  Per Hit   % Time  Line Contents`
+2) py-heat - работает чудовищно долго, вывод примерно такой    
+   ![Screenshot from 2024-02-15 15-25-01](https://github.com/moevm/os_profiling/assets/90711883/d1885c4f-ce96-466e-8d45-c8fb746a187a)
+4) [python memory_profiler](https://github.com/pythonprofilers/memory_profiler)     
+Вывод примерно такой `Line # Mem usage Increment Occurrences Line Contents`
+5) [PYPY - другой компилятор для оптимизации -- идея так себе, как я думаю](https://www.pypy.org/download.html)
+
+   
 
 
 
