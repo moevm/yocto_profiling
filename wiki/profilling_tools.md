@@ -137,7 +137,8 @@ Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
 Вывод примерно такой `Line # Mem usage Increment Occurrences Line Contents`
 5) [PYPY - другой компилятор для оптимизации -- идея так себе, как я думаю](https://www.pypy.org/download.html)
 
-   
+Трассиоровать баш скрипты по cpu можно через `strace -C -f bash -x ./<name>.sh &> output.txt`  -- очень много логов, может быть разумно будет анализировать только сводку
+
 
 
 
