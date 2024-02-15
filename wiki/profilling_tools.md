@@ -7,6 +7,8 @@
 - [x] 6) Описание perf ftrace и perf trace
 - [x] 7) Описание lsof
 - [x] 8) Интересные программы
+- [ ] 9) psutil - это lsof для python [Link](https://psutil.readthedocs.io/en/release-3.0.1/index.html?highlight=open%20files#psutil.Process.open_files)
+- [ ] 10) Разобравться с Strace
 
 #### Установим необходимые пакеты
 ```Bash
