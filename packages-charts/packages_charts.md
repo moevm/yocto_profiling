@@ -45,10 +45,11 @@
 Программа отрисовывает графики и сохраняет их в отдельные png-файлы.
 
 По заданным характеристикам были построены графики, пример: 
-file:///home/user/dok/poky/scripts/os-walk-packages-graph/rusage%20ru_maxrss.png
+![rusage ru_utime](https://github.com/moevm/os_profiling/assets/90854310/1d37013a-f817-43a9-876c-f306813b2d12)
 
 
-Все графики находятся в каталоге charts [ссылка].
+
+Все графики находятся в каталоге charts.
 Код программы для отрисовки графиков в файле make-charts.py.
 
 
