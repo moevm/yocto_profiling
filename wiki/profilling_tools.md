@@ -7,7 +7,7 @@
 - [x] 6) Описание perf ftrace и perf trace
 - [x] 7) Описание lsof
 - [x] 8) Интересные программы
-- [ ] 9) psutil - это lsof для python [Link](https://psutil.readthedocs.io/en/release-3.0.1/index.html?highlight=open%20files#psutil.Process.open_files)
+- [x] 9) psutil - это lsof для python [Link](https://psutil.readthedocs.io/en/release-3.0.1/index.html?highlight=open%20files#psutil.Process.open_files)
 - [ ] 10) Разобравться с Strace
 
 #### Установим необходимые пакеты
@@ -129,17 +129,20 @@ Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
   names  select named files or files on named file systems
 ```
 
-#### Интересные программы
-0) Узнал, что можно использовать встроенную утилиту time перед запуском скрипта\программы :)   
-1) [python line_profiler](https://github.com/pyutils/line_profiler)   
-Вывод примерно такой `Line #  Hits Time  Per Hit   % Time  Line Contents`
-2) py-heat - работает чудовищно долго, вывод примерно такой    
-   ![Screenshot from 2024-02-15 15-25-01](https://github.com/moevm/os_profiling/assets/90711883/d1885c4f-ce96-466e-8d45-c8fb746a187a)
-4) [python memory_profiler](https://github.com/pythonprofilers/memory_profiler)     
-Вывод примерно такой `Line # Mem usage Increment Occurrences Line Contents`
-5) [PYPY - другой компилятор для оптимизации -- идея так себе, как я думаю](https://www.pypy.org/download.html)
+#### Python psutil
+Это Python библиотека, которая  реализует множество функций, предлагаемых инструментами командной строки, такими как: ps, top, lsof, netstat, ifconfig, who, df, kill, free, nice, ionice, iostat, iotop, uptime, pidof, tty, Taskset, pmap .
+В контексте задачи рассмотрим функции для **lsof**, для примеров использвания библиотеки создан [файл](./psutil_lsof.md), в котором рассмотрены аналоги следующих функций lsof:  
+1) lsof -p <pid>
+2) lsof -i
+3) lsof -p <pid> | grep mem
+4) lsof +d
 
-Трассиоровать баш скрипты по cpu можно через `strace -C -f bash -x ./<name>.sh &> output.txt`  -- очень много логов, может быть разумно будет анализировать только сводку
+
+
+
+#### Интересные программы
+[python memory_profiler](https://github.com/pythonprofilers/memory_profiler)     
+Вывод примерно такой `Line # Mem usage Increment Occurrences Line Contents`
 
 
 
