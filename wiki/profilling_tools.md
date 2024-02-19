@@ -8,7 +8,7 @@
 - [x] 7) Описание lsof
 - [x] 8) Интересные программы
 - [x] 9) psutil - это lsof для python [Link](https://psutil.readthedocs.io/en/release-3.0.1/index.html?highlight=open%20files#psutil.Process.open_files)
-- [ ] 10) Разобравться с Strace
+- [x] 10) Strace подробное описание
 
 #### Установим необходимые пакеты
 ```Bash
@@ -130,16 +130,27 @@ Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
 ```
 
 #### Python psutil
-Это Python библиотека, которая  реализует множество функций, предлагаемых инструментами командной строки, такими как: ps, top, lsof, netstat, ifconfig, who, df, kill, free, nice, ionice, iostat, iotop, uptime, pidof, tty, Taskset, pmap .
+Это Python библиотека, которая  реализует множество функций, предлагаемых инструментами командной строки, такими как: ps, top, lsof, netstat, ifconfig, who, df, kill, free, nice, ionice, iostat, iotop, uptime, pidof, tty, Taskset, pmap.  
 В контексте задачи рассмотрим функции для **lsof**, для примеров использвания библиотеки создан [файл](./psutil_lsof.md), в котором рассмотрены аналоги следующих функций lsof:  
 1) lsof -p <pid>
 2) lsof -i
 3) lsof -p <pid> | grep mem
 4) lsof +d
 
+#### Strace подробное описание
+Конфигурация трассировки:
+1. `-e trace=` : Позволяет выбрать, какие типы системных вызовов трассировать. Например:
+   - `- trace=open` : трассировать только вызовы открытия файлов
+   - `- trace=write` : трассировать только вызовы записи в файл
+   - `- trace=all` : трассировать все системные вызовы
+   
+2. `-o filename` : Записывает вывод трассировки в указанный файл.
 
-
-
+Основные флаги:  
+1) **-p PID** - позволяет подключиться к уже выполняющемуся процессу по его PID
+2) **-c** - выводит статистику использования системных вызовов в конце выполнения программы
+3) **-f** - отслеживает системные вызовы для всех порожденных процессов\
+4) **-s < size bites >** - ограничивает длину выводимых данных для каждого системного вызова
 #### Интересные программы
 [python memory_profiler](https://github.com/pythonprofilers/memory_profiler)     
 Вывод примерно такой `Line # Mem usage Increment Occurrences Line Contents`
