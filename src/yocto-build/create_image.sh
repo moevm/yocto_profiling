@@ -17,5 +17,5 @@ else
 fi
 
 echo "Creating: yocto-image:$version"
-docker build --tag "yocto-image:$version" .
+docker build --build-arg host_uid=$(id -u) --build-arg host_gid=$(id -g) --tag "yocto-image:$version" .
 

@@ -17,5 +17,5 @@ else
 fi
 
 echo "Creating: buildroot-image:$version"
-docker build --tag "buildroot-image:$version" .
+docker build --build-arg host_uid=$(id -u) --build-arg host_gid=$(id -g) --tag "buildroot-image:$version" .
 
