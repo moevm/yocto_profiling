@@ -1,7 +1,6 @@
 import os
 import sys
 import re
-from difflib import SequenceMatcher
 
 
 class Parser:
@@ -17,7 +16,7 @@ class Parser:
                     self.collect_pid(directory[0] + '/' + file)
 
 
-    def add_package_info(self, pkg_name, task_type=None): #целесообразно сначала добавить все пакеты из build/tmp/work
+    def add_package_info(self, pkg_name, task_type=None):
         if pkg_name not in self.info.keys():
             self.info.update({pkg_name: {}})
         if task_type and task_type not in self.info.get(pkg_name).keys():
@@ -54,16 +53,41 @@ class Parser:
         self.add_package_info(pkg_name, task_type)
         pid = file_name.split('.')[-1]
         self.info.get(pkg_name).get(task_type).update({"pid": pid})
+        
+
+    def get_data_about_task(self, task_type, metrics=None):
+        all_metrics = ['Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
+        'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
+        'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
+        'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
+        'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
+        'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
+        with open(task_type+'.txt', 'w') as file:
+            if not metrics:
+                metrics = all_metrics
+            file.write('Package, ' + (', '.join(metrics)) + '\n')
+            for package_name, package_data in self.info.items():
+                if task_type in package_data.keys():
+                    data = [package_name]
+                    for metric in metrics:
+                        data.append(self.info.get(package_name).get(task_type).get(metric))
+                    print(data)
+                    file.write((', '.join(data)) + '\n') #для вызова нужны данные со всех пакетов
+            file.close()
+
 
 
 def main(): #пример
     parser = Parser()
+    #пока что для примера берутся данные с двух пакетов
     parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-2.3.1-r0/do_collect_spdx_deps')
     parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-native-2.3.1-r0/do_collect_spdx_deps')
-    print(parser.info.get('acl'))
+    print(parser.info.get('acl')) 
     print()
     print(parser.info.get('acl-native'))
     print(len(parser.info))
+    metrics = ['Elapsed time', 'pid', 'IO syscr']
+    parser.get_data_about_task('do_collect_spdx_deps', metrics) 
 
 
 if __name__ == '__main__':
