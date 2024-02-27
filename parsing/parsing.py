@@ -1,36 +1,23 @@
 import os
 import sys
 import re
+from difflib import SequenceMatcher
+
 
 class Parser:
-    def __init__(self):
-        self.info = dict()
+    def __init__(self): #для гарантии добавления всех пакетов нужно сделать обход по work, заодно добавляем сразу pid
+        self.info = {}
+        tree = list(os.walk('poky/build/tmp/work'))
+        for directory in tree:
+            for file in directory[2]:
+                if file.startswith('log.do_') and file[-1].isdigit:
+                    pkg_name = (directory[0].split('/'))[-3]
+                    task_type = file.split('.')[1]
+                    self.add_package_info(pkg_name, task_type)
+                    self.collect_pid(directory[0] + '/' + file)
 
 
-    #для удаления версии и т.п.
-    def get_package_name(self, old_name):
-        pkg_name_words = old_name.split('-')
-
-        new_pkg_name = []
-        for word in pkg_name_words:
-            if word == 'r0':
-                continue
-            if word.isalpha():
-                new_pkg_name.append(word)
-            else:
-                found_letter = 0
-                for symbol in word:
-                    if symbol.isalpha():
-                        found_letter = 1
-                        break
-                if found_letter == 1:
-                    new_pkg_name.append(word)
-
-        pkg_name = '-'.join(new_pkg_name)
-        return pkg_name
-
-
-    def add_package_info(self, pkg_name, task_type=None):
+    def add_package_info(self, pkg_name, task_type=None): #целесообразно сначала добавить все пакеты из build/tmp/work
         if pkg_name not in self.info.keys():
             self.info.update({pkg_name: {}})
         if task_type and task_type not in self.info.get(pkg_name).keys():
@@ -47,15 +34,19 @@ class Parser:
                 metric, value = line.split(': ')
                 value = (re.split(" |\n", value))[0]
                 if value.startswith('do_'):
-                    pkg_name = self.get_package_name(metric)
                     task_type = value
-                    self.add_package_info(pkg_name, task_type)
+                    while metric not in self.info.keys():
+                        metric = metric[: -1 :]
+                    pkg_name = metric
+                    print(metric)
+                    self.add_package_info(metric, task_type)
                 else:
                     if metric not in ignore_list:
                         self.info.get(pkg_name).get(task_type).update({metric: value})
 
+
     #парсинг данных из build/tmp/work/<MULTIARCH_TARGET_SYS>/<имя пакета>/<версия>/temp/log.do_*.pid
-    def collect_pids(self, path): #аналогично относительный путь до файла
+    def collect_pid(self, path): #аналогично относительный путь до файла, предполагается что относительный путь содержит по крайней мере <имя пакета>/<версия>/temp/log.do_*.pid
         temp = path.split('/')
         file_name = temp[-1]
         pkg_name = temp[-4]
@@ -67,9 +58,13 @@ class Parser:
 
 def main(): #пример
     parser = Parser()
-    parser.collect_pids('poky/build/tmp/work/core2-64-poky-linux/acl/2.3.1/temp/log.do_collect_spdx_deps.2050038')
     parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-2.3.1-r0/do_collect_spdx_deps')
-    print(parser.info)
+    parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-native-2.3.1-r0/do_collect_spdx_deps')
+    print(parser.info.get('acl'))
+    print()
+    print(parser.info.get('acl-native'))
+    print(len(parser.info))
+
 
 if __name__ == '__main__':
     main()
