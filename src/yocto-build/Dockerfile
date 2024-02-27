@@ -47,8 +47,8 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN rm /bin/sh && ln -s bash /bin/sh                                        
 
 # User management
-ARG host_uid=1001
-ARG host_gid=1001                                                                
+ARG host_uid=1000
+ARG host_gid=1000                                                                
 RUN groupadd -g $host_gid yocto_user && useradd -u $host_uid -g $host_gid -ms /bin/bash yocto_user && usermod -a -G sudo yocto_user && usermod -a -G users yocto_user 
 
 # Install the repo tool to handle git submodules (meta layers) comfortably.
@@ -56,14 +56,11 @@ ADD https://storage.googleapis.com/git-repo-downloads/repo /usr/local/bin/
 RUN chmod 755 /usr/local/bin/repo
 
 # Run as build user from the installation path                                   
-ENV YOCTO_INSTALL_PATH "/opt/yocto"                                              
+ENV YOCTO_INSTALL_PATH "/home/yocto_user/project"                                              
 RUN install -o $host_uid -g $host_gid -d $YOCTO_INSTALL_PATH                               
 USER yocto_user                                                                       
 WORKDIR ${YOCTO_INSTALL_PATH}                                                    
 
 # Install Poky                                                                   
 RUN git clone git://git.yoctoproject.org/poky
-                                                                                 
-# Make /home/build the working directory                                         
-WORKDIR /home/yocto_user
-                                                                
+  
