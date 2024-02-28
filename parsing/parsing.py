@@ -84,12 +84,34 @@ class Parser:
                     file.write((', '.join(data)) + '\n') #для вызова нужны данные со всех пакетов
             file.close()
 
+    def write_data_about_package(self, pkg_name, metrics=None):
+        all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
+        'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
+        'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
+        'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
+        'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
+        'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
+        if not metrics:
+            metrics = all_metrics
+        with open(pkg_name+'.log', 'w') as file:
+            file.write('Tasktype, ' + (', '.join(all_metrics)) + '\n')
+            for task_type, task_info in self.info.get(pkg_name).items():
+                if task_type != 'log': ######
+                    data = [task_type]
+                    for metric in metrics:
+                        data.append(task_info.get(metric, 'None'))
+                    file.write((', '.join(data)) + '\n')
+            file.close()
+    
 
+    def write_data_about_all_packages(self):
+        for pkg_name in self.info:
+            self.write_data_about_package(pkg_name)
 
 def main(): #пример
     parser = Parser()
     parser.get_data_from_buildstats('poky/build/tmp/buildstats/20240212085739')
-    
+    parser.write_data_about_all_packages()
     parser.write_data_about_task('do_collect_spdx_deps') 
     parser.write_data_about_task('do_compile')
     parser.write_data_about_task('do_compile_ptest_base')
