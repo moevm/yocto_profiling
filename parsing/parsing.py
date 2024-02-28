@@ -4,7 +4,7 @@ import re
 
 
 class Parser:
-    def __init__(self): #для гарантии добавления всех пакетов нужно сделать обход по work, заодно добавляем сразу pid
+    def __init__(self): #добавляем все пакеты из work, заодно добавляем сразу pid
         self.info = {}
         tree = list(os.walk('poky/build/tmp/work'))
         for directory in tree:
@@ -23,6 +23,15 @@ class Parser:
             self.info.get(pkg_name).update({task_type: {}}) 
 
 
+    def get_data_from_buildstats(self, path): #путь до buildstats/<timestamp>/
+        tree = list(os.walk(path))
+        for package in tree:
+            if package[1] == [] and not package[0].endswith('reduced_proc_pressure'):
+                for task in package[2]:
+                    self.parse_buildstats_file(package[0] + '/' + task)
+
+
+
     #при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     #парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
@@ -34,14 +43,15 @@ class Parser:
                 value = (re.split(" |\n", value))[0]
                 if value.startswith('do_'):
                     task_type = value
-                    while metric not in self.info.keys():
+                    while metric not in self.info.keys() and metric != 'gcc-source': #данных о PID gcc-source,увы,нет
                         metric = metric[: -1 :]
                     pkg_name = metric
-                    print(metric)
                     self.add_package_info(metric, task_type)
                 else:
                     if metric not in ignore_list:
                         self.info.get(pkg_name).get(task_type).update({metric: value})
+                            
+                            
 
 
     #парсинг данных из build/tmp/work/<MULTIARCH_TARGET_SYS>/<имя пакета>/<версия>/temp/log.do_*.pid
@@ -52,17 +62,17 @@ class Parser:
         task_type = file_name.split('.')[-2]
         self.add_package_info(pkg_name, task_type)
         pid = file_name.split('.')[-1]
-        self.info.get(pkg_name).get(task_type).update({"pid": pid})
+        self.info.get(pkg_name).get(task_type).update({"PID": pid}) #PID имеется для подавляющего количества задач, но не для всех
         
 
-    def get_data_about_task(self, task_type, metrics=None):
-        all_metrics = ['Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
+    def write_data_about_task(self, task_type, metrics=None):
+        all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
         'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
         'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
         'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
         'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
         'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
-        with open(task_type+'.txt', 'w') as file:
+        with open(task_type+'.log', 'w') as file:
             if not metrics:
                 metrics = all_metrics
             file.write('Package, ' + (', '.join(metrics)) + '\n')
@@ -70,8 +80,7 @@ class Parser:
                 if task_type in package_data.keys():
                     data = [package_name]
                     for metric in metrics:
-                        data.append(self.info.get(package_name).get(task_type).get(metric))
-                    print(data)
+                        data.append(self.info.get(package_name).get(task_type).get(metric, 'None'))
                     file.write((', '.join(data)) + '\n') #для вызова нужны данные со всех пакетов
             file.close()
 
@@ -79,15 +88,30 @@ class Parser:
 
 def main(): #пример
     parser = Parser()
-    #пока что для примера берутся данные с двух пакетов
-    parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-2.3.1-r0/do_collect_spdx_deps')
-    parser.parse_buildstats_file('poky/build/tmp/buildstats/20240212085739/acl-native-2.3.1-r0/do_collect_spdx_deps')
-    print(parser.info.get('acl')) 
-    print()
-    print(parser.info.get('acl-native'))
-    print(len(parser.info))
-    metrics = ['Elapsed time', 'pid', 'IO syscr']
-    parser.get_data_about_task('do_collect_spdx_deps', metrics) 
+    parser.get_data_from_buildstats('poky/build/tmp/buildstats/20240212085739')
+    
+    parser.write_data_about_task('do_collect_spdx_deps') 
+    parser.write_data_about_task('do_compile')
+    parser.write_data_about_task('do_compile_ptest_base')
+    parser.write_data_about_task('do_configure')
+    parser.write_data_about_task('do_configur_ptest_base')
+    parser.write_data_about_task('do_create_runtime_spdx')
+    parser.write_data_about_task('do_create_spdx')
+    parser.write_data_about_task('do_deploy_source_date_epoch')
+    parser.write_data_about_task('do_fetch') 
+    parser.write_data_about_task('do_install')
+    parser.write_data_about_task('do_install_ptest_base')
+    parser.write_data_about_task('do_package')
+    parser.write_data_about_task('do_package_qa')
+    parser.write_data_about_task('do_package_write_rpm')
+    parser.write_data_about_task('do_packagedata')
+    parser.write_data_about_task('do_patch')
+    parser.write_data_about_task('do_populate_lic')
+    parser.write_data_about_task('do_populate_sysroot')
+    parser.write_data_about_task('do_prepare_recipe_sysroot')
+    parser.write_data_about_task('do_recipe_qa')
+    parser.write_data_about_task('do_unpack')
+    parser.write_data_about_task('do_write_config')
 
 
 if __name__ == '__main__':
