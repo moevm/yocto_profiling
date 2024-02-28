@@ -12,6 +12,18 @@
 $ make qemu_x86_64_defconfig
 ```
 
+## Ядро
+
+В Yocto на момент составления использовалось ядро 6.6.15.
+Из-за разницы в год между релизами выбранных версий Buildroot и Yocto,
+в Buildroot отсутствует данная версия.
+
+К счастью, можно указать кастомную.
+Для этого в `make nconfig`:
+- `Kernel` -> `Kernel version` -> `6.6.15` (`BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE`)
+- `Toolchain` -> `Custom kernel headers series` -> `6.1.x or later`
+  (`BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1`)
+
 ## Пакеты
 
 Список пакетов, которые присутствуют в итоговой rootfs:
