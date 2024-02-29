@@ -24,6 +24,13 @@ $ make qemu_x86_64_defconfig
 - `Toolchain` -> `Custom kernel headers series` -> `6.1.x or later`
   (`BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1`)
 
+## Конфигурация ядра
+
+Так как версии ядер совпадают,
+достаточно просто взять конфигурацию из Yocto и указать ее в Buildroot
+(`Kernel` -> `Kernel configuration` -> `Using a custom (def)config file`;
+`Configuration file path`)
+
 ## Пакеты
 
 Список пакетов, которые присутствуют в итоговой rootfs:
@@ -64,7 +71,3 @@ update-alternatives-opkg core2_64 0.6.2
 update-rc.d noarch 0.8
 v86d qemux86_64 0.1.10
 ```
-
-## Конфигурация ядра
-
-TODO
