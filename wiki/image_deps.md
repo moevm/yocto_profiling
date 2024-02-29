@@ -33,7 +33,23 @@ $ make qemu_x86_64_defconfig
 
 ## Пакеты
 
-Список пакетов, которые присутствуют в итоговой rootfs:
+Пакеты, которые попали в rootfs Yocto, можно найти в `.manifest`-файле.
+
+Среди пакетов цели `core-image-minimal` в Buildroot есть все, кроме:
+- `v86d` и модуля `uvesafb`
+- `ttyrun`
+
+`uvesafb` и нужный ему `v86d` не представляют никакой ценности.
+Они убираются так:
+```bitbake
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS:qemux86-64 = ""
+```
+
+От `ttyrun` зависят `busybox-inittab` и `sysvinit-inittab`,
+так что избавиться от него в Yocto невозможно.
+
+Список всех пакетов,
+которые по умолчанию присутствуют в итоговой rootfs при сборке цели `core-image-minimal`:
 ```
 base-files qemux86_64 3.0.14
 base-passwd core2_64 3.6.3
