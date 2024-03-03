@@ -2,6 +2,17 @@ import os
 import sys
 import re
 
+all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
+        'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
+        'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
+        'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
+        'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
+        'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
+
+all_tasks = ['do_collect_spdx_deps', 'do_compile', 'do_compile_ptest_base', 'do_configure', 'do_configure_ptest_base', 'do_create_runtime_spdx',
+             'do_create_spdx', 'do_deploy_source_date_epoch', 'do_fetch', 'do_install', 'do_install_ptest_base', 'do_package', 'do_package_qa',
+             'do_package_write_rpm', 'do_packagedata', 'do_patch', 'do_populate_lic', 'do_populate_sysroot', 'do_prepare_recipe_sysroot',
+             'do_recipe_qa', 'do_unpack', 'do_write_config']
 
 class Parser:
     def __init__(self): #добавляем все пакеты из work, заодно добавляем сразу pid
@@ -66,12 +77,6 @@ class Parser:
         
 
     def write_data_about_task(self, task_type, metrics=None):
-        all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
-        'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
-        'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
-        'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
-        'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
-        'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
         with open(task_type+'.log', 'w') as file:
             if not metrics:
                 metrics = all_metrics
@@ -85,12 +90,6 @@ class Parser:
             file.close()
 
     def write_data_about_package(self, pkg_name, metrics=None):
-        all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rchar','IO wchar','IO syscr',
-        'IO syscw','IO read_bytes','IO write_bytes','IO cancelled_write_bytes','rusage ru_utime',
-        'rusage ru_stime','rusage ru_maxrss','rusage ru_minflt','rusage ru_majflt','rusage ru_inblock',
-        'rusage ru_oublock','rusage ru_nvcsw','rusage ru_nivcsw','Child rusage ru_utime','Child rusage ru_stime',
-        'Child rusage ru_maxrss','Child rusage ru_minflt','Child rusage ru_majflt','Child rusage ru_inblock',
-        'Child rusage ru_oublock','Child rusage ru_nvcsw','Child rusage ru_nivcsw']
         if not metrics:
             metrics = all_metrics
         with open(pkg_name+'.log', 'w') as file:
@@ -109,32 +108,21 @@ class Parser:
             self.write_data_about_package(pkg_name)
 
 def main(): #пример
+    timestamp = ''
+    #timestamp_list = [временные метки всех сборок, отсортированные от поздним к ранним]
+    if len(sys.argv < 2):
+        print('No timestamp or build index specified')
+        return
+    if sys.argv[1] == '-b': 
+        pass
+        #timestamp = timestamp_list[sys.argv[2]]
+    else:
+        timestamp = sys.argv[1]
     parser = Parser()
-    parser.get_data_from_buildstats('poky/build/tmp/buildstats/20240212085739')
+    parser.get_data_from_buildstats('poky/build/tmp/buildstats/' + timestamp)
     parser.write_data_about_all_packages()
-    parser.write_data_about_task('do_collect_spdx_deps') 
-    parser.write_data_about_task('do_compile')
-    parser.write_data_about_task('do_compile_ptest_base')
-    parser.write_data_about_task('do_configure')
-    parser.write_data_about_task('do_configur_ptest_base')
-    parser.write_data_about_task('do_create_runtime_spdx')
-    parser.write_data_about_task('do_create_spdx')
-    parser.write_data_about_task('do_deploy_source_date_epoch')
-    parser.write_data_about_task('do_fetch') 
-    parser.write_data_about_task('do_install')
-    parser.write_data_about_task('do_install_ptest_base')
-    parser.write_data_about_task('do_package')
-    parser.write_data_about_task('do_package_qa')
-    parser.write_data_about_task('do_package_write_rpm')
-    parser.write_data_about_task('do_packagedata')
-    parser.write_data_about_task('do_patch')
-    parser.write_data_about_task('do_populate_lic')
-    parser.write_data_about_task('do_populate_sysroot')
-    parser.write_data_about_task('do_prepare_recipe_sysroot')
-    parser.write_data_about_task('do_recipe_qa')
-    parser.write_data_about_task('do_unpack')
-    parser.write_data_about_task('do_write_config')
-
+    for task_type in all_tasks:
+        parser.write_data_about_task(task_type)
 
 if __name__ == '__main__':
     main()
