@@ -8,6 +8,13 @@ BitBak парсит и анализирует .bb файлы для опреде
 
 3. Построение очереди выполнения:
 Затем BitBake формирует очередь выполнения задач. Функция prepare() файл bitbake/lib/bb/runqueue.py (https://github.com/yoctoproject/poky/blob/master/bitbake/lib/bb/runqueue.py).
+Очередь состоит из объектов класса RunTaskEntry. В каждом таком объекте хранится следующая информация:
+    - depends: множество идентификаторов задач, от которых зависит текущая задача.
+    - revdeps: множество идентификаторов задач, которые зависят от текущей задачи.
+    - hash: хэш.
+    - unihash: уникальный хэш, который используется для идентификации задачи.
+    - task: имя задачи.
+    - weight: вес задачи.
 
 4. Выполнение задач в порядке очереди:
 BitBake выполняет задачи в порядке, определенном очередью выполнения, учитывая построенное дерево зависимостей. Функция execute_runqueue() файл bitbake/lib/bb/runqueue.py (https://github.com/yoctoproject/poky/blob/master/bitbake/lib/bb/runqueue.py).
