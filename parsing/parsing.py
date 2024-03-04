@@ -109,15 +109,28 @@ class Parser:
 
 def main(): #пример
     timestamp = ''
-    #timestamp_list = [временные метки всех сборок, отсортированные от поздним к ранним]
-    if len(sys.argv < 2):
+    tree = list(os.walk('poky/build/tmp/buildstats'))
+    for item in tree:
+        if item[0] == 'poky/build/tmp/buildstats':
+            timestamp_list = item[1]
+    timestamp_list.sort(reverse=True)
+
+    if len(sys.argv) < 2:
         print('No timestamp or build index specified')
         return
     if sys.argv[1] == '-b': 
-        pass
-        #timestamp = timestamp_list[sys.argv[2]]
+        if len(timestamp_list) >= int(sys.argv[2]):
+            timestamp = timestamp_list[int(sys.argv[2])]
+        else:
+            print('No such build index')
+            return
     else:
-        timestamp = sys.argv[1]
+        if sys.argv[1] in timestamp_list:
+            timestamp = sys.argv[1]
+        else:
+            print('No such timestamp')
+            return
+
     parser = Parser()
     parser.get_data_from_buildstats('poky/build/tmp/buildstats/' + timestamp)
     parser.write_data_about_all_packages()
@@ -126,6 +139,3 @@ def main(): #пример
 
 if __name__ == '__main__':
     main()
-
-
-
