@@ -12,18 +12,19 @@ all_metrics = ['PID', 'Elapsed time', 'utime', 'stime','cutime','cstime','IO rch
 all_tasks = ['do_collect_spdx_deps', 'do_compile', 'do_compile_ptest_base', 'do_configure', 'do_configure_ptest_base', 'do_create_runtime_spdx',
              'do_create_spdx', 'do_deploy_source_date_epoch', 'do_fetch', 'do_install', 'do_install_ptest_base', 'do_package', 'do_package_qa',
              'do_package_write_rpm', 'do_packagedata', 'do_patch', 'do_populate_lic', 'do_populate_sysroot', 'do_prepare_recipe_sysroot',
-             'do_recipe_qa', 'do_unpack', 'do_write_config']
+             'do_recipe_qa', 'do_unpack', 'do_write_config', 'do_generate_toolchain_file']
 
 class Parser:
-    def __init__(self): #добавляем все пакеты из work, заодно добавляем сразу pid
+    def __init__(self): #добавляем информацию о pid
         self.info = {}
+        self.pid_info = {}
         tree = list(os.walk('poky/build/tmp/work'))
         for directory in tree:
             for file in directory[2]:
-                if file.startswith('log.do_') and file[-1].isdigit:
+                if file.startswith('log.do_') and file[-1].isdigit():
                     pkg_name = (directory[0].split('/'))[-3]
                     task_type = file.split('.')[1]
-                    self.add_package_info(pkg_name, task_type)
+                    self.add_pid_info(pkg_name, task_type)
                     self.collect_pid(directory[0] + '/' + file)
 
 
@@ -32,6 +33,13 @@ class Parser:
             self.info.update({pkg_name: {}})
         if task_type and task_type not in self.info.get(pkg_name).keys():
             self.info.get(pkg_name).update({task_type: {}}) 
+
+
+    def add_pid_info(self, pkg_name, task_type=None):
+        if pkg_name not in self.pid_info.keys():
+            self.pid_info.update({pkg_name: {}})
+        if task_type and task_type not in self.pid_info.get(pkg_name).keys():
+            self.pid_info.get(pkg_name).update({task_type: {}}) 
 
 
     def get_data_from_buildstats(self, path): #путь до buildstats/<timestamp>/
@@ -54,10 +62,12 @@ class Parser:
                 value = (re.split(" |\n", value))[0]
                 if value.startswith('do_'):
                     task_type = value
-                    while metric not in self.info.keys() and metric != 'gcc-source': #данных о PID gcc-source,увы,нет
+                    while (metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric)) or metric[-1] == '-':
                         metric = metric[: -1 :]
                     pkg_name = metric
                     self.add_package_info(metric, task_type)
+                    if pkg_name in self.pid_info.keys() and task_type in self.pid_info.get(pkg_name).keys(): #пытаемся сопоставить PID данной задаче
+                        self.info.get(pkg_name).get(task_type).update({"PID": self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
                 else:
                     if metric not in ignore_list:
                         self.info.get(pkg_name).get(task_type).update({metric: value})
@@ -71,10 +81,11 @@ class Parser:
         file_name = temp[-1]
         pkg_name = temp[-4]
         task_type = file_name.split('.')[-2]
-        self.add_package_info(pkg_name, task_type)
+        self.add_pid_info(pkg_name, task_type)
         pid = file_name.split('.')[-1]
-        self.info.get(pkg_name).get(task_type).update({"PID": pid}) #PID имеется для подавляющего количества задач, но не для всех
+        self.pid_info.get(pkg_name).get(task_type).update({"PID": pid}) #PID имеется для подавляющего количества задач, но не для всех
         
+
 
     def write_data_about_task(self, task_type, metrics=None):
         with open(task_type+'.log', 'w') as file:
@@ -95,11 +106,10 @@ class Parser:
         with open(pkg_name+'.log', 'w') as file:
             file.write('Tasktype, ' + (', '.join(all_metrics)) + '\n')
             for task_type, task_info in self.info.get(pkg_name).items():
-                if task_type != 'log': ######
-                    data = [task_type]
-                    for metric in metrics:
-                        data.append(task_info.get(metric, 'None'))
-                    file.write((', '.join(data)) + '\n')
+                data = [task_type]
+                for metric in metrics:
+                    data.append(task_info.get(metric, 'None'))
+                file.write((', '.join(data)) + '\n')
             file.close()
     
 
