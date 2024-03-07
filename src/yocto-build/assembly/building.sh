@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-cd /home/yocto_user/project/poky
+cd $YOCTO_INSTALL_PATH/poky
 
 branch=$(git branch --show-current)
 
@@ -11,8 +11,8 @@ then
   git checkout -t origin/nanbield -b my-nanbield
 fi
 
-cd /home/yocto_user/project/assembly
-source /home/yocto_user/project/poky/oe-init-build-env
+cd $YOCTO_INSTALL_PATH/assembly
+source $YOCTO_INSTALL_PATH/poky/oe-init-build-env
 
 # logs engine -> ./logs 
 

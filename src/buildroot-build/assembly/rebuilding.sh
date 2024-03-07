@@ -2,7 +2,7 @@
 
 # WIP
 
-cd /home/buildroot_user/project/assembly/build
+cd $BUILDROOT_INSTALL_PATH/assembly/build
 
 # logs engine -> ./logs
 
