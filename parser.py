@@ -1,7 +1,13 @@
 import os
-import sys
 import re
-from log_iterator import LogFilesIterator, LogIterator
+import argparse
+from log_iterator import log_files_iterator, log_iterator
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--timestamp", type=str, help="time stamp for log files")
+parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
+parser.add_argument("-p", "--poky_path", type=str, help="poky directory path", required=True)
+args = parser.parse_args()
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',
                'IO syscw', 'IO read_bytes', 'IO write_bytes', 'IO cancelled_write_bytes', 'rusage ru_utime',
@@ -24,51 +30,42 @@ class Parser:
     def __init__(self):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        log_files_iterator = LogFilesIterator('poky/build/tmp/work',
-                                              lambda x: x.startswith('log.do_') and x[-1].isdigit())
-        for log_file in log_files_iterator:
+        for log_file in log_files_iterator(os.path.join(args.poky_path, 'build/tmp/work'),
+                                           lambda x: x.startswith('log.do_') and x[-1].isdigit()):
             pkg_name = log_file.split('/')[-3]
             task_type = log_file.split('.')[-2]
-            self.add_pid_info(pkg_name, task_type)
-            self.collect_pid(log_file)
+            self.add_info(self.pid_info, pkg_name, task_type)
+            self.collect_pid(log_file, pkg_name, task_type)
 
-    def add_package_info(self, pkg_name, task_type=None):
-        if pkg_name not in self.info.keys():
-            self.info.update({pkg_name: {}})
-        if task_type and task_type not in self.info.get(pkg_name).keys():
-            self.info.get(pkg_name).update({task_type: {}})
 
-    def add_pid_info(self, pkg_name, task_type=None):
-        if pkg_name not in self.pid_info.keys():
-            self.pid_info.update({pkg_name: {}})
-        if task_type and task_type not in self.pid_info.get(pkg_name).keys():
-            self.pid_info.get(pkg_name).update({task_type: {}})
+    def add_info(self, target_info, pkg_name, task_type=None):
+        if pkg_name not in target_info:
+            target_info[pkg_name] = {}
+        if task_type and task_type not in target_info[pkg_name]:
+            target_info[pkg_name] = {task_type: {}}
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
-        log_files_iterator = LogFilesIterator(path)
-        for log_file in log_files_iterator:
+        for log_file in log_files_iterator(path):
             package_dir = os.path.dirname(log_file)
-            if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
+            if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
+                    os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
                 self.parse_buildstats_file(log_file)
-
-
 
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
         ignore_list = ['Event', 'Started', 'Ended', 'Status']
         pkg_name, task_type = '', ''
-        log_iterator = LogIterator(path)
-        for line in log_iterator:
+        for line in log_iterator(path):
             metric, value = line.split(': ')
             value = (re.split(" |\n", value))[0]
             if value.startswith('do_'):
                 task_type = value
-                while (metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric)) or metric[
-                    -1] == '-':
+                while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
+                       or metric[-1] == '-'):
                     metric = metric[: -1:]
                 pkg_name = metric
-                self.add_package_info(metric, task_type)
+                self.add_info(self.info, metric, task_type)
                 if pkg_name in self.pid_info.keys() and task_type in self.pid_info.get(
                         pkg_name).keys():  # пытаемся сопоставить PID данной задаче
                     self.info.get(pkg_name).get(task_type).update(
@@ -79,13 +76,10 @@ class Parser:
 
     # парсинг данных из build/tmp/work/<MULTIARCH_TARGET_SYS>/<имя пакета>/<версия>/temp/log.do_*.pid
 
-    def collect_pid(self,
-                    path):  # аналогично относительный путь до файла, предполагается что относительный путь содержит по крайней мере <имя пакета>/<версия>/temp/log.do_*.pid
+    def collect_pid(self, path, pkg_name, task_type):
         temp = path.split('/')
         file_name = temp[-1]
-        pkg_name = temp[-4]
-        task_type = file_name.split('.')[-2]
-        self.add_pid_info(pkg_name, task_type)
+        self.add_info(self.pid_info, pkg_name, task_type)
         pid = file_name.split('.')[-1]
         self.pid_info.get(pkg_name).get(task_type).update(
             {"PID": pid})  # PID имеется для подавляющего количества задач, но не для всех
@@ -101,7 +95,6 @@ class Parser:
                     for metric in metrics:
                         data.append(self.info.get(package_name).get(task_type).get(metric, 'None'))
                     file.write((', '.join(data)) + '\n')  # для вызова нужны данные со всех пакетов
-            file.close()
 
     def write_data_about_package(self, pkg_name, metrics=None):
         if not metrics:
@@ -123,33 +116,34 @@ class Parser:
 def main():  # пример
     timestamp = ''
     timestamp_list = []
-    tree = list(os.walk('poky/build/tmp/buildstats'))
+    poky_buildstats_path = os.path.join(args.poky_path, 'build/tmp/buildstats')
+    tree = list(os.walk(poky_buildstats_path))
     for item in tree:
-        if item[0] == 'poky/build/tmp/buildstats':
-            print(222)
+        if item[0] == poky_buildstats_path:
             timestamp_list = item[1]
     timestamp_list.sort(reverse=True)
-    print(timestamp_list)
 
-    if len(sys.argv) < 2:
+    if args.timestamp is None and args.build_index is None:
         print('No timestamp or build index specified')
         return
-    if sys.argv[1] == '-b':
-        if len(timestamp_list) >= int(sys.argv[2]):
-            timestamp = timestamp_list[int(sys.argv[2])]
-        else:
-            print('No such build index')
-            return
-    else:
-        if sys.argv[1] in timestamp_list:
-            timestamp = sys.argv[1]
+    elif args.timestamp is not None and args.build_index is not None:
+        print("Specify only timestamp or only build index")
+        return
+    if args.timestamp:
+        if args.timestamp in timestamp_list:
+            timestamp = args.timestamp
         else:
             print('No such timestamp')
             return
-
+    else:
+        if len(timestamp_list) > args.build_index:
+            timestamp = timestamp_list[args.build_index]
+        else:
+            print('No such build index')
+            return
 
     parser = Parser()
-    parser.get_data_from_buildstats('poky/build/tmp/buildstats/' + timestamp)
+    parser.get_data_from_buildstats(os.path.join(args.poky_path, 'build/tmp/buildstats', timestamp))
     parser.write_data_about_all_packages()
     for task_type in all_tasks:
         parser.write_data_about_task(task_type)
@@ -157,4 +151,3 @@ def main():  # пример
 
 if __name__ == '__main__':
     main()
-
