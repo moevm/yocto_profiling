@@ -221,8 +221,13 @@ BitBake использует контрольные суммы (подписи) 
 этот метод клонирует дерево в каталог. Процесс завершается использованием ссылок, поэтому нужна лишь одна копия
 метаданных Git. 
 
+### Пример
+Пример с картинкой и описание находится по [ссылке](https://docs.yoctoproject.org/overview-manual/concepts.html#bitbake-tasks-map )
+
+
 ### Источники
-Источник 1 [En]: https://docs.yoctoproject.org/overview-manual/concepts.html#shared-state-cache  
-Источник 2 [En]: https://wiki.yoctoproject.org/wiki/TipsAndTricks/Understanding_what_changed_(diffsigs_etc)      
-Источник 3 [En]: https://docs.yoctoproject.org/bitbake/     
-Источник 4 [Ru]: https://www.protokols.ru/WP/wp-content/uploads/2019/12/BitBake-User-Manual.pdf     
+Источник 1 [En]: https://docs.yoctoproject.org/overview-manual/concepts.html#bitbake-tasks-map    
+Источник 2 [En]: https://docs.yoctoproject.org/overview-manual/concepts.html#shared-state-cache  
+Источник 3 [En]: https://wiki.yoctoproject.org/wiki/TipsAndTricks/Understanding_what_changed_(diffsigs_etc)      
+Источник 4 [En]: https://docs.yoctoproject.org/bitbake/     
+Источник 5 [Ru]: https://www.protokols.ru/WP/wp-content/uploads/2019/12/BitBake-User-Manual.pdf     
