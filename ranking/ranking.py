@@ -1,7 +1,7 @@
 import os
 import sys
 import math
-from parser_old import *
+from parser import *
 
 
 #Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
