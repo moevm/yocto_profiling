@@ -3,11 +3,6 @@ import re
 import argparse
 from log_iterator import log_files_iterator, log_iterator
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--timestamp", type=str, help="time stamp for log files")
-parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
-parser.add_argument("-p", "--poky_path", type=str, help="poky directory path", required=True)
-args = parser.parse_args()
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',
                'IO syscw', 'IO read_bytes', 'IO write_bytes', 'IO cancelled_write_bytes', 'rusage ru_utime',
@@ -26,11 +21,20 @@ all_tasks = ['do_collect_spdx_deps', 'do_compile', 'do_compile_ptest_base', 'do_
              'do_recipe_qa', 'do_unpack', 'do_write_config', 'do_generate_toolchain_file']
 
 
+def create_parser_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--timestamp", type=str, help="time stamp for log files")
+    parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
+    parser.add_argument("-p", "--poky_path", type=str, help="poky directory path", required=True)
+    args = parser.parse_args()
+    return args
+
+
 class Parser:
-    def __init__(self):  # добавляем информацию о pid
+    def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        for log_file in log_files_iterator(os.path.join(args.poky_path, 'build/tmp/work'),
+        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/work'),
                                            lambda x: x.startswith('log.do_') and x[-1].isdigit()):
             pkg_name = log_file.split('/')[-3]
             task_type = log_file.split('.')[-2]
@@ -106,7 +110,7 @@ class Parser:
                 for metric in metrics:
                     data.append(task_info.get(metric, 'None'))
                 file.write((', '.join(data)) + '\n')
-            file.close()
+
 
     def write_data_about_all_packages(self):
         for pkg_name in self.info:
@@ -114,6 +118,7 @@ class Parser:
 
 
 def main():  # пример
+    args = create_parser_args()
     timestamp = ''
     timestamp_list = []
     poky_buildstats_path = os.path.join(args.poky_path, 'build/tmp/buildstats')
@@ -142,7 +147,7 @@ def main():  # пример
             print('No such build index')
             return
 
-    parser = Parser()
+    parser = Parser(args.poky_path)
     parser.get_data_from_buildstats(os.path.join(args.poky_path, 'build/tmp/buildstats', timestamp))
     parser.write_data_about_all_packages()
     for task_type in all_tasks:
