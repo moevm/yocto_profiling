@@ -45,17 +45,14 @@ RUN apt-get update && \
 	apt-utils \
 	nano \
 	\
+	linux-tools-common \
+	\
 	sysstat \
 	strace && \
 	\
 	dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG} && \
-	apt-get clean
-
-
-# Perf utils
-RUN apt-get install -f -y linux-tools-common linux-tools-5.15.0-92-generic && \
 	apt-get clean && \
-        rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
 # Python utils
