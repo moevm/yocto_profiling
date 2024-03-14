@@ -1,0 +1,16 @@
+version: "3"
+
+
+services:
+  yocto_project:
+    container_name: buildroot
+    image: buildroot-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - UID=1000
+        - GID=1000
+        - BUILDROOT_INSTALL_PATH=/home/buildroot_user/project
+    volumes:
+      - ./assembly:/home/buildroot_user/project/assembly

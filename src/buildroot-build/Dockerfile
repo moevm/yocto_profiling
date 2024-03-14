@@ -1,6 +1,12 @@
 FROM ubuntu:20.04
 
 
+ARG UID
+ARG GID
+ARG BUILDROOT_INSTALL_PATH
+ENV BUILDROOT_INSTALL_PATH=$BUILDROOT_INSTALL_PATH
+
+
 # Upgrade system and Buildroot basic dependencies, Clean up APT
 RUN apt-get update && \ 
 	DEBIAN_FRONTEND=noninteractive apt-get -y install \
@@ -20,12 +26,7 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*                  
 
 
-# User management
-ARG UID
-ARG GID 
-
-ENV BUILDROOT_INSTALL_PATH "/home/buildroot_user/project"
-                                                               
+# User management                                              
 RUN groupadd -g $GID buildroot_user && \
 	useradd -u $UID -g $GID -ms /bin/bash buildroot_user && \
 	usermod -a -G sudo buildroot_user && \
@@ -35,10 +36,7 @@ RUN groupadd -g $GID buildroot_user && \
 
 # Run as build user from the installation path                                                                                                            
 USER buildroot_user                                                                       
-WORKDIR ${BUILDROOT_INSTALL_PATH}                                                    
+WORKDIR $BUILDROOT_INSTALL_PATH                                                    
 
 
-# Install Buildroot                                                                   
-RUN git clone https://github.com/buildroot/buildroot.git buildroot
-          
-                                                                
+ENTRYPOINT ["./assembly/building.sh"]                                                       
