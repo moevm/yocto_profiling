@@ -15,6 +15,7 @@ services:
         - LANG=en_US.UTF-8
         - LC_ALL=en_US.UTF-8
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
+    cap_add:
+      - SYS_PTRACE
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
-      - /sys/kernel/debug/tracing:/sys/kernel/debug/tracing
