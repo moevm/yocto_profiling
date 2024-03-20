@@ -46,9 +46,9 @@ function decorate_logs() {
 	cp /dev/null $log_file
 
 	# logging
-	start_logging log_file
+	start_logging $log_file
 	$func_to_log $@ 2>&1
-	finish_logging log_file
+	finish_logging $log_file
 }
 
 function build_yocto() {
