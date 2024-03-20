@@ -17,3 +17,4 @@ services:
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
+      - /sys/kernel/debug/tracing:/sys/kernel/debug/tracing
