@@ -1,0 +1,4 @@
+$ perf list  # проверка что perf установлен
+$ lsof  #проверка что lsof установлен
+$ bash ./cpu.sh  # проверка ftrace 
+$ strace -p <pid>  # проверка strace

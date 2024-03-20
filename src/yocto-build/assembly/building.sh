@@ -58,3 +58,4 @@ function build_yocto() {
 
 # entrypoint
 decorate_logs build_yocto
+sleep infinity
