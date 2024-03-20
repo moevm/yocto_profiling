@@ -35,7 +35,7 @@ function finish_logging() {
 
 
 function decorate_logs() {
-	log_file=./logs/building_logs.txt
+	log_file=$YOCTO_INSTALL_PATH/assembly/logs/building_logs.txt
 
 	if [ $# -eq 0 ]; then
 		echo "You can use wrapper function. It takes any function with args and logs output to <./logs/building_logs.txt>"
@@ -58,4 +58,4 @@ function build_yocto() {
 
 # entrypoint
 decorate_logs build_yocto
-sleep infinity
+# sleep infinity
