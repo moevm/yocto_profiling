@@ -17,5 +17,9 @@ services:
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
     cap_add:
       - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
+      - /sys/kernel/debug:/sys/kernel/debug
