@@ -47,7 +47,7 @@ RUN apt-get update && \
 	nano \
 	\
 	linux-tools-common \
-	linux-tools-{$CORE} \
+	linux-tools-$CORE \	
 	\
 	lsof \
 	\

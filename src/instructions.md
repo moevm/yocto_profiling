@@ -16,7 +16,7 @@ git pull
 - ### **Yocto** / **Buildroot**
     1. Чтобы создать образ требуется выполнить команду:
         ```
-        docker-compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg CORE=$(uname -r)
+        docker-compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g)
         ```
     
     2.  После удачной сборки образа, можно запустить контейнер командой:
