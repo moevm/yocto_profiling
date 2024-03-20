@@ -5,6 +5,7 @@ ARG LC_ALL
 ARG LANG
 ARG UID
 ARG GID
+ARG CORE
 ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
 ENV LC_ALL=$LC_ALL
 ENV LANG=$LANG
@@ -46,6 +47,9 @@ RUN apt-get update && \
 	nano \
 	\
 	linux-tools-common \
+	linux-tools-{$CORE} \
+	\
+	lsof \
 	\
 	sysstat \
 	strace && \
