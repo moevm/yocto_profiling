@@ -220,6 +220,17 @@ BitBake использует контрольные суммы (подписи) 
 Как было отмечено, сборщик Git имеет свой метод распаковки, оптимизированный для работы с деревьями Git. Обычно
 этот метод клонирует дерево в каталог. Процесс завершается использованием ссылок, поэтому нужна лишь одна копия
 метаданных Git. 
+### Полезный материал
+
+**Правильная очистка кэша** : [ссылка](https://docs.yoctoproject.org/dev-manual/disk-space.html#purging-obsolete-shared-state-cache-files)
+
+**Архивы с кэшем** : [Ссылка](https://git.yoctoproject.org/)
+
+
+
+
+
+
 
 ### Пример
 Пример с картинкой и описание находится по [ссылке](https://docs.yoctoproject.org/overview-manual/concepts.html#bitbake-tasks-map )
