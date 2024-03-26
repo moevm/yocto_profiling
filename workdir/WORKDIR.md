@@ -4,7 +4,8 @@
 `bitbake -e <recipe-name> | grep ^WORKDIR=`
 
 Пример:
-![alt text](image.png)
+![image](https://github.com/moevm/os_profiling/assets/90854310/4b54dec9-a221-46b9-bf14-725dcafbbbd3)
+
 
 ## Зачем знать переменную WORKDIR
 
@@ -13,10 +14,10 @@
 2) Папки /WORKDIR/image, /WORKDIR/sysroot-destdir, /WORKDIR/package, /WORKDIR/packages-split содержат соответственно выходные данные для задач do_install, do_populate_sysroot, do_package до разделения выходных данных на отдельные пакеты и do_package после разделения выходных данных на отдельные пакеты
 
 Переменную WORKDIR необходимо знать, если мы хотим корректно обрабатывать какие-либо данные из вышеперечисленных, так как иногда WORKDIR определяется нетривиально, как, например, здесь:
+![image](https://github.com/moevm/os_profiling/assets/90854310/ec23263a-1dc4-49e3-b0e5-35b58cd79112)
 
-![alt text](image-2.png)
 
 Данная директория под названием /work-shared/gcc-13.2.0-r0 является рабочим каталогом для рецепта gcc-source-13.2.0, хотя название рецепта нигде не упомянуто, и, без знания WORKDIR мы бы не знали, где искать эти данные. А также, исходя из названия директории, есть опасность перепутать этот каталог, например, с рабочим каталогом для gcc:
+![image](https://github.com/moevm/os_profiling/assets/90854310/40df4b3d-828c-4c01-ad7b-0426c58a911c)
 
-![alt text](image-3.png)
 
