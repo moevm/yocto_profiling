@@ -6,6 +6,7 @@ ARG LANG
 ARG UID
 ARG GID
 ARG CORE
+ARG CODENAME
 ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
 ENV LC_ALL=$LC_ALL
 ENV LANG=$LANG
@@ -45,19 +46,22 @@ RUN apt-get update && \
 	sudo \
 	apt-utils \
 	nano \
-	\
-	linux-tools-common \
-	linux-tools-$CORE \	
+	software-properties-common \
 	\
 	lsof \
 	\
 	sysstat \
 	strace && \
-	\
-	dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG} && \
+	dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG}
+
+
+# install linux-tools-$CORE for host core
+RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
+	apt-get update && \
+	apt-get -y install linux-tools-common linux-tools-${CORE} && \
+	sed -i "s/${CODENAME}/focal/g" /etc/apt/sources.list && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 
 # Python utils
 RUN python3 -m pip install -U psutil numpy matplotlib 
@@ -69,12 +73,14 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 	useradd -u $UID -g $GID -ms /bin/bash yocto_user && \
 	usermod -a -G sudo yocto_user && \
 	usermod -a -G users yocto_user && \
-	install -o $UID -g $GID -d $YOCTO_INSTALL_PATH
+	install -o $UID -g $GID -d $YOCTO_INSTALL_PATH && \
+	echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 
 # Run as build user from the installation path                                                                                                                
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
-  
 
-ENTRYPOINT ["./assembly/building.sh"]
+COPY ./assembly/scripts/up_yocto.sh . 
+
+ENTRYPOINT ["./assembly/setup.sh"]

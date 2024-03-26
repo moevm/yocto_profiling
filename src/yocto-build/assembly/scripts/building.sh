@@ -3,10 +3,12 @@
 
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
+	echo "Create log dir."
 	mkdir logs
 fi
 
 if [ ! -d "./poky" ]; then
+	echo "Clone Poky."
 	git clone git://git.yoctoproject.org/poky
 fi
 
@@ -24,12 +26,14 @@ cd $YOCTO_INSTALL_PATH/assembly
 function start_logging() {
 	# start utils for logging
 	# $1 is txt file for logs
+	# USE SUDO PLS 
 	echo "Start building yocto:" >> $1
 }
 
 function finish_logging() {
 	# finish utils for logging
 	# $1 is txt file for logs
+	# USE SUDO PLS
 	echo "Completed building yocto!" >> $1
 }
 
@@ -56,6 +60,6 @@ function build_yocto() {
 	bitbake core-image-minimal
 }
 
-# entrypoint
+
 decorate_logs build_yocto
-# sleep infinity
+
