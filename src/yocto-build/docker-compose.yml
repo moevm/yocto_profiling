@@ -1,5 +1,3 @@
-version: "3"
-
 
 services:
   yocto_project:
@@ -22,7 +20,7 @@ services:
       - seccomp:unconfined
     privileged: true
     environment:
-      - SCRIPT=stage_build
+      - STAGE_VAR
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
       - /sys/kernel/debug:/sys/kernel/debug

@@ -13,12 +13,12 @@ git clone https://github.com/moevm/os_profiling.git
 - ### **Yocto**
     1. Чтобы создать образ требуется выполнить команду:
         ```
-        docker-compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg CORE=$(uname -r) --build-arg CODENAME=$(cat /etc/lsb-release | grep CODENAME | cut -d = -f 2)
+        docker compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg CORE=$(uname -r) --build-arg CODENAME=$(cat /etc/lsb-release | grep CODENAME | cut -d = -f 2)
         ```
     
     2.  После удачной сборки образа, можно запустить контейнер командой:
         ```
-        docker-compose up
+        docker compose up
         ```
         Когда произоёдет автоматическое закрытие контейнра (с кодом 0) -- всё будет установлено. 
        
@@ -48,18 +48,4 @@ git clone https://github.com/moevm/os_profiling.git
     В скрипте `building.sh` реализован декоратор для предоставления возможности настройки логирования. Скрипт находится по пути `./assembly/scripts/building.sh`. Важно, что все команды позволяющие использовать утилиты для логирования необходимо выполнять строго под `sudo`.
     
     Для того, чтобы настроить и использовать нужные утилиты объявлены функции `function start_logging()` и `function finish_logging()`. Функции позволяют задавать необходимую реализацию логирования. Также в функции перёдаётся аргумент (`$1`) -- файл для логирования по умолчанию (`./assembly/logs/building_logs.txt`).
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
