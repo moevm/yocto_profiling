@@ -1,0 +1,26 @@
+
+services:
+  yocto_project:
+    container_name: yocto_project
+    image: yocto-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - CODENAME
+        - CORE
+        - UID=1000
+        - GID=1000
+        - LANG=en_US.UTF-8
+        - LC_ALL=en_US.UTF-8
+        - YOCTO_INSTALL_PATH=/home/yocto_user/project
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      - STAGE_VAR
+    volumes:
+      - ./assembly:/home/yocto_user/project/assembly
+      - /sys/kernel/debug:/sys/kernel/debug
