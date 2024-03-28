@@ -38,16 +38,21 @@ class Parser:
         self.traverse_pid_directories(poky_path, 'work-shared')
 
     def traverse_pid_directories(self, poky_path, directory):
-            for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),
+        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),
                                            lambda x: x.startswith('log.task_order')):
-            pkg_name = log_file.split('/')[-3]
+            if directory == 'work':
+                pkg_name = log_file.split('/')[-4]
+            else: 
+                pkg_name = log_file.split('/')[-3]
+                if pkg_name.startswith('gcc'):
+                    pkg_name = 'gcc-source'
             self.collect_pid(log_file, pkg_name)
 
     def add_info(self, target_info, pkg_name, task_type=None):
         if pkg_name not in target_info:
             target_info[pkg_name] = {}
         if task_type and task_type not in target_info[pkg_name]:
-            target_info[pkg_name] = {task_type: {}}
+            target_info[pkg_name].update({task_type: {}})
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
         for log_file in log_files_iterator(path):
@@ -82,11 +87,10 @@ class Parser:
 
     def collect_pid(self, path, pkg_name):
         temp = path.split('/')
-        file_name = temp[-1]
         with open(path, 'r') as file:
             for line in file:
                 task_type = line.split(' ')[1]
-                pid = line.split(' ')[2][1: -1]
+                pid = line.split(' ')[2][1: -2]
                 self.add_info(self.pid_info, pkg_name, task_type)
                 self.pid_info.get(pkg_name).get(task_type).update({"PID": pid})
 
