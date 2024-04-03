@@ -4,16 +4,16 @@
      - Docs
      - Sources
      - Used by
-   * - Yocto project
+   * - `Yocto project <https://www.yoctoproject.org>`_
      - https://elbe-rfs.org/docs/sphinx/index.html
      - https://git.yoctoproject.org
      - - https://github.com/openbmc/openbmc
        - https://github.com/riscv/meta-riscv
-   * - Buildroot
+   * - `Buildroot <https://buildroot.org>`_
      - https://docs.yoctoproject.org/
      - https://git.busybox.net/buildroot
      - https://github.com/openwrt/openwrt
-   * - ELBE
+   * - `ELBE <https://elbe-rfs.org>`_
      - https://github.com/openwrt/openwrt
      - https://github.com/Linutronix/elbe
      -
@@ -24,7 +24,7 @@
        - https://github.com/sailfishos/mic
        - https://git.launchpad.net/tizen-mic
      - https://github.com/mer-hybris
-   * - PTXdist
+   * - `PTXdist <https://www.ptxdist.org>`_
      - https://www.ptxdist.org/doc
      - https://git.pengutronix.de/cgit/ptxdist
      -
