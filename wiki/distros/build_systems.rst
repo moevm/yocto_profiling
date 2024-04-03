@@ -24,3 +24,7 @@
        - https://github.com/sailfishos/mic
        - https://git.launchpad.net/tizen-mic
      - https://github.com/mer-hybris
+   * - PTXdist
+     - https://www.ptxdist.org/doc
+     - https://git.pengutronix.de/cgit/ptxdist
+     -
