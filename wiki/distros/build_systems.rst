@@ -32,3 +32,8 @@
      - https://github.com/ilbers/isar/blob/master/doc/user_manual.md
      - https://github.com/ilbers/isar
      -
+   * - Android build system
+     - - https://source.android.com/docs/setup/build/building
+       - https://elinux.org/Android_Build_System
+     - https://source.android.com
+     - https://source.android.com
