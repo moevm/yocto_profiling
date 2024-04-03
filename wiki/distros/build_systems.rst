@@ -17,3 +17,10 @@
      - https://github.com/openwrt/openwrt
      - https://github.com/Linutronix/elbe
      -
+   * - mic + Open Build Service
+     - | https://docs.tizen.org/platform/developing/creating
+       | https://docs.tizen.org/platform/reference/mic/mic-overview
+     - | https://github.com/intel/mic
+       | https://github.com/sailfishos/mic
+       | https://git.launchpad.net/tizen-mic
+     - https://github.com/mer-hybris
