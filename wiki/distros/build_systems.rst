@@ -28,3 +28,7 @@
      - https://www.ptxdist.org/doc
      - https://git.pengutronix.de/cgit/ptxdist
      -
+   * - `Isar <http://www.ilbers.de/en/isar.html>`_
+     - https://github.com/ilbers/isar/blob/master/doc/user_manual.md
+     - https://github.com/ilbers/isar
+     -
