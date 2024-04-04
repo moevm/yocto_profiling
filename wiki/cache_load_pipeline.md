@@ -101,6 +101,7 @@ class SetEncoder(json.JSONEncoder):
     print("B"*20,"\n")
 
     def default(self, obj):
+        
         print("B1"*20,"\n")
         if isinstance(obj, set) or isinstance(obj, frozenset):
             return dict(_set_object=list(sorted(obj)))
@@ -113,7 +114,7 @@ def SetDecoder(dct):
     return dct
 
 def init(d):
-    print("init"*20,"\n")
+    print("init in siggen 49","\n")
     siggens = [obj for obj in globals().values()
                       if type(obj) is type and issubclass(obj, SignatureGenerator)]
 
@@ -130,7 +131,7 @@ def init(d):
 class SignatureGenerator(object):
     """
     """
-    print("C--"*20, "\n")
+    print("C--"*20)
     name = "noop"
 
     def __init__(self, data):
@@ -143,22 +144,22 @@ class SignatureGenerator(object):
         self.unitaskhashes = {}
         self.tidtopn = {}
         self.setscenetasks = set()
-        print("C1"*20, "\n")
+        print("C1"*20)
 
     def finalise(self, fn, d, varient):
-        print("C2"*20, "\n")
+        print("C2"*20)
         return
 
     def postparsing_clean_cache(self):
-        print("C3"*20, "\n")
+        print("C3"*20)
         return
 
     def setup_datacache(self, datacaches):
-        print("C4"*20, "\n")
+        print("C4"*20)
         self.datacaches = datacaches
 
     def setup_datacache_from_datastore(self, mcfn, d):
-        print("C5"*20, "\n")
+        print("C5"*20)
         # In task context we have no cache so setup internal data structures
         # from the fully parsed data store provided
 
@@ -177,30 +178,30 @@ class SignatureGenerator(object):
                 self.datacaches[mc].stamp_extrainfo[mcfn][t] = flag
 
     def get_unihash(self, tid):
-        print("C5"*20, "\n")
+        print("C5"*20)
         return self.taskhash[tid]
 
     def prep_taskhash(self, tid, deps, dataCaches):
-        print("C6"*20, "\n")
+        print("C6"*20)
         return
 
     def get_taskhash(self, tid, deps, dataCaches):
         self.taskhash[tid] = hashlib.sha256(tid.encode("utf-8")).hexdigest()
-        print("C7"*20, "\n")
+        print("C7"*20)
         return self.taskhash[tid]
 
     def writeout_file_checksum_cache(self):
-        print("C8"*20, "\n")
+        print("C8"*20)
         """Write/update the file checksum cache onto disk"""
         return
 
     def stampfile_base(self, mcfn):
-        print("C9"*20, "\n")
+        print("C9"*20)
         mc = bb.runqueue.mc_from_tid(mcfn)
         return self.datacaches[mc].stamp[mcfn]
 
     def stampfile_mcfn(self, taskname, mcfn, extrainfo=True):
-        print("C10"*20, "\n")
+        print("C10")
         mc = bb.runqueue.mc_from_tid(mcfn)
         stamp = self.datacaches[mc].stamp[mcfn]
         if not stamp:
@@ -216,11 +217,11 @@ class SignatureGenerator(object):
         return self.stampfile(stamp, mcfn, taskname, stamp_extrainfo)
 
     def stampfile(self, stampbase, file_name, taskname, extrainfo):
-        print("C11"*20, "\n")
+        print("C11"*20)
         return ("%s.%s.%s" % (stampbase, taskname, extrainfo)).rstrip('.')
 
     def stampcleanmask_mcfn(self, taskname, mcfn):
-        print("C12"*20, "\n")
+        print("C12")
         mc = bb.runqueue.mc_from_tid(mcfn)
         stamp = self.datacaches[mc].stamp[mcfn]
         if not stamp:
@@ -234,61 +235,61 @@ class SignatureGenerator(object):
         return self.stampcleanmask(stamp, mcfn, taskname, stamp_extrainfo)
 
     def stampcleanmask(self, stampbase, file_name, taskname, extrainfo):
-        print("C13"*20, "\n")
+        print("C13"*20)
         return ("%s.%s.%s" % (stampbase, taskname, extrainfo)).rstrip('.')
 
     def dump_sigtask(self, mcfn, task, stampbase, runtime):
-        print("C14"*20, "\n")
+        print("C14"*20)
         return
 
     def invalidate_task(self, task, mcfn):
-        print("C15"*20, "\n")
+        print("C15"*20)
         mc = bb.runqueue.mc_from_tid(mcfn)
         stamp = self.datacaches[mc].stamp[mcfn]
         bb.utils.remove(stamp)
 
     def dump_sigs(self, dataCache, options):
-        print("C16"*20, "\n")
+        print("C16"*20)
         return
 
     def get_taskdata(self):
-        print("C17"*20, "\n")
+        print("C17"*20)
         return (self.runtaskdeps, self.taskhash, self.unihash, self.file_checksum_values, self.taints, self.basehash, self.unitaskhashes, self.tidtopn, self.setscenetasks)
 
     def set_taskdata(self, data):
-        print("C18"*20, "\n")
+        print("C18"*20)
         self.runtaskdeps, self.taskhash, self.unihash, self.file_checksum_values, self.taints, self.basehash, self.unitaskhashes, self.tidtopn, self.setscenetasks = data
 
     def reset(self, data):
-        print("C19"*20, "\n")
+        print("C19"*20)
         self.__init__(data)
 
     def get_taskhashes(self):
-        print("C20"*20, "\n")
+        print("C20"*20)
         return self.taskhash, self.unihash, self.unitaskhashes, self.tidtopn
 
     def set_taskhashes(self, hashes):
-        print("C21"*20, "\n")
+        print("C21"*20)
         self.taskhash, self.unihash, self.unitaskhashes, self.tidtopn = hashes
 
     def save_unitaskhashes(self):
-        print("C22"*20, "\n")
+        print("C22"*20)
         return
 
     def copy_unitaskhashes(self, targetdir):
-        print("C23"*20, "\n")
+        print("C23"*20)
         return
 
     def set_setscene_tasks(self, setscene_tasks):
-        print("C24"*20, "\n")
+        print("C24"*20)
         return
 
     def exit(self):
-        print("C25"*20, "\n")
+        print("C25")
         return
 
 def build_pnid(mc, pn, taskname):
-    print("build_pnid"*20, "\n")
+    print("build_pnid")
     if mc:
         return "mc:" + mc + ":" + pn + ":" + taskname
     return pn + ":" + taskname
@@ -296,10 +297,11 @@ def build_pnid(mc, pn, taskname):
 class SignatureGeneratorBasic(SignatureGenerator):
     """
     """
-    print("D"*20, "\n")
+    print("D"*20)
     name = "basic"
 
     def __init__(self, data):
+        print("D1")
         self.basehash = {}
         self.taskhash = {}
         self.unihash = {}
@@ -323,6 +325,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         self.tidtopn = {}
 
     def init_rundepcheck(self, data):
+        print("D2")
         self.taskhash_ignore_tasks = data.getVar("BB_TASKHASH_IGNORE_TASKS") or None
         if self.taskhash_ignore_tasks:
             self.twl = re.compile(self.taskhash_ignore_tasks)
@@ -330,7 +333,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
             self.twl = None
 
     def _build_data(self, mcfn, d):
-
+        print("D3")
         ignore_mismatch = ((d.getVar("BB_HASH_IGNORE_MISMATCH") or '') == '1')
         tasklist, gendeps, lookupcache = bb.data.generate_dependencies(d, self.basehash_ignore_vars)
 
@@ -351,10 +354,11 @@ class SignatureGeneratorBasic(SignatureGenerator):
         return taskdeps, gendeps, lookupcache
 
     def set_setscene_tasks(self, setscene_tasks):
+        print("D4")
         self.setscenetasks = set(setscene_tasks)
 
     def finalise(self, fn, d, variant):
-
+        print("D5")
         mc = d.getVar("__BBMULTICONFIG", False) or ""
         mcfn = fn
         if variant or mc:
@@ -383,6 +387,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         #    self.dump_sigtask(mcfn, task, d.getVar("STAMP"), False)
 
     def setup_datacache_from_datastore(self, mcfn, d):
+        print("D6")
         super().setup_datacache_from_datastore(mcfn, d)
 
         mc = bb.runqueue.mc_from_tid(mcfn)
@@ -394,6 +399,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         self.datacaches[mc].siggen_gendeps[mcfn] = d.getVar("__siggen_gendeps")
 
     def rundep_check(self, fn, recipename, task, dep, depname, dataCaches):
+        print("D7")
         # Return True if we should keep the dependency, False to drop it
         # We only manipulate the dependencies for packages not in the ignore
         # list
@@ -404,6 +410,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         return True
 
     def read_taint(self, fn, task, stampbase):
+        print("D8")
         taint = None
         try:
             with open(stampbase + '.' + task + '.taint', 'r') as taintf:
@@ -413,7 +420,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         return taint
 
     def prep_taskhash(self, tid, deps, dataCaches):
-
+        print("D9")
         (mc, _, task, mcfn) = bb.runqueue.split_tid_mcfn(tid)
 
         self.basehash[tid] = dataCaches[mc].basetaskhash[tid]
@@ -463,7 +470,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         return
 
     def get_taskhash(self, tid, deps, dataCaches):
-
+        print("D10")
         data = self.basehash[tid]
         for dep in sorted(self.runtaskdeps[tid]):
             data += self.get_unihash(dep[1])
@@ -486,6 +493,7 @@ class SignatureGeneratorBasic(SignatureGenerator):
         return h
 
     def writeout_file_checksum_cache(self):
+        print("D11")
         """Write/update the file checksum cache onto disk"""
         if self.checksum_cache:
             self.checksum_cache.save_extras()
@@ -495,12 +503,15 @@ class SignatureGeneratorBasic(SignatureGenerator):
             bb.fetch2.fetcher_parse_done()
 
     def save_unitaskhashes(self):
+        print("D12")
         self.unihash_cache.save(self.unitaskhashes)
 
     def copy_unitaskhashes(self, targetdir):
+        print("D13")
         self.unihash_cache.copyfile(targetdir)
 
     def dump_sigtask(self, mcfn, task, stampbase, runtime):
+        print("D14")
         tid = mcfn + ":" + task
         mc = bb.runqueue.mc_from_tid(mcfn)
         referencestamp = stampbase
@@ -576,10 +587,11 @@ class SignatureGeneratorBasic(SignatureGenerator):
             raise err
 
 class SignatureGeneratorBasicHash(SignatureGeneratorBasic):
-    print("E"*20, "\n")
+    print("E"*20)
     name = "basichash"
 
     def get_stampfile_hash(self, tid):
+        print("E1")
         if tid in self.taskhash:
             return self.taskhash[tid]
 
@@ -587,6 +599,7 @@ class SignatureGeneratorBasicHash(SignatureGeneratorBasic):
         return self.basehash[tid]
 
     def stampfile(self, stampbase, mcfn, taskname, extrainfo, clean=False):
+        print("E2")
         if taskname.endswith("_setscene"):
             tid = mcfn + ":" + taskname[:-9]
         else:
@@ -599,9 +612,11 @@ class SignatureGeneratorBasicHash(SignatureGeneratorBasic):
         return ("%s.%s.%s.%s" % (stampbase, taskname, h, extrainfo)).rstrip('.')
 
     def stampcleanmask(self, stampbase, mcfn, taskname, extrainfo):
+        print("E3")
         return self.stampfile(stampbase, mcfn, taskname, extrainfo, clean=True)
 
     def invalidate_task(self, task, mcfn):
+        print("E4")
         bb.note("Tainting hash to force rebuild of task %s, %s" % (mcfn, task))
 
         mc = bb.runqueue.mc_from_tid(mcfn)
@@ -617,36 +632,43 @@ class SignatureGeneratorBasicHash(SignatureGeneratorBasic):
             taintf.write(str(uuid.uuid4()))
 
 class SignatureGeneratorUniHashMixIn(object):
-    print("F"*20, "\n")
+    print("F"*20)
     def __init__(self, data):
+        print("F1")
         self.extramethod = {}
         super().__init__(data)
 
     def get_taskdata(self):
+        print("F2")
         return (self.server, self.method, self.extramethod) + super().get_taskdata()
 
     def set_taskdata(self, data):
+        print("F3")
         self.server, self.method, self.extramethod = data[:3]
         super().set_taskdata(data[3:])
 
     def client(self):
+        print("F4")
         if getattr(self, '_client', None) is None:
             self._client = hashserv.create_client(self.server)
         return self._client
 
     def reset(self, data):
+        print("F5")
         if getattr(self, '_client', None) is not None:
             self._client.close()
             self._client = None 
         return super().reset(data)
 
     def exit(self):
+        print("F6")
         if getattr(self, '_client', None) is not None:
             self._client.close()
             self._client = None
         return super().exit()
 
     def get_stampfile_hash(self, tid):
+        print("F7")
         if tid in self.taskhash:
             # If a unique hash is reported, use it as the stampfile hash. This
             # ensures that if a task won't be re-run if the taskhash changes,
@@ -658,12 +680,14 @@ class SignatureGeneratorUniHashMixIn(object):
         return super().get_stampfile_hash(tid)
 
     def set_unihash(self, tid, unihash):
+        print("F8")
         (mc, fn, taskname, taskfn) = bb.runqueue.split_tid_mcfn(tid)
         key = mc + ":" + self.tidtopn[tid] + ":" + taskname
         self.unitaskhashes[key] = (self.taskhash[tid], unihash)
         self.unihash[tid] = unihash
 
     def _get_unihash(self, tid, checkkey=None):
+        print("F9")
         if tid not in self.tidtopn:
             return None
         (mc, fn, taskname, taskfn) = bb.runqueue.split_tid_mcfn(tid)
@@ -678,6 +702,7 @@ class SignatureGeneratorUniHashMixIn(object):
         return unihash
 
     def get_unihash(self, tid):
+        print("F10")
         taskhash = self.taskhash[tid]
 
         # If its not a setscene task we can return
@@ -728,6 +753,7 @@ class SignatureGeneratorUniHashMixIn(object):
         return unihash
 
     def report_unihash(self, path, task, d):
+        print("F11")
         import importlib
 
         taskhash = d.getVar('BB_TASKHASH')
@@ -814,6 +840,7 @@ class SignatureGeneratorUniHashMixIn(object):
                     pass
 
     def report_unihash_equiv(self, tid, taskhash, wanted_unihash, current_unihash, datacaches):
+        print("F12")
         try:
             extra_data = {}
             method = self.method
@@ -848,7 +875,7 @@ class SignatureGeneratorUniHashMixIn(object):
 # Dummy class used for bitbake-selftest
 #
 class SignatureGeneratorTestEquivHash(SignatureGeneratorUniHashMixIn, SignatureGeneratorBasicHash):
-    print("G"*20, "\n")
+    print("G"*20)
     name = "TestEquivHash"
     def init_rundepcheck(self, data):
         super().init_rundepcheck(data)
@@ -856,12 +883,14 @@ class SignatureGeneratorTestEquivHash(SignatureGeneratorUniHashMixIn, SignatureG
         self.method = "sstate_output_hash"
 
 def clean_checksum_file_path(file_checksum_tuple):
+    print('clean_checksum_file_path')
     f, cs = file_checksum_tuple
     if "/./" in f:
         return "./" + f.split("/./")[1]
     return f
 
 def dump_this_task(outfile, d):
+    print('dump_this_task')
     import bb.parse
     mcfn = d.getVar("BB_FILENAME")
     task = "do_" + d.getVar("BB_CURRENTTASK")
@@ -869,6 +898,7 @@ def dump_this_task(outfile, d):
     bb.parse.siggen.dump_sigtask(mcfn, task, outfile, "customfile:" + referencestamp)
 
 def init_colors(enable_color):
+    print('init_colors')
     """Initialise colour dict for passing to compare_sigfiles()"""
     # First set up the colours
     colors = {'color_title':   '\033[1m',
@@ -883,6 +913,7 @@ def init_colors(enable_color):
     return colors
 
 def worddiff_str(oldstr, newstr, colors=None):
+    print('worddiff_str')
     if not colors:
         colors = init_colors(False)
     diff = simplediff.diff(oldstr.split(' '), newstr.split(' '))
@@ -903,6 +934,7 @@ def worddiff_str(oldstr, newstr, colors=None):
     return '"%s"%s' % (' '.join(ret), whitespace_note)
 
 def list_inline_diff(oldlist, newlist, colors=None):
+    print('list_inline_diff')
     if not colors:
         colors = init_colors(False)
     diff = simplediff.diff(oldlist, newlist)
@@ -921,6 +953,7 @@ def list_inline_diff(oldlist, newlist, colors=None):
 
 # Handled renamed fields
 def handle_renames(data):
+    print('handle_renames')
     if 'basewhitelist' in data:
         data['basehash_ignore_vars'] = data['basewhitelist']
         del data['basewhitelist']
@@ -930,6 +963,7 @@ def handle_renames(data):
 
 
 def compare_sigfiles(a, b, recursecb=None, color=False, collapsed=False):
+    print('compare_sigfiles')
     output = []
 
     colors = init_colors(color)
@@ -958,6 +992,7 @@ def compare_sigfiles(a, b, recursecb=None, color=False, collapsed=False):
         handle_renames(data)
 
     def dict_diff(a, b, ignored_vars=set()):
+        print('dict_diff')
         sa = set(a.keys())
         sb = set(b.keys())
         common = sa & sb
@@ -970,6 +1005,7 @@ def compare_sigfiles(a, b, recursecb=None, color=False, collapsed=False):
         return changed, added, removed
 
     def file_checksums_diff(a, b):
+        print('file_checksums_diff')
         from collections import Counter
 
         # Convert lists back to tuples
@@ -1151,6 +1187,7 @@ def compare_sigfiles(a, b, recursecb=None, color=False, collapsed=False):
 
 
 def calc_basehash(sigdata):
+    print('calc_basehash')
     task = sigdata['task']
     basedata = sigdata['varvals'][task]
 
@@ -1167,6 +1204,7 @@ def calc_basehash(sigdata):
     return hashlib.sha256(basedata.encode("utf-8")).hexdigest()
 
 def calc_taskhash(sigdata):
+    print('calc_taskhash')
     data = sigdata['basehash']
 
     for dep in sigdata['runtaskdeps']:
@@ -1188,6 +1226,8 @@ def calc_taskhash(sigdata):
 
 
 def dump_sigfile(a):
+    print('dump_sigfile')
+    
     output = []
 
     with bb.compress.zstd.open(a, "rt", encoding="utf-8", num_threads=1) as f:
