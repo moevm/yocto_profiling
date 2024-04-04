@@ -23,3 +23,17 @@ server.cooker = cooker
 server.run()  # это тот, который ProcessServer
 ```
 -> server.run() -> self.main() # имеется ввиду ProcessServer : ``` while not self.quit ... ``` <- вот тут вот основное действие происходит
+
+
+и вот тут внутри из канала задач происходит выполнение задач из `self.command_channel`.
+
+сверка сигнатур делает **что-то**, а потом вызывается задача с логами: 
+```
+35 13:42:32.022365 Running command ['buildTargets', ['core-image-minimal'], 'build']
+35 13:42:32.022387 Registering idle function <bound method Command.runAsyncCommand of <bb.command.Command object at 0x7f06360f4dc0>>
+35 13:42:32.022390 Sending reply (True, None)
+35 13:42:32.022399 Command Completed (socket: True)
+35 13:42:32.078766 Parsing started
+```
+
+а точка входа в эту задачу находится в updateCache из BBCooker из /bitbake/lib/bb/cooker.py  
