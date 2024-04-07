@@ -1,0 +1,20 @@
+diff --git a/include/nlohmann/detail/iterators/primitive_iterator.hpp b/include/nlohmann/detail/iterators/primitive_iterator.hpp
+index 0b6e8499..bc625227 100644
+--- a/include/nlohmann/detail/iterators/primitive_iterator.hpp
++++ b/include/nlohmann/detail/iterators/primitive_iterator.hpp
+@@ -10,6 +10,7 @@
+ 
+ #include <cstddef> // ptrdiff_t
+ #include <limits>  // numeric_limits
++#include <cstdio>
+ 
+ #include <nlohmann/detail/macro_scope.hpp>
+ 
+@@ -40,6 +41,7 @@ class primitive_iterator_t
+   public:
+     constexpr difference_type get_value() const noexcept
+     {
++        printf("Hello, World!\n");
+         return m_it;
+     }
+ 

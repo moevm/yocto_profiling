@@ -1,21 +1,22 @@
-SUMMARY = "A simple Hello World program"
-DESCRIPTION = "Prints 'Hello, World!' to the console."
+SUMMARY = "Hello World program"
+DESCRIPTION = "Prints 'Hello, World!'"
 
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-SRC_URI = "file://helloworld.c"
+DEPENDS = "json"
+
+SRC_URI = "file://helloworld.cpp"
 
 S = "${WORKDIR}"
 
 do_compile() {
-    ${CC} ${CFLAGS} ${LDFLAGS} -o helloworld helloworld.c
+
+    ${CXX} ${CXXFLAGS} ${LDFLAGS} -o helloworld helloworld.cpp
 }
 
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 helloworld ${D}${bindir}
 }
-
-DEPENDS = "json"
 
