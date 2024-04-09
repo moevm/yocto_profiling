@@ -1,0 +1,159 @@
+WARNING: Host distribution "ubuntu-23.10" has not been validated with this version of the build system; you may possibly experience unexpected failures. It is recommended that you use a tested distribution.
+NOTE: Resolving any missing task queue dependencies
+
+Build Configuration:
+BB_VERSION           = "2.7.3"
+BUILD_SYS            = "x86_64-linux"
+NATIVELSBSTRING      = "universal"
+TARGET_SYS           = "x86_64-poky-linux"
+MACHINE              = "qemux86-64"
+DISTRO               = "poky"
+DISTRO_VERSION       = "4.3+snapshot-78e48090b2c2aa94112b986e0948b0a981d08e7f"
+TUNE_FEATURES        = "m64 core2"
+TARGET_FPU           = ""
+meta                 
+meta-poky            
+meta-yocto-bsp       
+meta-user            = "master:78e48090b2c2aa94112b986e0948b0a981d08e7f"
+
+Sstate summary: Wanted 20 Local 0 Mirrors 0 Missed 20 Current 1876 (0% match, 98% complete)
+NOTE: Executing Tasks
+NOTE: Setscene tasks completed
+NOTE: Running task 1683 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_recipe_qa)
+NOTE: recipe json-1.0-r0: task do_recipe_qa: Started
+NOTE: recipe json-1.0-r0: task do_recipe_qa: Succeeded
+NOTE: Task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_recipe_qa unihash changed to 323ab98985719019b6d504225ee0801f740e5fd09f5e3bfcdfdaf49e3b54700e
+NOTE: Setscene tasks completed
+NOTE: Running task 1962 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_fetch)
+NOTE: recipe json-1.0-r0: task do_fetch: Started
+NOTE: recipe json-1.0-r0: task do_fetch: Succeeded
+NOTE: Running task 4119 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_unpack)
+NOTE: Running task 4120 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_prepare_recipe_sysroot)
+NOTE: recipe json-1.0-r0: task do_unpack: Started
+NOTE: recipe json-1.0-r0: task do_prepare_recipe_sysroot: Started
+NOTE: recipe json-1.0-r0: task do_prepare_recipe_sysroot: Succeeded
+NOTE: recipe json-1.0-r0: task do_unpack: Succeeded
+NOTE: Running task 4121 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_patch)
+NOTE: Running task 4122 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_collect_spdx_deps)
+NOTE: recipe json-1.0-r0: task do_patch: Started
+NOTE: recipe json-1.0-r0: task do_collect_spdx_deps: Started
+NOTE: recipe json-1.0-r0: task do_collect_spdx_deps: Succeeded
+NOTE: recipe json-1.0-r0: task do_patch: Succeeded
+NOTE: Running task 4123 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_deploy_source_date_epoch)
+NOTE: Running task 4124 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_generate_toolchain_file)
+NOTE: Running task 4125 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_populate_lic)
+NOTE: recipe json-1.0-r0: task do_deploy_source_date_epoch: Started
+NOTE: recipe json-1.0-r0: task do_generate_toolchain_file: Started
+NOTE: recipe json-1.0-r0: task do_populate_lic: Started
+NOTE: recipe json-1.0-r0: task do_populate_lic: Succeeded
+NOTE: recipe json-1.0-r0: task do_generate_toolchain_file: Succeeded
+NOTE: Task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_populate_lic unihash changed to 5c9d98ef3f9e43eb3014e7a378eb65f23dd3d81068ec7339ee4b84d9b1c7e868
+NOTE: recipe json-1.0-r0: task do_deploy_source_date_epoch: Succeeded
+NOTE: Task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_deploy_source_date_epoch unihash changed to 88f156b961585445e252dcb1803177d9bff3e0018b1fb154f89ce188ce08fea1
+NOTE: Setscene tasks completed
+NOTE: Running task 4126 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_configure)
+NOTE: recipe json-1.0-r0: task do_configure: Started
+NOTE: recipe json-1.0-r0: task do_configure: Succeeded
+NOTE: Running task 4127 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_compile)
+NOTE: recipe json-1.0-r0: task do_compile: Started
+NOTE: recipe json-1.0-r0: task do_compile: Succeeded
+NOTE: Running task 4128 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_install)
+NOTE: recipe json-1.0-r0: task do_install: Started
+NOTE: recipe json-1.0-r0: task do_install: Succeeded
+NOTE: Running task 4129 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package)
+NOTE: Running task 4130 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_populate_sysroot)
+NOTE: recipe json-1.0-r0: task do_populate_sysroot: Started
+NOTE: recipe json-1.0-r0: task do_package: Started
+NOTE: recipe json-1.0-r0: task do_populate_sysroot: Succeeded
+NOTE: Task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_populate_sysroot unihash changed to b116d40ce5932f71e832584e8952185b5d3ee638b1735fddc29b801c2a778040
+NOTE: Setscene tasks completed
+NOTE: Running task 4131 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_prepare_recipe_sysroot)
+NOTE: recipe helloworld-1.0-r0: task do_prepare_recipe_sysroot: Started
+NOTE: recipe helloworld-1.0-r0: task do_prepare_recipe_sysroot: Succeeded
+NOTE: Running task 4132 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_configure)
+NOTE: recipe helloworld-1.0-r0: task do_configure: Started
+NOTE: recipe helloworld-1.0-r0: task do_configure: Succeeded
+NOTE: recipe json-1.0-r0: task do_package: Succeeded
+NOTE: Running task 4133 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_compile)
+NOTE: Task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package unihash changed to 718661a210452f4b42309e6ffe2f00940a74a7ca71736c45e2febd70e7e837f9
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package_qa became valid
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_packagedata became valid
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package_qa became valid
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package_write_rpm became valid
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_packagedata became valid
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package_write_rpm became valid
+NOTE: recipe helloworld-1.0-r0: task do_compile: Started
+NOTE: Running setscene task 1888 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package_qa_setscene)
+NOTE: Running setscene task 1889 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package_write_rpm_setscene)
+NOTE: Running setscene task 1891 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package_qa_setscene)
+NOTE: Running setscene task 1892 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_package_write_rpm_setscene)
+NOTE: recipe helloworld-1.0-r0: task do_package_qa_setscene: Started
+NOTE: recipe helloworld-1.0-r0: task do_package_write_rpm_setscene: Started
+NOTE: recipe json-1.0-r0: task do_package_write_rpm_setscene: Started
+NOTE: recipe helloworld-1.0-r0: task do_package_qa_setscene: Succeeded
+NOTE: recipe json-1.0-r0: task do_package_qa_setscene: Started
+NOTE: recipe helloworld-1.0-r0: task do_package_write_rpm_setscene: Succeeded
+NOTE: Running setscene task 1896 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_packagedata_setscene)
+NOTE: recipe json-1.0-r0: task do_package_write_rpm_setscene: Succeeded
+NOTE: recipe json-1.0-r0: task do_package_qa_setscene: Succeeded
+NOTE: Running setscene task 1897 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_packagedata_setscene)
+NOTE: recipe helloworld-1.0-r0: task do_packagedata_setscene: Started
+NOTE: recipe helloworld-1.0-r0: task do_packagedata_setscene: Succeeded
+NOTE: recipe json-1.0-r0: task do_packagedata_setscene: Started
+NOTE: recipe json-1.0-r0: task do_packagedata_setscene: Succeeded
+NOTE: Setscene tasks completed
+NOTE: Running task 4135 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_create_spdx)
+NOTE: recipe json-1.0-r0: task do_create_spdx: Started
+NOTE: recipe json-1.0-r0: task do_create_spdx: Succeeded
+NOTE: Running task 4138 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_collect_spdx_deps)
+NOTE: Running task 4139 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/json.bb:do_create_runtime_spdx)
+NOTE: recipe helloworld-1.0-r0: task do_collect_spdx_deps: Started
+NOTE: recipe json-1.0-r0: task do_create_runtime_spdx: Started
+NOTE: recipe helloworld-1.0-r0: task do_collect_spdx_deps: Succeeded
+NOTE: recipe json-1.0-r0: task do_create_runtime_spdx: Succeeded
+NOTE: recipe helloworld-1.0-r0: task do_compile: Succeeded
+NOTE: Setscene task /home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package became valid
+NOTE: Running setscene task 1897 of 1897 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_package_setscene)
+NOTE: recipe helloworld-1.0-r0: task do_package_setscene: Started
+NOTE: recipe helloworld-1.0-r0: task do_package_setscene: Succeeded
+NOTE: Setscene tasks completed
+NOTE: Running task 4143 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_create_spdx)
+NOTE: recipe helloworld-1.0-r0: task do_create_spdx: Started
+NOTE: recipe helloworld-1.0-r0: task do_create_spdx: Succeeded
+NOTE: Running task 4146 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_create_runtime_spdx)
+NOTE: Running task 4147 of 4157 (/home/elizaveta/poky/meta-user/recipies-example/helloworld.bb:do_create_runtime_spdx)
+NOTE: recipe helloworld-1.0-r0: task do_create_runtime_spdx: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_create_runtime_spdx: Started
+NOTE: recipe helloworld-1.0-r0: task do_create_runtime_spdx: Succeeded
+NOTE: recipe core-image-minimal-1.0-r0: task do_create_runtime_spdx: Succeeded
+NOTE: Task /home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_create_runtime_spdx unihash changed to a83e42230db09f3a5cd42e0664de09856f2ad2df33c6bb24bcc0dcfe709ebc92
+NOTE: Setscene tasks completed
+NOTE: Running task 4148 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_rootfs)
+NOTE: recipe core-image-minimal-1.0-r0: task do_rootfs: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_rootfs: Succeeded
+NOTE: Running task 4149 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_flush_pseudodb)
+NOTE: Running task 4150 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_write_qemuboot_conf)
+NOTE: recipe core-image-minimal-1.0-r0: task do_flush_pseudodb: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_write_qemuboot_conf: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_write_qemuboot_conf: Succeeded
+NOTE: recipe core-image-minimal-1.0-r0: task do_flush_pseudodb: Succeeded
+NOTE: Running task 4151 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_image_qa)
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_qa: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_qa: Succeeded
+NOTE: Running task 4152 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_image)
+NOTE: recipe core-image-minimal-1.0-r0: task do_image: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_image: Succeeded
+NOTE: Running task 4153 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_image_ext4)
+NOTE: Running task 4154 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_image_tar)
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_ext4: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_tar: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_tar: Succeeded
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_ext4: Succeeded
+NOTE: Running task 4155 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_image_complete)
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_complete: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_image_complete: Succeeded
+NOTE: Running task 4156 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_populate_lic_deploy)
+NOTE: recipe core-image-minimal-1.0-r0: task do_populate_lic_deploy: Started
+NOTE: recipe core-image-minimal-1.0-r0: task do_populate_lic_deploy: Succeeded
+NOTE: Running noexec task 4157 of 4157 (/home/elizaveta/poky/meta/recipes-core/images/core-image-minimal.bb:do_build)
+NOTE: Tasks Summary: Attempted 4157 tasks of which 4124 didn't need to be rerun and all succeeded.

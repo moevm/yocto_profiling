@@ -1,0 +1,20 @@
+diff --git a/include/nlohmann/json.hpp b/include/nlohmann/json.hpp
+index 31ca6453..c5ab7b8d 100644
+--- a/include/nlohmann/json.hpp
++++ b/include/nlohmann/json.hpp
+@@ -30,6 +30,7 @@
+ #include <string> // string, stoi, to_string
+ #include <utility> // declval, forward, move, pair, swap
+ #include <vector> // vector
++#include <iostream>
+ 
+ #include <nlohmann/adl_serializer.hpp>
+ #include <nlohmann/byte_container_with_subtype.hpp>
+@@ -248,6 +249,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
+     static basic_json meta()
+     {
+         basic_json result;
++        std::cout << "hello";
+ 
+         result["copyright"] = "(C) 2013-2023 Niels Lohmann";
+         result["name"] = "JSON for Modern C++";
