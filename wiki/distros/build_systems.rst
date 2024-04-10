@@ -44,7 +44,7 @@
        - https://git.launchpad.net/tizen-mic
      - https://github.com/mer-hybris
    * - `osbuild <https://osbuild.org>`_
-     (image generator for RPM-based distributions, doesn't build packages)
+       (image generator for RPM-based distributions, doesn't build packages)
      - https://osbuild.org/docs/user-guide/introduction
      - https://github.com/osbuild/osbuild
      - - https://sigs.centos.org/automotive/building/
