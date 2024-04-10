@@ -17,13 +17,6 @@
      - https://github.com/openwrt/openwrt
      - https://github.com/Linutronix/elbe
      -
-   * - mic + Open Build Service
-     - - https://docs.tizen.org/platform/developing/creating
-       - https://docs.tizen.org/platform/reference/mic/mic-overview
-     - - https://github.com/intel/mic
-       - https://github.com/sailfishos/mic
-       - https://git.launchpad.net/tizen-mic
-     - https://github.com/mer-hybris
    * - `PTXdist <https://www.ptxdist.org>`_
      - https://www.ptxdist.org/doc
      - https://git.pengutronix.de/cgit/ptxdist
@@ -37,3 +30,22 @@
        - https://elinux.org/Android_Build_System
      - https://source.android.com
      - https://source.android.com
+   * - `Open Build Service <https://openbuildservice.org>`_
+       (builds RPM packages and creates repositories, doesn't generate images)
+     - https://openbuildservice.org/help/manuals/obs-user-guide
+     - https://github.com/openSUSE/open-build-service
+     - - https://build.sailfishos.org
+       - https://build.opensuse.org
+   * - mic (image generator, used with Open Build Service)
+     - - https://docs.tizen.org/platform/developing/creating
+       - https://docs.tizen.org/platform/reference/mic/mic-overview
+     - - https://github.com/intel/mic
+       - https://github.com/sailfishos/mic
+       - https://git.launchpad.net/tizen-mic
+     - https://github.com/mer-hybris
+   * - `osbuild <https://osbuild.org>`_
+     (image generator for RPM-based distributions, doesn't build packages)
+     - https://osbuild.org/docs/user-guide/introduction
+     - https://github.com/osbuild/osbuild
+     - - https://sigs.centos.org/automotive/building/
+       - https://fedoraproject.org/wiki/Changes/FedoraWorkstationImageBuilder
