@@ -17,7 +17,7 @@ cd $YOCTO_INSTALL_PATH/assembly/poky
 branch=$(git branch --show-current)
 if [ "$branch" != "my-nanbield" ]; then
 	echo "Switch the branch."
-	git checkout -t origin/nanbield -b my-nanbield
+	git checkout 1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a -b my-nanbield
 fi
 
 
