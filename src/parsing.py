@@ -64,25 +64,30 @@ class Parser:
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
-        ignore_list = ['Event', 'Started', 'Ended', 'Status']
+        ignore_list = ['Event', 'Ended', 'Status']
         pkg_name, task_type = '', ''
+        package_info = {}
         for line in log_iterator(path):
             metric, value = line.split(': ')
             value = (re.split(" |\n", value))[0]
             if value.startswith('do_'):
                 task_type = value
-                while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
-                       or metric[-1] == '-'):
-                    metric = metric[: -1:]
-                pkg_name = metric
-                self.add_info(self.info, metric, task_type)
+                if 'gcc-source' not in metric:
+                    while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
+                        or metric[-1] == '-'):
+                        metric = metric[: -1:]
+                    pkg_name = metric
+                else:
+                    pkg_name = 'gcc-source'
+                self.add_info(self.info, pkg_name, task_type)
                 if pkg_name in self.pid_info.keys() and task_type in self.pid_info.get(
                         pkg_name).keys():  # пытаемся сопоставить PID данной задаче
-                    self.info.get(pkg_name).get(task_type).update(
-                        {"PID": self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
+
+                    package_info.update({'PID': self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
             else:
                 if metric not in ignore_list:
-                    self.info.get(pkg_name).get(task_type).update({metric: value})
+                    package_info.update({metric: value})
+        self.info[pkg_name].update({task_type: package_info})
 
 
     def collect_pid(self, path, pkg_name):
