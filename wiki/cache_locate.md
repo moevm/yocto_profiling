@@ -15,7 +15,7 @@
 `oe-init-build-env` вызывает `oe-setup-builddir` , именно в этой файле заполняется `local.conf` .
 
 ### Настройка файла local.conf
-Мы можем задать сами расположение локального [кэша](https://github.com/moevm/os_profiling/new/cache_locate/wiki#%D0%BB%D0%BE%D0%BA%D0%B0%D1%86%D0%B8%D1%8F-%D0%BB%D0%BE%D0%BA%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BA%D1%8D%D1%88%D0%B0)  
+Мы можем задать сами расположение локального [кэша](#локация-локального-кэша)
 
 Сопоставим переменной вид кэша   
 `DL_DIR` - **Загруженный исходный код**   
