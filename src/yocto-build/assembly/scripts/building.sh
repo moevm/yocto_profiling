@@ -12,12 +12,14 @@ if [ ! -d "./poky" ]; then
 	git clone git://git.yoctoproject.org/poky
 fi
 
+branch_name=my-upstream
+commit_hash=1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
-branch=$(git branch --show-current)
-if [ "$branch" != "my-nanbield" ]; then
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "$branch_name" ]; then
 	echo "Switch the branch."
-	git checkout -t origin/nanbield -b my-nanbield
+	git checkout $commit_hash -b $branch_name
 fi
 
 
