@@ -8,9 +8,10 @@ def create_fs_tree(path):
 
 
 def create_chart(tree, timestamp_list):
-    metrics = ['utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'rusage ru_utime', 'rusage ru_stime', 'rusage ru_maxrss', 'Child rusage ru_utime', 'Child rusage ru_stime'] #можно что-то добавить
+    metrics = ['utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'rusage ru_utime', 'rusage ru_stime',
+               'rusage ru_maxrss', 'Child rusage ru_utime', 'Child rusage ru_stime'] #можно что-то добавить
     num_metrics = len(metrics)
-    
+
     for i in range(num_metrics):
         data = create_data(metrics[i], tree, timestamp_list)
         sorted_data = dict(sorted(data.items(), key=lambda item: item[1]))
@@ -20,21 +21,21 @@ def create_chart(tree, timestamp_list):
         plt.tight_layout()
         plt.xticks(rotation=90)
         plt.savefig(metrics[i]+'.png')
-    
+
 
 def create_data(metric, tree, timestamp_list):
     result = dict()
     for package in tree:
-            data = 0
-            if package[1] == []:
-                for task in package[2]:
-                    if task.startswith('do_'):
-                        with open(package[0] + '/' + task, 'r') as file:
-                            for line in file:
-                                if line.startswith(metric + ': '):
-                                    data += float(line[line.index(':') + 2 : ])
-            if (not package[0].endswith('reduced_proc_pressure')) and (not (package[0].split('/'))[-1] in timestamp_list):
-                result.update({package[0][package[0].rfind('/') + 1 :] : data})
+        data = 0
+        if package[1] == []:
+            for task in package[2]:
+                if task.startswith('do_'):
+                    with open(package[0] + '/' + task, 'r') as file:
+                        for line in file:
+                            if line.startswith(metric + ': '):
+                                data += float(line[line.index(':') + 2 : ])
+        if (not package[0].endswith('reduced_proc_pressure')) and (not (package[0].split('/'))[-1] in timestamp_list):
+            result.update({package[0][package[0].rfind('/') + 1 :] : data})
     return result
 
 
