@@ -19,8 +19,8 @@ def ranking_task_info(info, pid_info, task, metric='Elapsed time', border=1, rev
     return task_info
 
 
-def get_ranked_data_for_all_tasks(info, pid_info, border=1):
-    ranked_data = {task_type : ranking_task_info(info, pid_info, task_type, border=border) for task_type in all_tasks}
+def get_ranked_data_for_all_tasks(info, pid_info, metric='Elapsed time', border=1, reverse=True):
+    ranked_data = {task_type : ranking_task_info(info, pid_info, task_type, metric=metric, border=border, reverse=reverse) for task_type in all_tasks}
     return ranked_data
 
 
@@ -36,7 +36,7 @@ def write_ranked_data(data, filename):
 
 def main(): 
     # запуск парсера как в main у парсера, затем вызов функции ranking_task_info
-    data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, 0.1)
+    data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=0.1)
     write_ranked_data(data, 'ranking_output.txt')
 
 
