@@ -1,6 +1,5 @@
-# Кэш Yocto
-В данной папке находится информация, связанная с кэшированием в Yocto.
-* [cache_locate](./cache_locate.md) - описание расположения локального кэша в Yocto,
-а также информация о том, как настроить его с помощью конфигурации
-* [local_cache_share](./local_cache_share.md) - описание общего использования локального кэша
-* [yocto_cache](./yocto_cache.md) - общие сведения о Yocto/Bitbake кэшировании
+# Инструменты для профилирования Yocto
+В данной папке находится информация о различных утилитах для профилирования Yocto.
+* [cpu_tracer](./cpu_tracer.md) - трассировка CPU при помощи ftrace
+* [profiling_tools](./profilling_tools.md) - описание различных утилит: perf, perf stat, perf mem, iostat, perf ftrace/trace, lsof, psutil, strace
+* [psutil_lsof](./psutil_lsof.md) - описание работы psutil, реализующим основной функционал lsof
