@@ -24,3 +24,4 @@ else
 	echo "ERROR: neither \"docker-compose\" nor \"docker compose\" appear to be installed."
 	exit 1
 fi
+
