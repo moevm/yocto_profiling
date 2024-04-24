@@ -2,7 +2,7 @@
 
 SCRIPTS_DIR=$PWD/scripts
 CHECKS_DIR=$SCRIPTS_DIR/checks
-scripts_list=("build_env" "shell" "build_yocto_image" "up_yocto")
+scripts_list=("build_env" "shell" "build_yocto_image" "start_yocto")
 
 DOCKERFILE_DIR=$PWD/yocto-build
 
@@ -12,7 +12,7 @@ function help() {
         echo -e "\t<build_env> -- builds an image of the virtual environment."
         echo -e "\t<shell> -- opens a terminal in container."
         echo -e "\t<build_yocto_image> -- build the yocto image in container."
-	echo -e "\t<up_yocto> -- up the yocto image.\n"
+	echo -e "\t<start_yocto> -- up the yocto image.\n"
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."
