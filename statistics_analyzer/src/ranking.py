@@ -14,7 +14,8 @@ def ranking_task_info(info, pid_info, task, metric='Elapsed time', border=1, rev
         if package in info.keys() and package in pid_info.keys():
             for task_type in info[package]:
                 if task_type == task:
-                    task_info.append((package, info[package][task_type].get("PID"), info[package][task_type][metric]))
+                    if metric in info[package][task_type]:
+                        task_info.append((package, pid_info[package][task_type].get("PID"), info[package][task_type][metric]))
     task_info = sorted(task_info, key=lambda x: float(x[2]), reverse=reverse)[:math.floor(len(task_info) * border)]
     return task_info
 
