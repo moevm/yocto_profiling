@@ -9,7 +9,10 @@ DOCKERFILE_DIR=$PWD/yocto-build
 function help() {
         echo "This script is needed for interaction with the image of Yocto Project."
         echo "List of available parameters:"
+
         echo -e "\t<build_env> -- builds an image of the virtual environment."
+	echo -e "\t\t<--no-perf> -- disables installation of the perf."
+
         echo -e "\t<shell> -- opens a terminal in container."
         echo -e "\t<build_yocto_image> -- build the yocto image in container."
 	echo -e "\t<start_yocto> -- up the yocto image.\n"
@@ -42,7 +45,16 @@ fi
 
 
 if [[ ${scripts_list[@]} =~ "$1" ]]; then
-	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR
+	
+	REQS_ARG="perf"
+	if [[ $1 == ${scripts_list[0]} && ! -z "$2" ]]; then
+                if [[ $2 == "--no-perf" ]]; then
+			REQS_ARG="requirements"
+		fi
+	fi
+	
+	echo "$REQS_ARG"
+	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
 	
 	if [[ ! $? -eq 0 ]]; then
 		echo "Exit code: $?"
