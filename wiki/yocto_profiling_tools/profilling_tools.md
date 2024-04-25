@@ -43,7 +43,7 @@ $ sudo apt install linux-tools-common
 5) -o, --output <file> -- имя выходного файла (удобно). Пример `python tt.py & sudo perf stat -p $! -o out.txt`
 6) -v, --verbose -- расширенные логи (не очень расширенные). Пример `python tt.py & sudo perf stat -v -p $! -o output_v.txt`
 
-Разницу между режимом v и без [Файле п.5](./logs/output.txt)  и [Файле п.6](./logs/output_v.txt)
+Разницу между режимом v и без [Файле п.5](logs/output.txt)  и [Файле п.6](logs/output_v.txt)
 
 
 #### sudo perf mem
@@ -51,12 +51,12 @@ $ sudo apt install linux-tools-common
 1) record  --  запись информации
 2) report  --  представление информации
 
-При выполнении record с различными флагами формиурется файл **perf.data**
+При выполнении record с различными флагами формируется файл **perf.data**
 Чтобы его прочитать необходимо выполнить команду 2 `perf mem report`, появится окошко, в котором можно посмотреть вывод файла:
 ![image](https://github.com/moevm/os_profiling/assets/90711883/bfded735-c6f2-49be-9ec3-8c68049a7e77)
 
 #### Описание iostat
-Выполним команду, чтобу установить iostat `sudo apt install sysstat`
+Выполним команду, чтобы установить iostat `sudo apt install sysstat`
 Программа имеет малый функционал, я придумал мини-скрипт, который раз в 0.3 секунды вызывает `iostat -t -x`:
 ```Bash
 while [ 1 ]
@@ -70,14 +70,14 @@ done
 ![image](https://github.com/moevm/os_profiling/assets/90711883/11f1208e-9da1-433a-8cb5-4b4e6e652a29)
 
 
-Есть идея записывать изменнение выходных значений и какие-то графики, может быть, строить...
+Есть идея записывать изменение выходных значений и какие-то графики, может быть, строить...
 
 
 
 
 #### Описание perf ftrace и perf trace
-1) `sudo perf trace` - ничего интеренсого, обычная как будто обертка, как в скриптах из [Простых скриптов ftrace](./cpu_tracer.md)
-2) `sudo perf trace` - генерирует тысячу миллионов сторк, которые, такое чувство, что здраво анализировать сложно:
+1) `sudo perf trace` - ничего интересного, обычная как будто обертка, как в скриптах из [Простых скриптов ftrace](cpu_tracer.md)
+2) `sudo perf trace` - генерирует тысячу миллионов строк, которые, такое чувство, что здраво анализировать сложно:
    ![image](https://github.com/moevm/os_profiling/assets/90711883/9d3cdf05-0f75-41c8-a9e3-618e15e00973)
 
 
@@ -96,7 +96,7 @@ chrome     3633                         oumuamua  210u     sock                0
 + Опция +d позволяет выяснить, какие папки и файлы открыты в некоей директории (но не в её поддиректориях) - принимает аргумент - абсолютный или относительный путь
 + Опция -p позволяет вывести все файлы, открытые процессом с указанным при вызове команды PID (например -p 1) 
 
-Более полное описани:
+Более полное описание:
 ```
 Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
   -?|-h list help          -a AND selections (OR)     -b avoid kernel blocks
@@ -130,7 +130,7 @@ Defaults in parentheses; comma-separated set (s) items; dash-separated ranges.
 
 #### Python psutil
 Это Python библиотека, которая  реализует множество функций, предлагаемых инструментами командной строки, такими как: ps, top, lsof, netstat, ifconfig, who, df, kill, free, nice, ionice, iostat, iotop, uptime, pidof, tty, Taskset, pmap.  
-В контексте задачи рассмотрим функции для **lsof**, для примеров использвания библиотеки создан [файл](./psutil_lsof.md), в котором рассмотрены аналоги следующих функций lsof:  
+В контексте задачи рассмотрим функции для **lsof**, для примеров использования библиотеки создан [файл](psutil_lsof.md), в котором рассмотрены аналоги следующих функций lsof:  
 1) lsof -p <pid>
 2) lsof -i
 3) lsof -p <pid> | grep mem
