@@ -1,11 +1,12 @@
 import os
+import argparse
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
 def setup_ftp(path):
     authorizer = DummyAuthorizer()
-    authorizer.add_anonymous(os.getcwd())
+    authorizer.add_anonymous(path)
     handler = FTPHandler
     handler.authorizer = authorizer
     server = FTPServer(("127.0.0.1", 2024), handler)
