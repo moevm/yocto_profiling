@@ -1,5 +1,5 @@
 #! /bin/bash
 
-cd ..
+cd ../..
 
-pylint --rcfile=linter/.pylintrc $(git ls-files './*.py')
+pylint --rcfile=./tests/linter/.pylintrc $(git ls-files './*.py')
