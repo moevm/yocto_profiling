@@ -26,26 +26,21 @@ function check(){
 
 	$CHECKS_DIR/docker-check.sh
 	check_codes+=($?)
-
 	for code in ${check_codes[@]}; do
 		if [ $code -eq 1 ]; then
 			echo -e "\nVerification failed! Problems were found."
 			exit 1
 		fi
 	done
-
 	echo -e "\nVerification completed successfully!"
 }
-
 
 if [ $# -eq 0 ]; then
 	help
 	exit 0
 fi
 
-
 if [[ ${scripts_list[@]} =~ "$1" ]]; then
-	
 	REQS_ARG="perf"
 	if [[ $1 == ${scripts_list[0]} && ! -z "$2" ]]; then
                 if [[ $2 == "--no-perf" ]]; then
@@ -53,14 +48,11 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 		fi
 	fi
 	
-	echo "$REQS_ARG"
 	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
-	
 	if [[ ! $? -eq 0 ]]; then
 		echo "Exit code: $?"
 		$CHECKS_DIR/active-container-check.sh
 	fi
-
 elif [[ $1 == "check" ]]; then
 	check
 else
