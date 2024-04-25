@@ -83,4 +83,4 @@ WORKDIR $YOCTO_INSTALL_PATH
 
 COPY ./assembly/scripts/up_yocto.sh . 
 
-ENTRYPOINT ["./assembly/setup.sh"]
+ENTRYPOINT ["./assembly/scripts/setup.sh"]
