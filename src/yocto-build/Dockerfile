@@ -1,4 +1,8 @@
-FROM ubuntu:20.04
+ARG REQS_ARG
+
+
+
+FROM ubuntu:20.04 AS requirements
 
 ARG YOCTO_INSTALL_PATH
 ARG LC_ALL
@@ -10,7 +14,6 @@ ARG CODENAME
 ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
 ENV LC_ALL=$LC_ALL
 ENV LANG=$LANG
-
 
 # Upgrade system and Yocto Project basic dependencies, Set up locales, Clean up APT
 RUN apt-get update && \
@@ -55,6 +58,9 @@ RUN apt-get update && \
 	dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG}
 
 
+
+FROM requirements AS perf
+
 # install linux-tools-$CORE for host core
 RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
 	apt-get update && \
@@ -62,6 +68,10 @@ RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
 	sed -i "s/${CODENAME}/focal/g" /etc/apt/sources.list && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+
+FROM $REQS_ARG as base
 
 # Python utils
 RUN python3 -m pip install -U psutil numpy matplotlib 

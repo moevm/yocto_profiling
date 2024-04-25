@@ -60,6 +60,7 @@ function decorate_logs() {
 function build_yocto() {
 	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env 
 	bitbake core-image-minimal
+	echo "yocto building ends with code: $?"
 }
 
 

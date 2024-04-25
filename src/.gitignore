@@ -1,0 +1,8 @@
+
+
+# GENERAL
+**/logs
+
+# YOCTO
+**/assembly/build_yocto
+**/assembly/poky
