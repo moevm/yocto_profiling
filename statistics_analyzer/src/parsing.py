@@ -64,7 +64,7 @@ class Parser:
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
-        ignore_list = ['Event', 'Ended', 'Status']
+        ignore_list = ['Event', 'Status']
         pkg_name, task_type = '', ''
         package_info = {}
         for line in log_iterator(path):
