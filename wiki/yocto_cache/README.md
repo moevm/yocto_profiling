@@ -5,3 +5,4 @@
 * [local_cache_share](./local_cache_share.md) - описание общего использования локального кэша
 * [yocto_cache](./yocto_cache.md) - общие сведения о Yocto/Bitbake кэшировании
 *  [setup_ftp_server](./setup_ftp_server.md) - инструкция создания ftp кэш-сервера
+* [setup_OEEquivHash_server](./setup_OEEquivHash_server.md) - инструкция интеграция хэш сервера к удаленному кэш серверу и запуск сборки
