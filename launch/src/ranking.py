@@ -1,8 +1,5 @@
-import os
-import sys
 import math
-from parsing import *
-
+from parsing import all_tasks
 
 #Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
 #Можем ранжировать по любой метрике, по умолчанию ранжируется по времени выполнения задачи.
@@ -33,13 +30,3 @@ def write_ranked_data(data, filename):
                 line = ' '.join([str(x) for x in item])
                 file.write(line + '\n')
             file.write('\n')
-
-
-def main(): 
-    # запуск парсера как в main у парсера, затем вызов функции ranking_task_info
-    data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=0.1)
-    write_ranked_data(data, 'ranking_output.txt')
-
-
-if __name__ == '__main__':
-    main()

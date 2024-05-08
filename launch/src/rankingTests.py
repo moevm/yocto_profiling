@@ -1,5 +1,5 @@
 import unittest
-from ranking import *
+from ranking import ranking_task_info
 
 
 class RankingTest(unittest.TestCase):
