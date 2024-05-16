@@ -26,3 +26,4 @@ services:
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
       - /sys/kernel/debug:/sys/kernel/debug
+      - ../../conf:/home/yocto_user/project/conf
