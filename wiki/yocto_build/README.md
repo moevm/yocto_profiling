@@ -8,3 +8,4 @@
 * [pid-info](./pid-info.md) - описание логирования PID
 * [image_deps](./image_deps.md) - список параметров для образа core-image-minimal (список пакетов, конфигурация ядра)
 * [directories_sizes](./directories_sizes.md) - описание содержимого дискового пространства в папке build
+* [bitbake_pressure_variables](./bitbake_pressure_variables.md) - описание переменных нагрузки Bitbake и описание процесса мониторинга свободного места 
