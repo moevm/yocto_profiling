@@ -1,5 +1,5 @@
 import unittest
-from analyze_graph import analyze_graph
+from src.dep_graph.src.analyze_graph import analyze_graph
 
 class GraphTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):

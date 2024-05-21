@@ -1,11 +1,11 @@
 import os
 import argparse
 import unittest
-import rankingTests
-import graphTests
-from parsing import Parser
-from ranking import write_ranked_data, get_ranked_data_for_all_tasks
-from analyze_graph import analyze_graph
+from tests.src.ranking_tests import RankingTest
+from tests.src.graph_tests import GraphTest
+from src.statistics_analyzer.src.parsing import Parser
+from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
+from src.dep_graph.src.analyze_graph import analyze_graph
 
 def create_args():
     parser = argparse.ArgumentParser()
@@ -96,8 +96,8 @@ def start_graph_analyze(args):
 
 def start_tests(args):
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(rankingTests.RankingTest))
-    test_suite.addTest(unittest.makeSuite(graphTests.GraphTest))
+    test_suite.addTest(unittest.makeSuite(RankingTest))
+    test_suite.addTest(unittest.makeSuite(GraphTest))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(test_suite)
 
