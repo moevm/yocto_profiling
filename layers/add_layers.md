@@ -50,8 +50,8 @@
 15) meta-qt5: добавлен
 16) meta-xilinx: были добавлены meta-xilinx-core и meta-xilinx-standalone, т.к. от них зависит слой meta-xilinx-tools
 17) meta-xilinx-tools: добавлен
-18) meta-sysrepo: добавлен после конфигурации файла local.conf (об этом ниже)
-19) meta-rust: добавлен после конфигурации файла local.conf (об этом ниже)
+18) meta-sysrepo: добавлен после конфигурации файла layer.conf (об этом ниже)
+19) meta-rust: добавлен после конфигурации файла layer.conf (об этом ниже)
 
 ## Попытка изменения конфигурации слоев meta-rust и meta-sysrepo 
 
