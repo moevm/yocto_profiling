@@ -1,0 +1,2 @@
+To build docker use `docker build -t my-http-server .`
+To start container use `./run.sh <port>`
