@@ -24,16 +24,16 @@ class GraphTest(unittest.TestCase):
         
 
     def test1(self): #найдем задачу с самым большим offset'ом
-        self.assertEqual(analyze_graph('./testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: dnf.do_package_write_rpm, Ended: 99.0', 901.0))
+        self.assertEqual(analyze_graph('./tests/src/test_files/testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: dnf.do_package_write_rpm, Ended: 99.0', 901.0))
 
     def test2(self): #удалили задачу из пр. теста и пытаемся снова найти задачу с самым большим offset'ом
         self.info.pop('dnf')
-        self.assertEqual(analyze_graph('./testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: glibc-locale.do_package_write_rpm, Ended: 100.0', 900.0))
+        self.assertEqual(analyze_graph('./tests/src/test_files/testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: glibc-locale.do_package_write_rpm, Ended: 100.0', 900.0))
 
     def test3(self): #тест с двумя задачами с одинаковым offset'ом
         self.info.pop('dnf')
         self.info.pop('glibc-locale')
-        self.assertEqual(analyze_graph('./testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: core-image-sato.do_populate_lic_deploy, Ended: 200.0', 800.0))
+        self.assertEqual(analyze_graph('./tests/src/test_files/testDotFile.dot', self.info)[0], ('node: core-image-sato.do_build, Started: 1000.0, child: core-image-sato.do_populate_lic_deploy, Ended: 200.0', 800.0))
         
     
 

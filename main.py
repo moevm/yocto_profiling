@@ -77,7 +77,7 @@ def start_ranking(args):
 
 
     data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=border, metric=metric, reverse=reverse)
-    write_ranked_data(data, 'ranking_output.txt')
+    write_ranked_data(data, './src/statistics_analyzer/output/ranking_output.txt')
 
 def start_graph_analyze(args):
     if not args.poky_path and not args.dot_file:

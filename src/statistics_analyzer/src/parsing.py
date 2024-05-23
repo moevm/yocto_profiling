@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from log_iterator import log_files_iterator, log_iterator
+from src.statistics_analyzer.src.log_iterator import log_files_iterator, log_iterator
 
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',
@@ -64,7 +64,7 @@ class Parser:
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
-        ignore_list = ['Event', 'Ended', 'Status']
+        ignore_list = ['Event', 'Status']
         pkg_name, task_type = '', ''
         package_info = {}
         for line in log_iterator(path):
