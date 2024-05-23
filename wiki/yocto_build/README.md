@@ -10,3 +10,4 @@
 * [directories_sizes](./directories_sizes.md) - описание содержимого дискового пространства в папке build
 * [WORKDIR](./WORKDIR.md) - получение переменной WORKDIR для рецепта
 * [build_download_info](./build_download_info.md) - сравнение времени сборки со скачиванием исходников и без него
+* [add_layers](./add_layers.md) - описание добавления слоев

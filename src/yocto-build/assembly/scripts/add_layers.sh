@@ -1,3 +1,4 @@
+cd ./poky
 git checkout -b scarthgap origin/scarthgap
 
 git clone -b scarthgap git://git.openembedded.org/meta-openembedded
@@ -16,6 +17,7 @@ git clone -b scarthgap https://github.com/Xilinx/meta-xilinx-tools
 git clone -b master https://github.com/meta-rust/meta-rust
 git clone -b master https://github.com/sartura/meta-sysrepo
 
+echo
 source oe-init-build-env
 cd ..
 
