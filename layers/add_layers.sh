@@ -1,20 +1,20 @@
 git checkout -b scarthgap origin/scarthgap
 
-git clone git://git.openembedded.org/meta-openembedded
-git clone git://git.yoctoproject.org/meta-security
-git clone git://git.yoctoproject.org/meta-selinux
-git clone git://git.yoctoproject.org/meta-cgl
-git clone https://github.com/kraj/meta-clang
-git clone git://git.yoctoproject.org/meta-virtualization
-git clone git://git.yoctoproject.org/meta-cloud-services
-git clone git://git.yoctoproject.org/meta-dpdk
-git clone https://github.com/joaohf/meta-erlang
-git clone git://git.yoctoproject.org/meta-java
-git clone https://github.com/meta-qt5/meta-qt5
-git clone https://github.com/Xilinx/meta-xilinx
-git clone https://github.com/Xilinx/meta-xilinx-tools
-git clone https://github.com/meta-rust/meta-rust
-git clone https://github.com/sartura/meta-sysrepo
+git clone -b scarthgap git://git.openembedded.org/meta-openembedded
+git clone -b scarthgap git://git.yoctoproject.org/meta-security
+git clone -b scarthgap git://git.yoctoproject.org/meta-selinux
+git clone -b master git://git.yoctoproject.org/meta-cgl
+git clone -b scarthgap https://github.com/kraj/meta-clang
+git clone -b scarthgap  git://git.yoctoproject.org/meta-virtualization
+git clone -b scarthgap git://git.yoctoproject.org/meta-cloud-services
+git clone -b scarthgap  git://git.yoctoproject.org/meta-dpdk
+git clone -b master https://github.com/joaohf/meta-erlang
+git clone -b scarthgap git://git.yoctoproject.org/meta-java
+git clone -b scarthgap https://github.com/meta-qt5/meta-qt5
+git clone -b scarthgap https://github.com/Xilinx/meta-xilinx
+git clone -b scarthgap https://github.com/Xilinx/meta-xilinx-tools
+git clone -b master https://github.com/meta-rust/meta-rust
+git clone -b master https://github.com/sartura/meta-sysrepo
 
 source oe-init-build-env
 cd ..
