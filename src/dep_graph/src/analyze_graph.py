@@ -1,9 +1,5 @@
 import networkx as nx
-from match_graph_names import *
-from parsing import *
-from ranking import *
-#import os
-import json
+from src.dep_graph.src.match_graph_names import sort_start_time, match
 
 
 def analyze_graph(dotfilename, info, create_txt=False):
@@ -34,47 +30,6 @@ def analyze_graph(dotfilename, info, create_txt=False):
 
 
     if create_txt:
-        with open('task-order-sorted-offset.txt', 'w') as file:
+        with open('./src/dep_graph/text-files/task-order-sorted-offset.txt', 'w') as file:
             file.writelines(f"{item[0]}, offset: {item[1]}\n" for item in results)
     return results
-
-
-def main():
-    
-    args = create_parser_args()
-    timestamp = ''
-    timestamp_list = []
-    poky_buildstats_path = os.path.join(args.poky_path, 'build/tmp/buildstats')
-    tree = list(os.walk(poky_buildstats_path))
-    for item in tree:
-        if item[0] == poky_buildstats_path:
-            timestamp_list = item[1]
-    timestamp_list.sort(reverse=True)
-
-    if args.timestamp is None and args.build_index is None:
-        print('No timestamp or build index specified')
-        return
-    elif args.timestamp is not None and args.build_index is not None:
-        print("Specify only timestamp or only build index")
-        return
-    if args.timestamp:
-        if args.timestamp in timestamp_list:
-            timestamp = args.timestamp
-        else:
-            print('No such timestamp')
-            return
-    else:
-        if len(timestamp_list) > args.build_index:
-            timestamp = timestamp_list[args.build_index]
-        else:
-            print('No such build index')
-            return
-
-    parser = Parser(args.poky_path)
-    parser.get_data_from_buildstats(os.path.join(args.poky_path, 'build/tmp/buildstats', timestamp))
-    
-    analyze_graph('./task-depends.dot', parser.info, create_txt=False)
-
-
-if __name__ == '__main__':
-    main()
