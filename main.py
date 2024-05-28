@@ -6,6 +6,7 @@ from tests.src.graph_tests import GraphTest
 from src.statistics_analyzer.src.parsing import Parser
 from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
 from src.dep_graph.src.analyze_graph import analyze_graph
+from src.statistics_analyzer.src.timeline_analyze import get_tasks
 
 def create_args():
     parser = argparse.ArgumentParser()
@@ -100,7 +101,15 @@ def start_timeline_analyze(args):
         print('Enter -p (--poky_path)')
         return -1
     parser = start_parser(args)
-    print(parser.timeline['cpu'])
+    
+    with open('./src/statistics_analyzer/output/cpu_tasks', 'w') as cpu_tasks:
+        cpu_tasks.writelines(get_tasks(parser, 0.9, 'cpu', 'used'))
+
+    with open('./src/statistics_analyzer/output/ram_tasks', 'w') as ram_tasks:
+        ram_tasks.writelines(get_tasks(parser, 0.9, 'ram', 'used'))
+
+    with open('./src/statistics_analyzer/output/io_tasks', 'w') as io_tasks:
+        io_tasks.writelines(get_tasks(parser, 0.3, 'cpu', 'io'))
 
 
 

@@ -34,7 +34,7 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        self.timeline = {'cpu': {}, 'io': {}, 'memory': {}}
+        self.timeline = {'cpu': {}, 'io': {}, 'ram': {}}
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
 
@@ -57,7 +57,7 @@ class Parser:
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
         for log_file in log_files_iterator(path):
-            timeline_files = ['reduced_proc_stat.log', 'reduced_proc_meminfo.log', 'reduced_proc_diskstats.log']
+            timeline_files = ['reduced_proc_stat.log', 'reduced_proc_meminfo.log', 'reduced_proc_diskstats.log', 'monitor_disk.log']
             if os.path.basename(log_file) in timeline_files:
                 self.parse_timeline_file(log_file)
             else:
@@ -103,13 +103,13 @@ class Parser:
         if filename == 'reduced_proc_stat.log':
             resource_variable = 'cpu'
         elif filename == 'reduced_proc_meminfo.log':
+            resource_variable = 'ram'
+        elif filename == 'monitor_disk.log':
             resource_variable = 'memory'
-        elif filename == 'reduced_proc_diskstats.log':
-            resource_variable = 'io'
 
         parse_functions = {'cpu': self.parse_cpu_line,
-                           'memory': self.parse_meminfo_line,
-                           'io': self.parse_diskstats_line}
+                           'ram': self.parse_ram_line,
+                           'memory': self.parse_memory_line}
 
         current_timestamp = 0
         for index, line in enumerate(log_iterator(path)):
@@ -124,14 +124,14 @@ class Parser:
         return {'used': values[0] + values[1], 'io': values[2]}
 
     #meminfo line: <MemTotal> <MemFree> <Buffers> <Cached> <SwapTotal> <SwapFree>
-    def parse_meminfo_line(self, line):
+    def parse_ram_line(self, line):
         values = list(map(float, line.split(' ')))
-        return {'used': values[0]}
+        return {'used': (values[0] - values[1])/values[0]}
 
-    #
-    def parse_diskstats_line(self, line):
+    #disk line: <fs_name>: <used memory size>
+    def parse_memory_line(self, line):
         values = list(map(float, line.split(' ')))
-        return {'used': values[0]} #поменять
+        return {'used': values[1]}
 
 
     def collect_pid(self, path, pkg_name):
