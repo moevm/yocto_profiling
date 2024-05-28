@@ -34,6 +34,7 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
+        self.pressure = {'cpu': {}, 'io': {}, 'memory': {}}
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
 
@@ -60,6 +61,8 @@ class Parser:
             if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
                     os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
                 self.parse_buildstats_file(log_file)
+            elif os.path.basename(package_dir).endswith('reduced_proc_pressure'):
+                self.parse_pressure_file(log_file)
 
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
@@ -88,6 +91,25 @@ class Parser:
                 if metric not in ignore_list:
                     package_info.update({metric: value})
         self.info[pkg_name].update({task_type: package_info})
+
+
+    def parse_pressure_file(self, path):
+        filename = path.split('\\')[-1]
+        print(filename)
+        pressure_variable = ''
+        if filename.startswith('cpu'):
+            pressure_variable = 'cpu'
+        elif filename.startswith('io'):
+            pressure_variable = 'io'
+        elif filename.startswith('memory'):
+            pressure_variable = 'memory'
+
+        current_timestamp = 0
+        for index, line in enumerate(log_iterator(path)):
+            if index % 3 == 0:
+                current_timestamp = int(line.replace('\n', ''))
+            if index % 3 == 1:
+                self.pressure[pressure_variable].update({current_timestamp: line.split(' ')[0]})
 
 
     def collect_pid(self, path, pkg_name):

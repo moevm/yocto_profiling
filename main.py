@@ -79,6 +79,7 @@ def start_ranking(args):
     data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=border, metric=metric, reverse=reverse)
     write_ranked_data(data, './src/statistics_analyzer/output/ranking_output.txt')
 
+
 def start_graph_analyze(args):
     if not args.poky_path and not args.dot_file:
         print('Enter -p (--poky_path) and -d (--dot_file)')
@@ -92,6 +93,14 @@ def start_graph_analyze(args):
     
     parser = start_parser(args)
     analyze_graph(args.dot_file, parser.info, True)
+
+
+def start_pressure_analyze(args):
+    if not args.poky_path:
+        print('Enter -p (--poky_path)')
+        return -1
+    parser = start_parser(args)
+
 
 
 def start_tests(args):
@@ -111,3 +120,5 @@ if __name__ == '__main__':
         start_graph_analyze(args)
     elif args.goal == 'tests':
         start_tests(args)
+    elif args.goal == 'pressure':
+        start_pressure_analyze(args)
