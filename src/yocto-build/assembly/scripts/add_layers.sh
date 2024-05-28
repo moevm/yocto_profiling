@@ -1,21 +1,81 @@
 cd ./poky
 git checkout -b scarthgap origin/scarthgap
 
-git clone -b scarthgap git://git.openembedded.org/meta-openembedded
-git clone -b scarthgap git://git.yoctoproject.org/meta-security
-git clone -b scarthgap git://git.yoctoproject.org/meta-selinux
-git clone -b master git://git.yoctoproject.org/meta-cgl
-git clone -b scarthgap https://github.com/kraj/meta-clang
-git clone -b scarthgap  git://git.yoctoproject.org/meta-virtualization
-git clone -b scarthgap git://git.yoctoproject.org/meta-cloud-services
-git clone -b scarthgap  git://git.yoctoproject.org/meta-dpdk
-git clone -b master https://github.com/joaohf/meta-erlang
-git clone -b scarthgap git://git.yoctoproject.org/meta-java
-git clone -b scarthgap https://github.com/meta-qt5/meta-qt5
-git clone -b scarthgap https://github.com/Xilinx/meta-xilinx
-git clone -b scarthgap https://github.com/Xilinx/meta-xilinx-tools
-git clone -b master https://github.com/meta-rust/meta-rust
-git clone -b master https://github.com/sartura/meta-sysrepo
+git clone git://git.openembedded.org/meta-openembedded
+cd ./meta-openembedded
+git checkout 6de0ab744341ad61b0661aa28d78dc6767ce0786 -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-security
+cd ./meta-security
+git checkout 11ea91192d43d7c2b0b95a93aa63ca7e73e38034 -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-selinux
+cd ./meta-selinux
+git checkout 07f3233374f013412d691732adfa2c20167a0ea0 -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-cgl
+cd ./meta-cgl
+git checkout f7c4e7165fa32543e0b881d6cd3048458896f535 -b scarthgap
+cd ..
+
+git clone https://github.com/kraj/meta-clang
+cd ./meta-clang 
+git checkout e7dceb1c92caf7f21ef1d7b49c85328c30cffd90 -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-virtualization
+cd ./meta-virtualization
+git checkout 1a547c0aa0d75c4143cbb66de6e653d51cdc8bda -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-cloud-services
+cd ./meta-cloud-services
+git checkout 61d37af7f412aa1ecacdf584faf0fba300f7d58e -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-dpdk
+cd ./meta-dpdk
+git checkout 0f12d2eddf2f7cde8de274ffe225f3c8e912928d -b scarthgap
+cd ..
+
+git clone https://github.com/joaohf/meta-erlang
+cd ./meta-erlang
+git checkout 3a83dcadce32910f38100c4ef39d6f298456d3d4 -b scarthgap
+cd ..
+
+git clone git://git.yoctoproject.org/meta-java
+cd ./meta-java
+git checkout 4799a6291223467311d24ed3e1af367aadea122e -b scarthgap
+cd ..
+
+git clone https://github.com/meta-qt5/meta-qt5
+cd ./meta-qt5
+git checkout d8eeef0bfd84672c7919cd346f25f7c9a98ddaea -b scarthgap
+cd ..
+
+git clone https://github.com/Xilinx/meta-xilinx
+cd ./meta-xilinx
+git checkout 7965de51f877c3dff9f9ca08a2f95cc80b0ed598 -b scarthgap
+cd ..
+
+git clone https://github.com/Xilinx/meta-xilinx-tools
+cd ./meta-xilinx-tools
+git checkout 989ef0bc701665bd2d9f7a8b9e1c18d84aed2393 -b scarthgap
+cd ..
+
+git clone https://github.com/meta-rust/meta-rust
+cd ./meta-rust
+git checkout 9611b42d73c7546c3d845da380943a0a4f4205f0 -b scarthgap
+cd ..
+
+git clone https://github.com/sartura/meta-sysrepo
+cd ./meta-sysrepo
+git checkout 09f73e78795caaecf15267406d241e501c6e0d62 -b scarthgap
+cd ..
+pwd
 
 cd ..
 source ./poky/oe-init-build-env build
