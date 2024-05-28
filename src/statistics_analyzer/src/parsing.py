@@ -34,7 +34,7 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        self.pressure = {'cpu': {}, 'io': {}, 'memory': {}}
+        self.timeline = {'cpu': {}, 'io': {}, 'memory': {}}
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
 
@@ -57,12 +57,15 @@ class Parser:
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
         for log_file in log_files_iterator(path):
-            package_dir = os.path.dirname(log_file)
-            if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
-                    os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
-                self.parse_buildstats_file(log_file)
-            elif os.path.basename(package_dir).endswith('reduced_proc_pressure'):
-                self.parse_pressure_file(log_file)
+            timeline_files = ['reduced_proc_stat.log', 'reduced_proc_meminfo.log', 'reduced_proc_diskstats.log']
+            if os.path.basename(log_file) in timeline_files:
+                self.parse_timeline_file(log_file)
+            else:
+                package_dir = os.path.dirname(log_file)
+                if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
+                        os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
+                    self.parse_buildstats_file(log_file)
+
 
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
@@ -93,23 +96,42 @@ class Parser:
         self.info[pkg_name].update({task_type: package_info})
 
 
-    def parse_pressure_file(self, path):
-        filename = path.split('\\')[-1]
+    def parse_timeline_file(self, path):
+        filename = os.path.basename(path)
         print(filename)
-        pressure_variable = ''
-        if filename.startswith('cpu'):
-            pressure_variable = 'cpu'
-        elif filename.startswith('io'):
-            pressure_variable = 'io'
-        elif filename.startswith('memory'):
-            pressure_variable = 'memory'
+        resource_variable = ''
+        if filename == 'reduced_proc_stat.log':
+            resource_variable = 'cpu'
+        elif filename == 'reduced_proc_meminfo.log':
+            resource_variable = 'memory'
+        elif filename == 'reduced_proc_diskstats.log':
+            resource_variable = 'io'
+
+        parse_functions = {'cpu': self.parse_cpu_line,
+                           'memory': self.parse_meminfo_line,
+                           'io': self.parse_diskstats_line}
 
         current_timestamp = 0
         for index, line in enumerate(log_iterator(path)):
             if index % 3 == 0:
                 current_timestamp = int(line.replace('\n', ''))
             if index % 3 == 1:
-                self.pressure[pressure_variable].update({current_timestamp: line.split(' ')[0]})
+                self.timeline[resource_variable].update({current_timestamp: parse_functions[resource_variable](line)})
+    
+    #cpu line: <user_time> <sys_time> <i/o_wait>
+    def parse_cpu_line(self, line): 
+        values = list(map(float, line.split(' ')))
+        return {'used': values[0] + values[1], 'io': values[2]}
+
+    #meminfo line: <MemTotal> <MemFree> <Buffers> <Cached> <SwapTotal> <SwapFree>
+    def parse_meminfo_line(self, line):
+        values = list(map(float, line.split(' ')))
+        return {'used': values[0]}
+
+    #
+    def parse_diskstats_line(self, line):
+        values = list(map(float, line.split(' ')))
+        return {'used': values[0]} #поменять
 
 
     def collect_pid(self, path, pkg_name):

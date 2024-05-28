@@ -95,11 +95,12 @@ def start_graph_analyze(args):
     analyze_graph(args.dot_file, parser.info, True)
 
 
-def start_pressure_analyze(args):
+def start_timeline_analyze(args):
     if not args.poky_path:
         print('Enter -p (--poky_path)')
         return -1
     parser = start_parser(args)
+    print(parser.timeline['cpu'])
 
 
 
@@ -120,5 +121,5 @@ if __name__ == '__main__':
         start_graph_analyze(args)
     elif args.goal == 'tests':
         start_tests(args)
-    elif args.goal == 'pressure':
-        start_pressure_analyze(args)
+    elif args.goal == 'timeline':
+        start_timeline_analyze(args)
