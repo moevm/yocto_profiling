@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
@@ -8,4 +8,5 @@ ENV PORT=8888
 
 EXPOSE ${PORT}
 
-CMD ["sh", "-c", "python3 -m http.server -b $(python3 get_ip.py) $PORT; sleep infinity"]
+ENTRYPOINT ["sh", "-c"]
+CMD ["python3 -m http.server -b $(python3 get_ip.py) $PORT; sleep infinity"]
