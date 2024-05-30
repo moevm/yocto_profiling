@@ -34,7 +34,7 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        self.timeline = {'cpu': {}, 'io': {}, 'ram': {}}
+        self.timeline = {}
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
 
@@ -95,44 +95,43 @@ class Parser:
                     package_info.update({metric: value})
         self.info[pkg_name].update({task_type: package_info})
 
+    def get_tasks_for_timeline(self):
+        for time, info in self.timeline.items():
+            for package in self.info:
+                for task in self.info[package]:
+                    if time > float(self.info[package][task]['Started']) and time < float(self.info[package][task]['Ended']):
+                        self.timeline[time]['tasks'].append(f'{package}.{task}')
 
     def parse_timeline_file(self, path):
         filename = os.path.basename(path)
         print(filename)
-        resource_variable = ''
         if filename == 'reduced_proc_stat.log':
-            resource_variable = 'cpu'
+            self.parse_cpu_timeline(path)
         elif filename == 'reduced_proc_meminfo.log':
-            resource_variable = 'ram'
-        elif filename == 'monitor_disk.log':
-            resource_variable = 'memory'
+            self.parse_ram_timeline(path)
 
-        parse_functions = {'cpu': self.parse_cpu_line,
-                           'ram': self.parse_ram_line,
-                           'memory': self.parse_memory_line}
-
+    def parse_ram_timeline(self, path):
         current_timestamp = 0
         for index, line in enumerate(log_iterator(path)):
             if index % 3 == 0:
                 current_timestamp = int(line.replace('\n', ''))
             if index % 3 == 1:
-                self.timeline[resource_variable].update({current_timestamp: parse_functions[resource_variable](line)})
-    
-    #cpu line: <user_time> <sys_time> <i/o_wait>
-    def parse_cpu_line(self, line): 
-        values = list(map(float, line.split(' ')))
-        return {'used': values[0] + values[1], 'io': values[2]}
+                if not current_timestamp in self.timeline:
+                    self.timeline[current_timestamp] = {'cpu': None, 'io': None, 'ram': None, 'tasks': []}
+                values = list(map(float, line.split(' ')))
+                self.timeline[current_timestamp]['ram'] = (values[0] - values[1])/values[0]
 
-    #meminfo line: <MemTotal> <MemFree> <Buffers> <Cached> <SwapTotal> <SwapFree>
-    def parse_ram_line(self, line):
-        values = list(map(float, line.split(' ')))
-        return {'used': (values[0] - values[1])/values[0]}
-
-    #disk line: <fs_name>: <used memory size>
-    def parse_memory_line(self, line):
-        values = list(map(float, line.split(' ')))
-        return {'used': values[1]}
-
+    def parse_cpu_timeline(self, path):
+        current_timestamp = 0
+        for index, line in enumerate(log_iterator(path)):
+            if index % 3 == 0:
+                current_timestamp = int(line.replace('\n', ''))
+            if index % 3 == 1:
+                if not current_timestamp in self.timeline:
+                    self.timeline[current_timestamp] = {'cpu': None, 'io': None, 'ram': None, 'tasks': []}
+                values = list(map(float, line.split(' ')))
+                self.timeline[current_timestamp]['cpu'] = values[0] + values[1]
+                self.timeline[current_timestamp]['io'] = values[2]
 
     def collect_pid(self, path, pkg_name):
         temp = path.split('/')

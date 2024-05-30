@@ -1,11 +1,3 @@
-1707728267: gettext-minimal-native.do_fetch
-1707728267: m4-native.do_fetch
-1707728267: binutils-cross-x86_64.do_fetch
-1707728267: texinfo-dummy-native.do_unpack
-1707728267: autoconf-native.do_fetch
-1707728267: quilt-native.do_fetch
-1707728267: libtool-native.do_fetch
-1707728267: gnu-config-native.do_fetch
 1707728268: gettext-minimal-native.do_fetch
 1707728268: popt-native.do_fetch
 1707728268: m4-native.do_fetch
@@ -22208,3 +22200,11 @@
 1707731786: qemu-helper-native.do_compile
 1707731789: core-image-sato.do_image_complete
 1707731790: core-image-sato.do_image_complete
+1707728267: gettext-minimal-native.do_fetch
+1707728267: m4-native.do_fetch
+1707728267: binutils-cross-x86_64.do_fetch
+1707728267: texinfo-dummy-native.do_unpack
+1707728267: autoconf-native.do_fetch
+1707728267: quilt-native.do_fetch
+1707728267: libtool-native.do_fetch
+1707728267: gnu-config-native.do_fetch
