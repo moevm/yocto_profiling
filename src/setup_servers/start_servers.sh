@@ -8,6 +8,8 @@ fi
 start_value=$1
 quantity=$2
 
+echo "$start_value $quantity" >> servers_params.txt
+
 tmp_ip=$(python3 get_ip.py)
 
 for ((i=start_value; i<start_value+quantity; i++)); do
