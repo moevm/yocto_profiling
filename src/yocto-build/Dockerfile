@@ -87,10 +87,11 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 	echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 
-# Run as build user from the installation path                                                                                                                
+# Run as build user from the installation path                                                                     
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
 
+COPY ../../conf ./conf
 COPY ./assembly/scripts/up_yocto.sh . 
 
 ENTRYPOINT ["./assembly/scripts/setup.sh"]
