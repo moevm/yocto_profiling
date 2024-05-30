@@ -8,8 +8,8 @@ def find_and_copy_directory(src_dir, dir_name, dest_dir):
         return
 
     if not os.path.exists(dest_dir):
-        print(f"Server dir({dest_dir})does not exist.")
-        return
+        print(f"Server dir({dest_dir})does not exist. creating")
+        os.makedirs(dest_dir)
 
     for root, dirs, files in os.walk(src_dir):
         if dir_name in dirs:
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         for j in range(16):
             iterator_dest_dir += 1
             iterator_dest_dir = iterator_dest_dir % num
-            tmp_dir = 'server_folder_' + str(start + iterator_dest_dir)
+            tmp_dir = 'server_folder_' + str(start + iterator_dest_dir) + '/sstate-cache'
             hi = str(hex(i))[2:]
             hj = str(hex(j))[2:]
             dir_name = hi+hj
