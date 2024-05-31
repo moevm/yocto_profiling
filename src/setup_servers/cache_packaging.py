@@ -71,3 +71,14 @@ if __name__ == '__main__':
             find_and_copy_directory(src_dir=src_dir, dir_name=dir_name, dest_dir=tmp_dir)
             # check_dirs(src_dir=src_dir, dir_name=dir_name, dest_dir=tmp_dir)
 
+
+
+    print('Copy univerasl ...')
+    iterator_dest_dir += 1
+    iterator_dest_dir = iterator_dest_dir % num
+    source_folder = "./sstate-cache/universal"
+    destination_folder = f"./server_folder_{start + iterator_dest_dir}/sstate-cache"
+
+    shutil.copytree(source_folder, os.path.join(destination_folder, "universal"))
+    print(f"universal from {source_folder} copy to {destination_folder}/universal")
+
