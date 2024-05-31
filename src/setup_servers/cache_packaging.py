@@ -1,6 +1,9 @@
 import os
 import shutil
 
+
+BASE_HEXADECIMAL = 16
+
 # for main action -- copy target file to dest dir
 def find_and_copy_directory(src_dir, dir_name, dest_dir):
     if not os.path.exists(src_dir):
@@ -57,8 +60,8 @@ if __name__ == '__main__':
     # print(start, num)
     if start is None or num is None:
         raise ValueError(f"Ошибка с файлом параметров!")
-    for i in range(16):
-        for j in range(16):
+    for i in range(BASE_HEXADECIMAL):
+        for j in range(BASE_HEXADECIMAL):
             iterator_dest_dir += 1
             iterator_dest_dir = iterator_dest_dir % num
             tmp_dir = 'server_folder_' + str(start + iterator_dest_dir) + '/sstate-cache'
