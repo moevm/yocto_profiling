@@ -28,5 +28,49 @@
 | 3  | 0:58 | 
 | 4  | 1:01 | 
 | 5  | 1:10 | 
+| 6  | 1:40 |
+| 7  | 1:40 |
+| 8  | 1:30 |
+| 9  | 2:00 |
+| 10  | 2:30 |
+| ...  | ?  | 
+| 20  | 5:00  | 
+| ...  | ?  | 
+| 30  | 6:30  | 
+| ...  | ?  | 
+| 40  | 8:00  | 
 | ...  | ?  | 
 | 50  | 8:30  | 
+
+
+Построение графиков -- нужен `matplotlib`, чтобы установить нужно выполнить `pip install matplotlib`
+```py
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+
+if __name__ == '__main__':
+    x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50]
+
+    y_str = ['0:30', '0:44', '0:58', '1:01', '1:10', '1:40', '1:40', '1:30', '2:00', '2:30', '5:00', '6:30', '8:00', '8:30']
+
+    y = [sum(int(x) * 60 ** i for i, x in enumerate(reversed(time.split(':')))) for time in y_str]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y, marker='o', linestyle='--', color='blue')
+    plt.xlabel('Количество серверов с кэшем')
+    plt.ylabel('Время парсинга пакетов')
+
+    def format_func(value, tick_number):
+        minutes, seconds = divmod(int(value), 60)
+        return f'{minutes:02d}:{seconds:02d}'
+
+    formatter = FuncFormatter(format_func)
+    plt.gca().yaxis.set_major_formatter(formatter)
+
+    plt.show()
+
+```
+
+
+График:  
+![graphic](https://github.com/moevm/os_profiling/assets/90711883/d6c275c2-afeb-45a4-8753-b33376e3d981)
