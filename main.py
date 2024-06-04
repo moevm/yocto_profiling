@@ -6,7 +6,7 @@ from tests.src.graph_tests import GraphTest
 from src.statistics_analyzer.src.parsing import Parser
 from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
 from src.dep_graph.src.analyze_graph import analyze_graph
-from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks
+from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals
 
 def create_args():
     parser = argparse.ArgumentParser()
@@ -112,6 +112,8 @@ def start_timeline_analyze(args):
 
     with open('./src/statistics_analyzer/output/io_tasks', 'w') as io_tasks:
         io_tasks.writelines(get_tasks(parser, 0.3, 'io'))
+
+    print(find_free_intervals(parser, 'cpu', 0.9))
 
 
 

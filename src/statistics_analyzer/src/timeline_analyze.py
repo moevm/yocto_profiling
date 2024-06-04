@@ -18,6 +18,28 @@ def get_tasks(parser, border, resource):
                 newline = False
     return tasks
 
+
+def find_free_intervals(parser, resource, border):
+    intervals = []
+    is_free = False
+    first_timestamp, last_timestamp = None, None
+    for time, info in parser.timeline.items():
+        if not info[resource] is None and info[resource] < border:
+            if not is_free:
+                is_free = True
+                first_timestamp = time
+        else:
+            if info[resource] and info[resource] > border:
+                if is_free:
+                    is_free = False
+                    intervals.append((first_timestamp, time, time - first_timestamp))
+    return sorted(intervals, key=lambda x: x[2])
+
+
+
+
+
+
 def write_to_excel(parser):
     wb = Workbook()
     for sheet in wb.sheetnames:
