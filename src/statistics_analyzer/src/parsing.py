@@ -104,7 +104,6 @@ class Parser:
 
     def parse_timeline_file(self, path):
         filename = os.path.basename(path)
-        print(filename)
         if filename == 'reduced_proc_stat.log':
             self.parse_cpu_timeline(path)
         elif filename == 'reduced_proc_meminfo.log':

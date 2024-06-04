@@ -1,3 +1,5 @@
+import json
+
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Color, PatternFill
 
@@ -18,6 +20,15 @@ def get_tasks(parser, border, resource):
                 newline = False
     return tasks
 
+def get_tasks_for_intervals(parser, intervals):
+    for interval in intervals:
+        for time in range(interval[0], interval[1]):
+            for package in parser.info:
+                for task in parser.info[package]:
+                    if time > float(parser.info[package][task]['Started']) and time < float(parser.info[package][task]['Ended']):
+                        interval[3].add(f'{package}.{task}')
+    return intervals
+
 
 def find_free_intervals(parser, resource, border):
     intervals = []
@@ -32,11 +43,17 @@ def find_free_intervals(parser, resource, border):
             if info[resource] and info[resource] > border:
                 if is_free:
                     is_free = False
-                    intervals.append((first_timestamp, time, time - first_timestamp))
-    return sorted(intervals, key=lambda x: x[2])
+                    intervals.append([first_timestamp, time, time - first_timestamp, set()])
+    return sorted(intervals, key=lambda x: x[0])
 
 
+def write_to_json(intervals, filename):
+    items = {'items': []}
+    for interval in intervals:
+        items['items'].append({'Start': interval[0], 'End': interval[1], 'Duration': interval[2], 'tasks': list(interval[3])})
 
+    with open(filename, 'w') as file:
+        json.dump(items, file, indent=4)
 
 
 

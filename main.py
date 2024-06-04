@@ -1,3 +1,4 @@
+import json
 import os
 import argparse
 import unittest
@@ -6,7 +7,7 @@ from tests.src.graph_tests import GraphTest
 from src.statistics_analyzer.src.parsing import Parser
 from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
 from src.dep_graph.src.analyze_graph import analyze_graph
-from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals
+from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals, get_tasks_for_intervals, write_to_json
 
 def create_args():
     parser = argparse.ArgumentParser()
@@ -102,18 +103,19 @@ def start_timeline_analyze(args):
         return -1
     parser = start_parser(args)
     parser.get_tasks_for_timeline()
-    write_to_excel(parser)
+    #write_to_excel(parser)
 
-    with open('./src/statistics_analyzer/output/cpu_tasks', 'w') as cpu_tasks:
-       cpu_tasks.writelines(get_tasks(parser, 0.9, 'cpu'))
+    cpu_intervals = find_free_intervals(parser, 'cpu', 0.9)
+    get_tasks_for_intervals(parser, cpu_intervals)
+    write_to_json(cpu_intervals, './src/statistics_analyzer/output/cpu_intervals.json')
 
-    with open('./src/statistics_analyzer/output/ram_tasks', 'w') as ram_tasks:
-        ram_tasks.writelines(get_tasks(parser, 0.9, 'ram'))
+    io_intervals = find_free_intervals(parser, 'io', 0.1)
+    get_tasks_for_intervals(parser, io_intervals)
+    write_to_json(io_intervals, './src/statistics_analyzer/output/io_intervals.json')
 
-    with open('./src/statistics_analyzer/output/io_tasks', 'w') as io_tasks:
-        io_tasks.writelines(get_tasks(parser, 0.3, 'io'))
-
-    print(find_free_intervals(parser, 'cpu', 0.9))
+    ram_intervals = find_free_intervals(parser, 'ram', 0.9)
+    get_tasks_for_intervals(parser, ram_intervals)
+    write_to_json(ram_intervals, './src/statistics_analyzer/output/ram_intervals.json')
 
 
 
