@@ -1,5 +1,5 @@
 # **Instructions**
-> Для образа потребуется не менее 90Gb памяти. Процесс сборки займёт более 2 часов.
+> Для образа потребуется не менее 90Gb памяти. Процесс сборки займёт более 2 часов (зависит от выделенных ресурсов).
 
 > Для выполнения следующих шагов необходим `Docker` и `Docker compose v2`!
 
@@ -19,12 +19,14 @@ git clone https://github.com/moevm/os_profiling.git
         ```
         This script is needed for interaction with the image of Yocto Project.
         List of available parameters:
-	        <build_env> -- builds an image of the virtual environment.
-    		    <--no-perf> -- disables installation of the perf.
+        	<build_env> -- builds an image of the virtual environment.
+        		<--no-perf> -- disables installation of the perf.
+        	*ONLY AFTER STAGE*: build_env
         	<shell> -- opens a terminal in container.
         	<build_yocto_image> -- build the yocto image in container.
+        	*ONLY AFTER STAGE*: build_yocto_image
         	<start_yocto> -- up the yocto image.
-        	
+        
         Verify that dependencies are installed for the project:
         	<check> -- check of all dependencies.
         ```
