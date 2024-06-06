@@ -13,9 +13,13 @@ function help() {
         echo -e "\t<build_env> -- builds an image of the virtual environment."
 	echo -e "\t\t<--no-perf> -- disables installation of the perf."
 
+	echo -e "\t*ONLY AFTER STAGE*: build_env"
         echo -e "\t<shell> -- opens a terminal in container."
         echo -e "\t<build_yocto_image> -- build the yocto image in container."
-	echo -e "\t<start_yocto> -- up the yocto image.\n"
+
+	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
+	echo -e "\t<start_yocto> -- up the yocto image."
+	echo -e ""
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."

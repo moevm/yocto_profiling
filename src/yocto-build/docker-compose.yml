@@ -4,8 +4,8 @@ services:
     container_name: yocto_project
     image: yocto-image
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: ./src/yocto-build/Dockerfile
       target: base
       args:
         - CODENAME
