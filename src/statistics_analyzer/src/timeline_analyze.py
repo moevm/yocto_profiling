@@ -33,7 +33,8 @@ def get_tasks_for_intervals(parser, intervals):
 def find_free_intervals(parser, resource, border):
     intervals = []
     is_free = False
-    first_timestamp, last_timestamp = None, None
+    first_timestamp = None
+    sum_time = 0
     for time, info in parser.timeline.items():
         if not info[resource] is None and info[resource] < border:
             if not is_free:
@@ -44,11 +45,12 @@ def find_free_intervals(parser, resource, border):
                 if is_free:
                     is_free = False
                     intervals.append([first_timestamp, time, time - first_timestamp, set()])
-    return sorted(intervals, key=lambda x: x[0])
+                    sum_time += time - first_timestamp
+    return sorted(intervals, key=lambda x: x[0]), sum_time
 
 
-def write_to_json(intervals, filename):
-    items = {'items': []}
+def write_to_json(intervals, sum_time, filename):
+    items = {'sum_time': sum_time, 'items': []}
     for interval in intervals:
         items['items'].append({'Start': interval[0], 'End': interval[1], 'Duration': interval[2], 'tasks': list(interval[3])})
 

@@ -105,17 +105,17 @@ def start_timeline_analyze(args):
     parser.get_tasks_for_timeline()
     #write_to_excel(parser)
 
-    cpu_intervals = find_free_intervals(parser, 'cpu', 0.9)
+    cpu_intervals, cpu_sum_time = find_free_intervals(parser, 'cpu', 0.9)
     get_tasks_for_intervals(parser, cpu_intervals)
-    write_to_json(cpu_intervals, './src/statistics_analyzer/output/cpu_intervals.json')
+    write_to_json(cpu_intervals, cpu_sum_time, './src/statistics_analyzer/output/cpu_intervals.json')
 
-    io_intervals = find_free_intervals(parser, 'io', 0.1)
+    io_intervals, io_sum_time = find_free_intervals(parser, 'io', 0.1)
     get_tasks_for_intervals(parser, io_intervals)
-    write_to_json(io_intervals, './src/statistics_analyzer/output/io_intervals.json')
+    write_to_json(io_intervals, io_sum_time, './src/statistics_analyzer/output/io_intervals.json')
 
-    ram_intervals = find_free_intervals(parser, 'ram', 0.9)
+    ram_intervals, ram_sum_time = find_free_intervals(parser, 'ram', 0.9)
     get_tasks_for_intervals(parser, ram_intervals)
-    write_to_json(ram_intervals, './src/statistics_analyzer/output/ram_intervals.json')
+    write_to_json(ram_intervals, ram_sum_time, './src/statistics_analyzer/output/ram_intervals.json')
 
 
 
