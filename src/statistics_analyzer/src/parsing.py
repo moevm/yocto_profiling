@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from log_iterator import log_files_iterator, log_iterator
+from src.statistics_analyzer.src.log_iterator import log_files_iterator, log_iterator
 
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',
@@ -34,19 +34,25 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
-        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/work'),
-                                           lambda x: x.startswith('log.do_') and x[-1].isdigit()):
-            pkg_name = log_file.split('/')[-3]
-            task_type = log_file.split('.')[-2]
-            self.add_info(self.pid_info, pkg_name, task_type)
-            self.collect_pid(log_file, pkg_name, task_type)
+        self.traverse_pid_directories(poky_path, 'work')
+        self.traverse_pid_directories(poky_path, 'work-shared')
 
+    def traverse_pid_directories(self, poky_path, directory):
+        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),
+                                           lambda x: x.startswith('log.task_order')):
+            if directory == 'work':
+                pkg_name = log_file.split('/')[-4]
+            else: 
+                pkg_name = log_file.split('/')[-3]
+                if pkg_name.startswith('gcc'):
+                    pkg_name = 'gcc-source'
+            self.collect_pid(log_file, pkg_name)
 
     def add_info(self, target_info, pkg_name, task_type=None):
         if pkg_name not in target_info:
             target_info[pkg_name] = {}
         if task_type and task_type not in target_info[pkg_name]:
-            target_info[pkg_name] = {task_type: {}}
+            target_info[pkg_name].update({task_type: {}})
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
         for log_file in log_files_iterator(path):
@@ -58,35 +64,41 @@ class Parser:
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
-        ignore_list = ['Event', 'Started', 'Ended', 'Status']
+        ignore_list = ['Event', 'Status']
         pkg_name, task_type = '', ''
+        package_info = {}
         for line in log_iterator(path):
             metric, value = line.split(': ')
             value = (re.split(" |\n", value))[0]
             if value.startswith('do_'):
                 task_type = value
-                while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
-                       or metric[-1] == '-'):
-                    metric = metric[: -1:]
-                pkg_name = metric
-                self.add_info(self.info, metric, task_type)
+                if 'gcc-source' not in metric:
+                    while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
+                        or metric[-1] == '-'):
+                        metric = metric[: -1:]
+                    pkg_name = metric
+                else:
+                    pkg_name = 'gcc-source'
+                self.add_info(self.info, pkg_name, task_type)
                 if pkg_name in self.pid_info.keys() and task_type in self.pid_info.get(
                         pkg_name).keys():  # пытаемся сопоставить PID данной задаче
-                    self.info.get(pkg_name).get(task_type).update(
-                        {"PID": self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
+
+                    package_info.update({'PID': self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
             else:
                 if metric not in ignore_list:
-                    self.info.get(pkg_name).get(task_type).update({metric: value})
+                    package_info.update({metric: value})
+        self.info[pkg_name].update({task_type: package_info})
 
-    # парсинг данных из build/tmp/work/<MULTIARCH_TARGET_SYS>/<имя пакета>/<версия>/temp/log.do_*.pid
 
-    def collect_pid(self, path, pkg_name, task_type):
+    def collect_pid(self, path, pkg_name):
         temp = path.split('/')
-        file_name = temp[-1]
-        self.add_info(self.pid_info, pkg_name, task_type)
-        pid = file_name.split('.')[-1]
-        self.pid_info.get(pkg_name).get(task_type).update(
-            {"PID": pid})  # PID имеется для подавляющего количества задач, но не для всех
+        with open(path, 'r') as file:
+            for line in file:
+                task_type = line.split(' ')[1]
+                pid = line.split(' ')[2][1: -2]
+                self.add_info(self.pid_info, pkg_name, task_type)
+                self.pid_info.get(pkg_name).get(task_type).update({"PID": pid})
+
 
     def write_data_about_task(self, task_type, metrics=None):
         with open(task_type + '.log', 'w') as file:
@@ -99,6 +111,7 @@ class Parser:
                     for metric in metrics:
                         data.append(self.info.get(package_name).get(task_type).get(metric, 'None'))
                     file.write((', '.join(data)) + '\n')  # для вызова нужны данные со всех пакетов
+
 
     def write_data_about_package(self, pkg_name, metrics=None):
         if not metrics:

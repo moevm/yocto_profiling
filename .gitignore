@@ -2,6 +2,7 @@
 
 # GENERAL
 **/logs
+**/*.swp
 
 # YOCTO
 **/assembly/build_yocto

@@ -13,9 +13,13 @@ function help() {
         echo -e "\t<build_env> -- builds an image of the virtual environment."
 	echo -e "\t\t<--no-perf> -- disables installation of the perf."
 
+	echo -e "\t*ONLY AFTER STAGE*: build_env"
         echo -e "\t<shell> -- opens a terminal in container."
         echo -e "\t<build_yocto_image> -- build the yocto image in container."
-	echo -e "\t<start_yocto> -- up the yocto image.\n"
+
+	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
+	echo -e "\t<start_yocto> -- up the yocto image."
+	echo -e ""
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."
@@ -49,8 +53,9 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 	fi
 	
 	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
-	if [[ ! $? -eq 0 ]]; then
-		echo "Exit code: $?"
+	EXIT_CODE=$?
+	if [[ ! $EXIT_CODE -eq 0 ]]; then
+		echo "Exit code: $EXIT_CODE"
 		$CHECKS_DIR/active-container-check.sh
 	fi
 elif [[ $1 == "check" ]]; then

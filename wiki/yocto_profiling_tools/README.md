@@ -4,3 +4,4 @@
 * [profiling_tools](./profilling_tools.md) - описание различных утилит: perf, perf stat, perf mem, iostat, perf ftrace/trace, lsof, psutil, strace
 * [psutil_lsof](./psutil_lsof.md) - описание работы psutil, реализующим основной функционал lsof
 * [logs](./logs) - примеры логов
+* [launch](./launch.md) - описание запуска программы по обработке статистики

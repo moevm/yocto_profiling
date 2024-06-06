@@ -1,7 +1,6 @@
 ARG REQS_ARG
 
 
-
 FROM ubuntu:20.04 AS requirements
 
 ARG YOCTO_INSTALL_PATH
@@ -70,7 +69,6 @@ RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-
 FROM $REQS_ARG as base
 
 # Python utils
@@ -91,7 +89,6 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
 
-COPY ../../conf ./conf
-COPY ./assembly/scripts/up_yocto.sh . 
+COPY ./build/conf ./conf 
 
 ENTRYPOINT ["./assembly/scripts/setup.sh"]
