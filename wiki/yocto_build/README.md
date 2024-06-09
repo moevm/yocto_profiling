@@ -1,6 +1,6 @@
 # Сборка Yocto
 В данной папке находится информация, связанная с различными аспектами сборки Yocto.
-* [yocto_build_deps](./yocto_build_deps.md) - как BitBake обрабатывает зависимости 
+* [yocto_build_deps](./yocto_build_deps.md) - как BitBake обрабатывает зависимости, описание процесса парсинга рецептов
 * [yocto_buildstats](./yocto_buildstats.md) - анализ статистики сборки
 * [yocto_system_image_build](./yocto_system_image_build.md) - описание некоторых аспектов сборки Yocto: где, как и когда в итоговый образ добавляются файлы, отличия слоев и классов
 * [yocto_stat_sources](./yocto_stat_sources.md) - как Yocto собирает статистику
