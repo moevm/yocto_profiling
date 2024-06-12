@@ -1,0 +1,30 @@
+--- cache.py	2024-06-12 17:39:23.124908000 +0300
++++ cache1.py	2024-06-12 17:38:26.825278600 +0300
+@@ -17,6 +17,7 @@
+ #
+ 
+ import os
++import time
+ import logging
+ import pickle
+ from collections import defaultdict
+@@ -515,6 +516,8 @@
+     def parse(self, filename, appends, layername):
+         """Parse the specified filename, returning the recipe information"""
+         self.logger.debug("Parsing %s", filename)
++        start_time = time.time()
++
+         infos = []
+         datastores = self.databuilder.parseRecipeVariants(filename, appends, mc=self.mc, layername=layername)
+         depends = []
+@@ -536,6 +539,10 @@
+                 info_array.append(info)
+             infos.append((virtualfn, info_array))
+ 
++        end_time = time.time()
++        with open('recipe_parsing_time.log', 'a') as log_file:
++            log_file.write(f'{filename}: {end_time - start_time:.2f} seconds\n')
++
+         return infos
+ 
+     def loadCached(self, filename, appends):
