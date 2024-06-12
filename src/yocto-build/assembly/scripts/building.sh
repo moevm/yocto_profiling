@@ -12,8 +12,8 @@ if [ ! -d "./poky" ]; then
 	git clone git://git.yoctoproject.org/poky
 fi
 
-branch_name=my-upstream
-commit_hash=1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a
+branch_name=my-upstream_5.0.1
+commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
 current_branch=$(git branch --show-current)
