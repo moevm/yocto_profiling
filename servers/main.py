@@ -116,7 +116,7 @@ def create_containers(cl: docker.DockerClient, *,
 
     # create container for universal cache dir
     containers: list[Container] = [
-        create(name='universal', port=create_port(START_PORT + COUNT_OF_SERVERS - 1), volume=universal_vol)
+        create(name='universal', port=create_port(START_PORT + COUNT_OF_SERVERS - 1), volume=[universal_vol])
     ]
 
     # TODO сделать деление по (COUNT_OF_SERVERS - 1) серверам
