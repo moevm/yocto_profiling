@@ -150,7 +150,7 @@ def remove_exists_containers(cl: docker.DockerClient, *, image: str) -> None:
 def remove_container(container: Container) -> None:
     try:
         container.remove(force=True)
-    except docker.errors.APIError as e:
+    except docker.errors.APIError:
         raise docker.errors.APIError(
             "Error while removing container, check \'docker ps -a\' that it was removed successfully!"
         )
@@ -159,7 +159,7 @@ def remove_container(container: Container) -> None:
 def stop_container(container: Container) -> None:
     try:
         container.stop(force=True)
-    except docker.errors.APIError as e:
+    except docker.errors.APIError:
         raise docker.errors.APIError(
             "Error while stopping container, check list of containers!"
         )
