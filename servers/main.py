@@ -63,7 +63,7 @@ def sstate_dir_check(*, path: str = './build/sstate-cache') -> str:
     return path
 
 
-def create_volume_list() -> tuple[list[str], str]:
+def create_volumes() -> tuple[list[str], str]:
     global SSTATE_DIR_PATH
 
     def create_volume(cache_dir: str) -> str:
@@ -119,21 +119,50 @@ def create_containers(cl: docker.DockerClient, *,
         create(name='universal', port=create_port(START_PORT + COUNT_OF_SERVERS - 1), volume=[universal_vol])
     ]
 
-    # TODO сделать деление по (COUNT_OF_SERVERS - 1) серверам
     # create containers for parted cache
     for i in range(COUNT_OF_SERVERS - 1):
-        containers.append(create(name=f'part-{i}', port=create_port(START_PORT + i), volume=[]))
+        containers.append(
+            create(name=f'part-{i}', port=create_port(START_PORT + i), volume=parted_vol[i::COUNT_OF_SERVERS - 1])
+        )
 
     return tuple(containers)
 
 
-def start_containers(cl: docker.DockerClient, containers: tuple[Container, ...]) -> None:
-    # containers[i].start()
-    ...
+def start_containers(cl: docker.DockerClient, *,
+                     image: str,
+                     containers: tuple[Container, ...]) -> None:
+    remove_exists_containers(cl, image=image)
+    for container in containers:
+        try:
+            container.start()
+        except docker.errors.APIError as e:
+            remove_exists_containers(cl, image=image)
+            raise e
 
 
-def kill_containers(cl: docker.DockerClient, containers: tuple[Container, ...]) -> None:
-    ...
+def remove_exists_containers(cl: docker.DockerClient, *, image: str) -> None:
+    exists_containers = cl.containers.list(all=True, filters={'ancestor': image})
+    if exists_containers:
+        for container in exists_containers:
+            remove_container(container)
+
+
+def remove_container(container: Container) -> None:
+    try:
+        container.remove(force=True)
+    except docker.errors.APIError as e:
+        raise docker.errors.APIError(
+            "Error while removing container, check \'docker ps -a\' that it was removed successfully!"
+        )
+
+
+def stop_container(container: Container) -> None:
+    try:
+        container.stop(force=True)
+    except docker.errors.APIError as e:
+        raise docker.errors.APIError(
+            "Error while stopping container, check list of containers!"
+        )
 
 
 def build_base_image(cl: docker.DockerClient) -> str:
@@ -155,5 +184,6 @@ if __name__ == "__main__":
     pull_reqs_images(client, images=['alpine:3.18'])
     image_name = build_base_image(client)
 
-    volumes = create_volume_list()
-    create_containers(client, image=image_name, vol=volumes)
+    volumes = create_volumes()
+    container_tuple = create_containers(client, image=image_name, vol=volumes)
+    start_containers(client, image=image_name, containers=container_tuple)
