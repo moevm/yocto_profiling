@@ -68,7 +68,7 @@ def create_volume_list() -> tuple[list[str], str]:
     global SSTATE_DIR_PATH
 
     def create_volume(cache_dir: str) -> str:
-        nonlocal SSTATE_DIR_PATH
+        global SSTATE_DIR_PATH
         return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/"
 
     volume_list, universal_volume = [], ''
