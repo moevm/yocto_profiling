@@ -141,9 +141,9 @@ def build_base_image(cl: docker.DockerClient) -> str:
     try:
         image, _ = cl.images.build(path='.', dockerfile='Dockerfile', tag=f'parted-sstate-cache:latest', forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
-        sys.exit(f'An error occurred while building base image! {e}')
-    except TypeError:
-        sys.exit('Neither path nor fileobj was specified.')
+        raise Exception(f'An error occurred while building base image! {e}')
+    except TypeError as e:
+        raise e
 
     return image.tags[0]
 
