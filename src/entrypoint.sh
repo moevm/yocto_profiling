@@ -55,9 +55,8 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 
 
 	if [[ $1 == ${scripts_list[1]} && ! -z "$2" ]]; then
-                $SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG "Cloning"
-				exit 1
-		fi
+		$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG "Cloning"
+		exit 1
 	fi
 
 	
