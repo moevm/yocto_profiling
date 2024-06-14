@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Optional, Union, Tuple, List, Dict
 
 import docker
 import docker.errors
@@ -17,7 +17,7 @@ def connect_to_docker() -> docker.DockerClient:
     return cl
 
 
-def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> tuple[int, int]:
+def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> Tuple[int, int]:
     def checks() -> bool:
         nonlocal start_port, count_of_servers
 
@@ -43,7 +43,7 @@ def find_image(cl: docker.DockerClient, image: str) -> bool:
     return True
 
 
-def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[list[str]] = None) -> None:
+def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[List[str]] = None) -> None:
     if not images:
         return
 
@@ -67,7 +67,7 @@ def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
     return result_path
 
 
-def create_volumes() -> tuple[list[str], str]:
+def create_volumes() -> Tuple[List[str], str]:
     global SSTATE_DIR_PATH
 
     def create_volume(cache_dir: str) -> str:
@@ -94,14 +94,14 @@ def create_volumes() -> tuple[list[str], str]:
 
 def create_containers(cl: docker.DockerClient, *,
                       image: str,
-                      vol: tuple[list[str], str]) -> tuple[Container, ...]:
+                      vol: Tuple[List[str], str]) -> Tuple[Container, ...]:
     global COUNT_OF_SERVERS, START_PORT
     parted_vol, universal_vol = vol
 
     if not find_image(cl, image):
         raise docker.errors.ImageNotFound("Base image not found!")
 
-    def create(*, name: str, port: dict[str, int], volume: Union[list[str], str]) -> Container:
+    def create(*, name: str, port: Dict[str, int], volume: Union[List[str], str]) -> Container:
         nonlocal image
 
         try:
@@ -117,7 +117,7 @@ def create_containers(cl: docker.DockerClient, *,
 
         return container
 
-    def create_port(port: int) -> dict[str, int]:
+    def create_port(port: int) -> Dict[str, int]:
         return {f'{port}/tcp': port}
 
     # create container for universal cache dir
@@ -136,7 +136,7 @@ def create_containers(cl: docker.DockerClient, *,
 
 def start_containers(cl: docker.DockerClient, *,
                      image: str,
-                     containers: tuple[Container, ...]) -> None:
+                     containers: Tuple[Container, ...]) -> None:
     remove_exists_containers(cl, image=image)
     for container in containers:
         try:
