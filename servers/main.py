@@ -35,12 +35,12 @@ def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> tup
     return start_port, count_of_servers
 
 
-def find_image(cl: docker.DockerClient, image: str) -> None:
+def find_image(cl: docker.DockerClient, image: str) -> bool:
     try:
         cl.images.get(image)
     except docker.errors.ImageNotFound as e:
-        raise e
-    return
+        raise False
+    return True
 
 
 def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[list[str]] = None) -> None:
@@ -48,7 +48,9 @@ def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[list[str]] = N
         return
 
     for image in images:
-        find_image(cl, image)
+        if find_image(cl, image):
+            continue
+
         try:
             cl.images.pull(image)
         except docker.errors.APIError as e:
@@ -93,7 +95,8 @@ def create_containers(cl: docker.DockerClient, *,
     global COUNT_OF_SERVERS, START_PORT
     parted_vol, universal_vol = vol
 
-    find_image(cl, image)
+    if not find_image(cl, image):
+        raise docker.errors.ImageNotFound("Base image not found!")
 
     def create(*, name: str, port: dict[str, int], volume: Union[list[str], str]) -> Container:
         nonlocal image
@@ -186,4 +189,4 @@ if __name__ == "__main__":
 
     volumes = create_volumes()
     container_tuple = create_containers(client, image=image_name, vol=volumes)
-    start_containers(client, image=image_name, containers=container_tuple)
+    # start_containers(client, image=image_name, containers=container_tuple)
