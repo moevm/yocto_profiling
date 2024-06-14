@@ -51,8 +51,17 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 			REQS_ARG="requirements"
 		fi
 	fi
+
+
+
+	if [[ $1 == ${scripts_list[1]} && ! -z "$2" ]]; then
+                $SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG "Cloning"
+				exit 1
+		fi
+	fi
+
 	
-	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
+	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
 		echo "Exit code: $EXIT_CODE"

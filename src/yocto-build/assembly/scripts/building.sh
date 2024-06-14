@@ -7,13 +7,15 @@ if [ ! -d "./logs" ]; then
 	mkdir logs
 fi
 
+sleep 5
+
 if [ ! -d "./poky" ]; then
 	echo "Clone Poky."
 	git clone git://git.yoctoproject.org/poky
 fi
 
-branch_name=my-upstream_5.0.1
-commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
+branch_name=my-upstream
+commit_hash=1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
 current_branch=$(git branch --show-current)
@@ -24,6 +26,12 @@ fi
 
 
 cd $YOCTO_INSTALL_PATH/assembly
+
+
+if [ $# -ge 1 ]; then
+    echo "Take braking flag -- just cloning"
+    exit 1
+fi
 
 function start_logging() {
 	# start utils for logging
