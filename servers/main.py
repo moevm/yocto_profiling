@@ -39,7 +39,7 @@ def find_image(cl: docker.DockerClient, image: str) -> bool:
     try:
         cl.images.get(image)
     except docker.errors.ImageNotFound as e:
-        raise False
+        return False
     return True
 
 
@@ -59,10 +59,12 @@ def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[list[str]] = N
     return
 
 
-def sstate_dir_check(*, path: str = './build/sstate-cache') -> str:
-    if not (os.path.isdir(path) and os.listdir(path)):
+def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
+    current_path = os.getcwd()
+    result_path = current_path + path
+    if not (os.path.isdir(result_path) and os.listdir(result_path)):
         raise OSError('Directory with sstate-cache was not found or it is empty!')
-    return path
+    return result_path
 
 
 def create_volumes() -> tuple[list[str], str]:
@@ -85,7 +87,8 @@ def create_volumes() -> tuple[list[str], str]:
 
     if not (volume_list and universal_volume):
         raise Exception('Volume list and universal volume was not found or it is empty!')
-
+    
+    print(volume_list, universal_volume, sep='\n')
     return volume_list, universal_volume
 
 
