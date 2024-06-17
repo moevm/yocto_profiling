@@ -7,12 +7,12 @@
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 config_file"
-    return 1
+    exit 1
 fi
 
 if [ ! -f "$1" ]; then
     echo "Error: File $1 not found."
-    return 1
+    exit 1
 fi
 
 # парсим config файл 
@@ -78,3 +78,11 @@ else
     ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 fi
+
+: '
+Работаем в /home/user/Desctop/test на удаленных серверах
+TBD:
+1) Создание хэш сервера - копирование Docker образа и запуск его для клонирования poky; проверка на наличие poky; запуск хэш сервера, отключение хэш сервера
+2) Создание кэш сервера - копирование Docker образа и запуск его для клонирования poky; запуск сборки, окончание сборки, выгрузка и парсинг логов, удаление рабочей директории
+3) Оформить это все в цикл
+'
