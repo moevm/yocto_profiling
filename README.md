@@ -30,8 +30,9 @@ git clone https://github.com/moevm/os_profiling.git
         Verify that dependencies are installed for the project:
         	<check> -- check of all dependencies.
         ```
-    
-    2. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
+        i.2 - чтобы просто склонировать poky и не производить сборку, нужно ввести `./entrypoint.sh shell < любой-аргумент > `, например `./entrypoint.sh shell 2`.
+       
+    3. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
         ```
         ./entrypoint.sh check
         ```
@@ -43,7 +44,7 @@ git clone https://github.com/moevm/os_profiling.git
         Verification completed successfully!
         ```
         
-    3. Чтобы создать образ среды для проекта требуется выполнить команду:
+    4. Чтобы создать образ среды для проекта требуется выполнить команду:
         ```
         ./entrypoint.sh build_env
         ```
@@ -62,7 +63,7 @@ git clone https://github.com/moevm/os_profiling.git
          => => naming to docker.io/library/yocto-image          
         ```
     
-    4.  Чтобы получить доступ к файловой системе контейнера требуется выполнить команду:
+    5.  Чтобы получить доступ к файловой системе контейнера требуется выполнить команду:
         ```
         ./entrypoint.sh shell
         ```
@@ -77,7 +78,7 @@ git clone https://github.com/moevm/os_profiling.git
         ...
         ```
     
-    5.  Чтобы собрать образ Yocto требуется выполнить команду:
+    6.  Чтобы собрать образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh build_yocto_image
         ```
@@ -115,7 +116,7 @@ git clone https://github.com/moevm/os_profiling.git
         yocto_project exited with code 0
         ```
     
-    6.  Чтобы запустить образ Yocto требуется выполнить команду:
+    7.  Чтобы запустить образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh start_yocto
         ```
