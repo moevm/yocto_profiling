@@ -62,12 +62,7 @@ def print_config(file_name:str):
             print(f"{option} = {value}")
     
 
-def run(function, args):
-    print(function(*args))
-
-
 if __name__ == '__main__':
-
 
     '''
     примеры использования функций
