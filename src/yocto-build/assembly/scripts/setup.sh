@@ -13,6 +13,6 @@ case "$STAGE_VAR" in
 		;;
 	*)
 		echo "Trying to build yocto-project."
-		./building.sh 
+		./building.sh
 		;;
 esac
