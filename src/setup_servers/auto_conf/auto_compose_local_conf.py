@@ -3,44 +3,6 @@ import os
 
 from config_parser import read_from_config
 
-# def read_server_file(name:str):
-#     try:
-#         with open(name, 'r', encoding='utf-8') as file:
-#             content = file.read()
-#             content = content.split()
-#             if len(content) != 2:
-#                 raise ValueError(f"The number of words in the file {name} should be 2 - the initial port and the number of ports")
-#             return int(content[0]), int(content[1])
-
-#     except ValueError as e:
-#         print(e)
-#         return None, None
-    
-
-# def read_hash_file(name:str):
-#     ip_pattern = re.compile(r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
-#     try:
-#         with open(name, 'r', encoding='utf-8') as file:
-#             content_raw = file.read()
-#             content = content_raw.split(':')
-#             if len(content) != 2:
-#                 raise ValueError(f"The file {name} should have 2 parameters separated by : -- ip and port of the hash server")
-#             if not ip_pattern.match(content[0]):
-#                 raise ValueError(f"IP address {content[0]} in the file {name} is invalid")
-#             try:
-#                 port_num = int(content[1])
-#             except ValueError:
-#                 raise ValueError(f"Port {content[1]} in the file {name} is invalid")
-
-#             if port_num is None or port_num < 1024:
-#                 raise ValueError(f"Port {content[1]} in the file {name} is invalid")
-    
-#             return content_raw
-
-#     except ValueError as e:
-#         print(e)
-#         return None
-
 
 def generate_strings(out:str, base_url:str, start_port:int, start_string:str, target_str:str, num:int):
     out += start_string + '\n'
@@ -56,7 +18,6 @@ def generate_strings(out:str, base_url:str, start_port:int, start_string:str, ta
     return out
 
 def compose_settings_string(base_url, start, num, hash_ip_port):
-    # start, num = read_server_file('servers_params.txt')
 
     try:
         start = int(start)
@@ -72,7 +33,6 @@ def compose_settings_string(base_url, start, num, hash_ip_port):
     if start is None or num is None:
         raise ValueError(f"Error with the cache parameters file!")
     
-    # hash_ip_port =  read_hash_file('hash_params.txt')
     if hash_ip_port is None:
         raise ValueError(f"Error with the hash parameters file!")
         
@@ -126,12 +86,3 @@ if __name__ == '__main__':
     settings = compose_settings_string(base_url=base_url, start=cache_start_port, num=cache_num_port, hash_ip_port=hash_ip_port)
     print(settings)
     remove_comments_and_write_settings("./conf/local.conf", settings)
-
-
-    '''
-    The presence of the `servers_params.txt` file is required, which will contain one line - the initial port and the number of servers.
-        EX: 9000 5
-
-    The presence of the `hash_params.txt` file is required, which will contain one line - ip:port of hash server
-        EX: 10.138.70.6:9999
-    '''
