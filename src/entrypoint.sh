@@ -60,7 +60,7 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 	fi
 
 	
-	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG 
+	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
 		echo "Exit code: $EXIT_CODE"
