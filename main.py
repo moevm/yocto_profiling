@@ -1,3 +1,4 @@
+import json
 import os
 import argparse
 import unittest
@@ -6,6 +7,7 @@ from tests.src.graph_tests import GraphTest
 from src.statistics_analyzer.src.parsing import Parser
 from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
 from src.dep_graph.src.analyze_graph import analyze_graph
+from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals, get_tasks_for_intervals, write_to_json
 
 def create_args():
     parser = argparse.ArgumentParser()
@@ -79,6 +81,7 @@ def start_ranking(args):
     data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=border, metric=metric, reverse=reverse)
     write_ranked_data(data, './src/statistics_analyzer/output/ranking_output.txt')
 
+
 def start_graph_analyze(args):
     if not args.poky_path and not args.dot_file:
         print('Enter -p (--poky_path) and -d (--dot_file)')
@@ -92,6 +95,28 @@ def start_graph_analyze(args):
     
     parser = start_parser(args)
     analyze_graph(args.dot_file, parser.info, True)
+
+
+def start_timeline_analyze(args):
+    if not args.poky_path:
+        print('Enter -p (--poky_path)')
+        return -1
+    parser = start_parser(args)
+    parser.get_tasks_for_timeline()
+    #write_to_excel(parser)
+
+    cpu_intervals, cpu_sum_time = find_free_intervals(parser, 'cpu', 0.9)
+    get_tasks_for_intervals(parser, cpu_intervals)
+    write_to_json(cpu_intervals, cpu_sum_time, './src/statistics_analyzer/output/cpu_intervals.json')
+
+    io_intervals, io_sum_time = find_free_intervals(parser, 'io', 0.1)
+    get_tasks_for_intervals(parser, io_intervals)
+    write_to_json(io_intervals, io_sum_time, './src/statistics_analyzer/output/io_intervals.json')
+
+    ram_intervals, ram_sum_time = find_free_intervals(parser, 'ram', 0.9)
+    get_tasks_for_intervals(parser, ram_intervals)
+    write_to_json(ram_intervals, ram_sum_time, './src/statistics_analyzer/output/ram_intervals.json')
+
 
 
 def start_tests(args):
@@ -111,3 +136,5 @@ if __name__ == '__main__':
         start_graph_analyze(args)
     elif args.goal == 'tests':
         start_tests(args)
+    elif args.goal == 'timeline':
+        start_timeline_analyze(args)
