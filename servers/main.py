@@ -87,8 +87,9 @@ def create_volumes() -> Tuple[List[str], str]:
 
     if not (volume_list and universal_volume):
         raise Exception('Volume list and universal volume was not found or it is empty!')
-    
-    print(volume_list, universal_volume, sep='\n')
+
+    print(f"Created volumes for sstate-cache:", volume_list, sep='\n', end='\n')
+    print(f"Created volume for universal sstate-cache:", universal_volume, sep='\n', end='\n')
     return volume_list, universal_volume
 
 
