@@ -211,7 +211,7 @@ if __name__ == "__main__":
     parser.add_argument('action', type=str, nargs='?', choices=['create', 'start', 'kill'])
     parser.add_argument('-p', '--port', type=int, default=9000)
     parser.add_argument('-c', '--count', type=int, default=4)
-    parser.add_argument('--path', type=str, default='/build_yocto/sstate-cache')
+    parser.add_argument('--path', type=str, default='/build/sstate-cache')
 
     args = parser.parse_args()
 

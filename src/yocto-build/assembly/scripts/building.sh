@@ -57,21 +57,15 @@ function decorate_logs() {
 	finish_logging $log_file
 }
 
-function build_yocto() {
-	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env
-       	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf	
+
+function build() {
+	# ./scripts/add_layers.sh
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf 
+	bitbake-layers show-layers
 	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
 	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
-}
-
-
-function build() {
-	./scripts/add_layers.sh
-	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
-	bitbake-layers show-layers
-	bitbake core-image-minimal
-	echo "yocto building ends with code: $?"
 }
 
 decorate_logs build
