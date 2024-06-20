@@ -65,5 +65,13 @@ function build_yocto() {
 }
 
 
-decorate_logs build_yocto
+function build() {
+	./scripts/add_layers.sh
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	bitbake-layers show-layers
+	bitbake core-image-minimal
+	echo "yocto building ends with code: $?"
+}
+
+decorate_logs build
 

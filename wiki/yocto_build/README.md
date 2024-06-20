@@ -11,3 +11,4 @@
 * [bitbake_pressure_variables](./bitbake_pressure_variables.md) - описание переменных нагрузки Bitbake и описание процесса мониторинга свободного места 
 * [WORKDIR](./WORKDIR.md) - получение переменной WORKDIR для рецепта
 * [build_download_info](./build_download_info.md) - сравнение времени сборки со скачиванием исходников и без него
+* [add_layers](./add_layers.md) - описание добавления слоев
