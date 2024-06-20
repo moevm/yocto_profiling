@@ -1,3 +1,4 @@
+import argparse
 import os
 from typing import Optional, Union, Tuple, List, Dict
 
@@ -38,7 +39,7 @@ def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> Tup
 def find_image(cl: docker.DockerClient, image: str) -> bool:
     try:
         cl.images.get(image)
-    except docker.errors.ImageNotFound as e:
+    except docker.errors.ImageNotFound:
         return False
     return True
 
@@ -173,25 +174,56 @@ def stop_container(container: Container) -> None:
         )
 
 
-def build_base_image(cl: docker.DockerClient) -> str:
+def build_base_image(cl: docker.DockerClient, *, tag: str) -> None:
     try:
-        image, _ = cl.images.build(path='./servers_reqs/', dockerfile='Dockerfile', tag=f'parted-sstate-cache:latest', forcerm=True)
+        image, _ = cl.images.build(path='./servers_reqs/', dockerfile='Dockerfile', tag=tag, forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
         raise Exception(f'An error occurred while building base image! {e}')
     except TypeError as e:
         raise e
 
-    return image.tags[0]
+
+def option_create(cl: docker.DockerClient, image: str) -> Tuple:
+    global START_PORT, COUNT_OF_SERVERS
+
+    pull_reqs_images(cl, images=['alpine:3.18'])
+    build_base_image(cl, tag=image)
+
+    volumes = create_volumes()
+    container_tuple = create_containers(cl, image=image_name, vol=volumes)
+    return container_tuple
+
+
+def option_start(cl: docker.DockerClient, image: str, containers: Tuple[Container, ...]) -> None:
+    start_containers(cl, image=image, containers=containers)
+
+
+def option_kill(cl: docker.DockerClient, image: str) -> None:
+    remove_exists_containers(cl, image=image)
 
 
 if __name__ == "__main__":
-    START_PORT, COUNT_OF_SERVERS = variables_check()
-    SSTATE_DIR_PATH = sstate_dir_check(path='/build_yocto/sstate-cache')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', type=str, nargs='?', choices=['create', 'start', 'kill'])
+    parser.add_argument('-p', '--port', type=int, default=9000)
+    parser.add_argument('-c', '--count', type=int, default=4)
+    parser.add_argument('--path', type=str, default='/build_yocto/sstate-cache')
+
+    args = parser.parse_args()
+    print(args.action, args.port, args.count, args.path)
+
+    START_PORT, COUNT_OF_SERVERS = variables_check(start_port=args.port, count_of_servers=args.count)
+    SSTATE_DIR_PATH = sstate_dir_check(path=args.path)
 
     client = connect_to_docker()
-    pull_reqs_images(client, images=['alpine:3.18'])
-    image_name = build_base_image(client)
+    image_name = 'parted-sstate-cache:latest'
 
-    volumes = create_volumes()
-    container_tuple = create_containers(client, image=image_name, vol=volumes)
-    # start_containers(client, image=image_name, containers=container_tuple)
+    if args.action == 'create':
+        option_create(client, image_name)
+    elif args.action == 'start':
+        create_result = option_create(client, image_name)
+        option_start(client, image_name, create_result)
+    elif args.action == 'kill':
+        option_kill(client, image_name)
+    else:
+        raise Exception('Invalid action!')
