@@ -88,7 +88,7 @@ def create_volumes() -> Tuple[List[str], str]:
     if not (volume_list and universal_volume):
         raise Exception('Volume list and universal volume was not found or it is empty!')
 
-    print(f"Created volumes for sstate-cache:", volume_list, sep='\n', end='\n')
+    print(f"Created volumes for sstate-cache:", *volume_list, sep='\n', end='\n\n')
     print(f"Created volume for universal sstate-cache:", universal_volume, sep='\n', end='\n')
     return volume_list, universal_volume
 
@@ -101,6 +101,8 @@ def create_containers(cl: docker.DockerClient, *,
 
     if not find_image(cl, image):
         raise docker.errors.ImageNotFound("Base image not found!")
+
+    remove_exists_containers(cl, image=image)
 
     def create(*, name: str, port: Dict[str, int], volume: Union[List[str], str]) -> Container:
         nonlocal image
@@ -138,7 +140,6 @@ def create_containers(cl: docker.DockerClient, *,
 def start_containers(cl: docker.DockerClient, *,
                      image: str,
                      containers: Tuple[Container, ...]) -> None:
-    remove_exists_containers(cl, image=image)
     for container in containers:
         try:
             container.start()
@@ -174,7 +175,7 @@ def stop_container(container: Container) -> None:
 
 def build_base_image(cl: docker.DockerClient) -> str:
     try:
-        image, _ = cl.images.build(path='.', dockerfile='Dockerfile', tag=f'parted-sstate-cache:latest', forcerm=True)
+        image, _ = cl.images.build(path='./servers_reqs/', dockerfile='Dockerfile', tag=f'parted-sstate-cache:latest', forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
         raise Exception(f'An error occurred while building base image! {e}')
     except TypeError as e:
@@ -185,7 +186,7 @@ def build_base_image(cl: docker.DockerClient) -> str:
 
 if __name__ == "__main__":
     START_PORT, COUNT_OF_SERVERS = variables_check()
-    SSTATE_DIR_PATH = sstate_dir_check()
+    SSTATE_DIR_PATH = sstate_dir_check(path='/build_yocto/sstate-cache')
 
     client = connect_to_docker()
     pull_reqs_images(client, images=['alpine:3.18'])
