@@ -14,3 +14,8 @@ cd $1
 
 docker compose up
 
+CONTAINER_NAME=yocto_project
+CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
+
+EXIT_CODE=$(docker inspect $CONTAINER_ID --format='{{.State.ExitCode}}')
+exit $EXIT_CODE

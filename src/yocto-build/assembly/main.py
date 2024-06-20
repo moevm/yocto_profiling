@@ -1,4 +1,5 @@
 import argparse
+import sys
 import os
 from typing import Optional, Union, Tuple, List, Dict
 
@@ -175,8 +176,11 @@ def stop_container(container: Container) -> None:
 
 
 def build_base_image(cl: docker.DockerClient, *, tag: str) -> None:
+    current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    result_path = current_path + '/servers_reqs'
+    print(result_path)
     try:
-        image, _ = cl.images.build(path='./servers_reqs/', dockerfile='Dockerfile', tag=tag, forcerm=True)
+        image, _ = cl.images.build(path=result_path, dockerfile='Dockerfile', tag=tag, forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
         raise Exception(f'An error occurred while building base image! {e}')
     except TypeError as e:
@@ -210,7 +214,6 @@ if __name__ == "__main__":
     parser.add_argument('--path', type=str, default='/build_yocto/sstate-cache')
 
     args = parser.parse_args()
-    print(args.action, args.port, args.count, args.path)
 
     START_PORT, COUNT_OF_SERVERS = variables_check(start_port=args.port, count_of_servers=args.count)
     SSTATE_DIR_PATH = sstate_dir_check(path=args.path)
@@ -226,4 +229,4 @@ if __name__ == "__main__":
     elif args.action == 'kill':
         option_kill(client, image_name)
     else:
-        raise Exception('Invalid action!')
+        raise Exception('No actions! Try: python3 main.py -h')

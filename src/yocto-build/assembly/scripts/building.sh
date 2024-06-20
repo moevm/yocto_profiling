@@ -13,7 +13,7 @@ if [ ! -d "./poky" ]; then
 fi
 
 branch_name=my-upstream
-commit_hash=1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a
+commit_hash=$YOCTO_COMMIT_HASH
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
 current_branch=$(git branch --show-current)
@@ -61,9 +61,11 @@ function build_yocto() {
 	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env
        	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf	
 	bitbake core-image-minimal
-	echo "yocto building ends with code: $?"
+	YOCTO_EXIT_CODE=$?
+	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
 
 
 decorate_logs build_yocto
 
+exit $YOCTO_EXIT_CODE
