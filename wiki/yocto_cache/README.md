@@ -10,3 +10,4 @@
 * [setup_http_server](./setup_http_server.md) - инструкция создания ftp кэш-сервера
 * [simple_http_cache_mirror](./simple_http_cache_mirror.md) - инструкция создания ftp кэш-сервера
 * [cache_description](./cache_description.md) - описание кэширования Bitbake и Yocto
+* [parsing_cache](./parsing_cache.md) - кэширование парсинга рецептов в BitBake
