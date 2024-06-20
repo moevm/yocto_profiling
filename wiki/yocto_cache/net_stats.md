@@ -1,5 +1,7 @@
 ## Статистика нагрузки на сети
-Замеры будет производить с помощью утилиты netstat с флагом -i.
+Замеры будет производить с помощью утилиты netstat с флагом -i.  
+1) Параметры - Хэш и Кэш сервера разнесены по разным пк  
+2) Количество серверов для Кэша - 10.
 ### До начала сборки
 ```
 Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
@@ -48,7 +50,8 @@ Kernel Interface table
 Iface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
 br-dffff  1500        0      0      0 0             0      0      0      0 BMU
 br-f1b1f  1500        0      0      0 0             0      0      0      0 BMU
-docker0   1500  1023126      0      0 0       1144117      0      0      0 BMRU
+docker0   1500  1023126      0      0 0       1144117      0      0      0 BMRU![tx](https://github.com/moevm/os_profiling/assets/90711883/39943766-ed6a-4df2-b71f-6976d65e4f0a)
+
 enp5s0    1500  1206134      0      0 0       1876950      0      0      0 BMRU
 lo       65536     2091      0      0 0          2091      0      0      0 LRU
 veth03e6  1500   191000      0      0 0        206586      0      0      0 BMRU
@@ -62,4 +65,19 @@ vetha0a7  1500   117486      0      0 0        122671      0      0      0 BMRU
 vethf38e  1500    64300      0      0 0         73303      0      0      0 BMRU
 vethf4f2  1500    60003      0      0 0         67100      0      0      0 BMRU
 ```
+## Графики
+По полученным данным построены графики:
+### RX
+#### RX exp
+![rx2](https://github.com/moevm/os_profiling/assets/90711883/99fca960-da04-44d4-b4ba-62795cd206fb)
+#### RX linear
+![rx](https://github.com/moevm/os_profiling/assets/90711883/500db53a-3e74-4e2c-81e6-d1eae4739847)
+### TX
+#### TX exp
+![tx2](https://github.com/moevm/os_profiling/assets/90711883/1b414b29-7583-4bb6-8176-c2a83ba24870)
+#### TX linear
+![tx](https://github.com/moevm/os_profiling/assets/90711883/8c855b2d-f50f-415b-8e75-d1ac9cc30a94)
 
+### Выводы
+По графикам exp видно, что сумма интерфейсов `veth*` почти сходится к `docker0`, потому `docker0` почти не видно.   
+По графикам linear видно, что во время сборки нагрузка на сеть кэш сервера больше, чем во время парсинга рецептов.
