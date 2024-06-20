@@ -12,7 +12,7 @@ if [ ! -d "./poky" ]; then
 	git clone git://git.yoctoproject.org/poky
 fi
 
-branch_name=my-upstream
+branch_name=my-upstream_5.0.1
 commit_hash=$YOCTO_COMMIT_HASH
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
@@ -66,6 +66,14 @@ function build_yocto() {
 }
 
 
-decorate_logs build_yocto
+function build() {
+	./scripts/add_layers.sh
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	bitbake-layers show-layers
+	bitbake core-image-minimal
+	echo "yocto building ends with code: $?"
+}
+
+decorate_logs build
 
 exit $YOCTO_EXIT_CODE
