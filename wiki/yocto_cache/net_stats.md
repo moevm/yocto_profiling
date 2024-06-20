@@ -69,15 +69,20 @@ vethf4f2  1500    60003      0      0 0         67100      0      0      0 BMRU
 По полученным данным построены графики:
 ### RX
 #### RX exp
-![rx2](https://github.com/moevm/os_profiling/assets/90711883/99fca960-da04-44d4-b4ba-62795cd206fb)
+![rx_exp](https://github.com/moevm/os_profiling/assets/90711883/1e18b051-e0de-40ae-be84-3c2153ef60a0)
+
 #### RX linear
-![rx](https://github.com/moevm/os_profiling/assets/90711883/500db53a-3e74-4e2c-81e6-d1eae4739847)
+![rx_linear](https://github.com/moevm/os_profiling/assets/90711883/6adb4910-6e15-4d2d-bb02-a70636ab97b9)
 ### TX
 #### TX exp
-![tx2](https://github.com/moevm/os_profiling/assets/90711883/1b414b29-7583-4bb6-8176-c2a83ba24870)
+![tx_exp](https://github.com/moevm/os_profiling/assets/90711883/2e3860f1-7f9e-453d-8e10-ecffbbcc8183)
+
 #### TX linear
-![tx](https://github.com/moevm/os_profiling/assets/90711883/8c855b2d-f50f-415b-8e75-d1ac9cc30a94)
+![tx_linear](https://github.com/moevm/os_profiling/assets/90711883/a2b585ac-ee56-4a61-8b6b-dfeb2c210b4a)
 
 ### Выводы
 По графикам exp видно, что сумма интерфейсов `veth*` почти сходится к `docker0`, потому `docker0` почти не видно.   
 По графикам linear видно, что во время сборки нагрузка на сеть кэш сервера больше, чем во время парсинга рецептов.
+
+По таблицам netstat видно, что некоторый интерфейсы используются значительно реже других, а некоторые наоборот - часто. Дело в том, что кэш распределен по серверам неравномерно по объему, это приводит к тому, что сервера, на которых больше кэша, потребляются больше ресурсов сети. Потому не было смысла строить график по каждому интерфейсу - это показало бы лишь то, насколько равномерно или неравномерно по объему мы распределили кэш.
+
