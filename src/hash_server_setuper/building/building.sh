@@ -1,13 +1,8 @@
 #! /bin/bash
 
-ip=$(python3 get_ip.py)
+PORT=$1
+ip=$2
 
-
-# PORT=$1
-
-PORT=8877
-
-echo "Use ip = $ip"
 
 if [ ! -d "./poky" ]; then
 	echo "Clone Poky."
@@ -17,17 +12,22 @@ fi
 branch_name=my-upstream_5.0.1
 commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
-cd ./poky 
+cd ./poky
 
-source oe-init-build-env 
+. oe-init-build-env build
+# source oe-init-build-env
 
 cd ../..
 
 mkdir hashserver
 
+cd hashserver
+echo "$PWD"
 echo "start hash server at -- $ip:$PORT"
 
 bitbake-hashserv -b $ip:$PORT
+
+echo "LL smth wrong"
 
 sleep infinity
 

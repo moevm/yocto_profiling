@@ -1,9 +1,5 @@
 FROM ubuntu:20.04 AS requirements
 
-# ARG HOST_IP
-# ENV HOST_IP=$HOST_IP
-
-# Upgrade system and Yocto Project basic dependencies, Set up locales, Clean up APT
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get -y install \
         gawk \
@@ -43,17 +39,17 @@ RUN apt-get update && \
 	\
 	sysstat \
 	strace 
-    # && \
-	#dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG}
 
 
 COPY ./building ./building/
-COPY ./get_ip.py ./get_ip.py
+COPY ./get_ip.py ./building/get_ip.py
+
+WORKDIR ./building 
+
+
 ENV PORT=8888
+ENV HOST_IP=0.0.0.0
+
 EXPOSE ${PORT}
 
-
-ENTRYPOINT ["./building/building.sh"]
-CMD ["$PORT"]
-
-# ENTRYPOINT ["./building/building.sh", $PORT]
+CMD ["sh", "-c", "./building.sh $PORT $HOST_IP"]	
