@@ -79,6 +79,19 @@ else
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 fi
 
+
+# Setup hash server :: Проблема - почему-то не работает >> /dev/null
+scp -r ../hash_server_setuper/ $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
+ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  >> /dev/null
+ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
+
+echo "Hash server started at $hash_ip:$hash_port"
+# Это для демонстрации работы. Когда будет распределение кэша - этого sleep не будет 
+sleep 20
+# Убиваем контейнер. Отлично убивается контейнер.
+ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./stop_hash.sh $hash_port"
+
+
 : '
 Работаем в /home/user/Desctop/test на удаленных серверах
 TBD:
