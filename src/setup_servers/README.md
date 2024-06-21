@@ -1,6 +1,8 @@
 ### Instruction -- Step-by-Step Guide for Conducting the Experiment
-<TBD>
-
+1) Заполняем файл конфигуарции
+2) Настраиваем ssh, как показано в [инструкции](/wiki/yocto_cache/ssh_connection.md)
+3) Запускаем скрипт
+ ЕЩЕ НЕ ГОТОВО
 ### Results
 Результаты будут помещаться в папку `./result/`
 Например, результат сборки если запущен только один сервер с кэшем представлен в `./result/stats_1_server.png`, а если 50, то в `./result/stats_50_server.png`.   
