@@ -12,4 +12,4 @@ fi
 
 HOST_IP=$(python3 get_ip.py)
 
-docker run -p $PORT:$PORT -e PORT=$PORT -e HOST_IP=$HOST_IP hash
+docker run -d -p $PORT:$PORT -e PORT=$PORT -e HOST_IP=$HOST_IP hash
