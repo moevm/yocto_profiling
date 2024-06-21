@@ -1,7 +1,10 @@
 #! /bin/bash
 
 PORT=$1
-ip=$2
+
+# ip=$2
+
+ip=$(python3 get_ip.py)
 
 
 if [ ! -d "./poky" ]; then
