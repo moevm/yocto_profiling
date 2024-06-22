@@ -49,6 +49,16 @@ Sstate summary: Wanted 5 Local 5 Mirrors 0 Missed 0 Current 279 (100% match, 100
 NOTE: Executing Tasks
 NOTE: Tasks Summary: Attempted 858 tasks of which 858 didn't need to be rerun and all succeeded.
 ```
+Затем рецепт был изменен (добавлена строка `echo "hello"`) и запущена пересборка. Результат:
+```text
+Initialising tasks: 100% |#######################################| Time: 0:00:00
+Sstate summary: Wanted 12 Local 5 Mirrors 0 Missed 7 Current 272 (41% match, 97% complete)
+Removing 6 stale sstate objects for arch core2-64: 100% |########| Time: 0:00:00
+Removing 1 stale sstate objects for arch qemux86_64: 100% |######| Time: 0:00:00
+NOTE: Executing Tasks
+NOTE: Tasks Summary: Attempted 858 tasks of which 854 didn't need to be rerun and all succeeded.
+```
+По итогу заново было выполнено всего 4 задачи.
 # Node.js
 Аналогично языку [Golang](#golang) в Node.js используются файлы для контроля зависимостей, такие как `package.json` и `package-lock.json`. В 1-ом хранятся названия зависимостей и метаданные проекта. Второй файл регулируется автоматически при исполнении команд с `npm`, он содержит в себе подзависимости, контроль версий и пути для установки.
 Язык интерпретируемый, поэтому кэш (данные зависимостей) хранятся в директории `node_modules` и идентифицируется с помощью `check sum` файла `package.json`.
