@@ -7,8 +7,6 @@ if [ ! -d "./logs" ]; then
 	mkdir logs
 fi
 
-sleep 5
-
 if [ ! -d "./poky" ]; then
 	echo "Clone Poky."
 	git clone git://git.yoctoproject.org/poky
@@ -28,9 +26,9 @@ fi
 cd $YOCTO_INSTALL_PATH/assembly
 
 
-if [ $# -ge 1 ]; then
-    echo "Take braking flag -- just cloning"
-    exit 1
+if [[ "$STAGE_VAR" == "clone_poky" ]]; then
+    echo "Only cloning because of breaking flag!"
+    exit 0
 fi
 
 function start_logging() {

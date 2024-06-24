@@ -11,13 +11,7 @@ fi
 
 cd $1
 
-if [ $# -ge 3 ]; then
-	STAGE_VAR="clone_poky" docker compose up 
-	docker compose stop
-    exit 1
-fi
-
-STAGE_VAR="stage_run" docker compose up -d
+STAGE_VAR="sleep" docker compose up -d
 
 docker container exec -it yocto_project /bin/bash
 

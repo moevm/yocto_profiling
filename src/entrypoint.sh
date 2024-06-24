@@ -2,7 +2,6 @@
 
 SCRIPTS_DIR=$PWD/scripts
 CHECKS_DIR=$SCRIPTS_DIR/checks
-scripts_list=("build_env" "shell" "build_yocto_image" "start_yocto")
 
 DOCKERFILE_DIR=$PWD/yocto-build
 
@@ -16,6 +15,7 @@ function help() {
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
         echo -e "\t<shell> -- opens a terminal in container."
         echo -e "\t<build_yocto_image> -- build the yocto image in container."
+	echo -e "\t\t<--only-poky> -- only clones poky instead of a full build."
 
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
 	echo -e "\t<start_yocto> -- up the yocto image."
@@ -44,33 +44,53 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-if [[ ${scripts_list[@]} =~ "$1" ]]; then
-	REQS_ARG="perf"
-	if [[ $1 == ${scripts_list[0]} && ! -z "$2" ]]; then
-                if [[ $2 == "--no-perf" ]]; then
-			REQS_ARG="requirements"
-		fi
-	fi
+EXIT_CODE=0
+case "$1" in 
+	"build_env")
+		REQS_ARG="perf"
+	        if [[ ! -z "$2" ]]; then
+        	        if [[ "$2" == "--no-perf" ]]; then
+                	        REQS_ARG="requirements"
+                	fi
+        	fi
+
+		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG
+		;;
+	"shell")
+		$SCRIPTS_DIR/shell.sh $DOCKERFILE_DIR
+		
+		EXIT_CODE=$?
+		;;
+	"build_yocto_image")
+		STAGE_ARG="full"
+                if [[ ! -z "$2" ]]; then
+                        if [[ "$2" == "--only-poky" ]]; then
+                                STAGE_ARG="clone_poky"
+                        fi
+                fi
+
+		$SCRIPTS_DIR/build_yocto_image.sh $DOCKERFILE_DIR $STAGE_ARG
+		
+		EXIT_CODE=$?
+		;;
+	"start_yocto")
+		$SCRIPTS_DIR/start_yocto.sh $DOCKERFILE_DIR
+		
+		EXIT_CODE=$?
+		;;
+	"check")
+		check
+		;;
+	*)
+		echo -e "Unexpected parameter found <$1>!\n"
+        	help
+        	exit 1
+		;;
+esac
 
 
-
-	if [[ $1 == ${scripts_list[1]} && ! -z "$2" ]]; then
-		$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG "Cloning"
-		exit 1
-	fi
-
-	
-	$SCRIPTS_DIR/$1.sh $DOCKERFILE_DIR $REQS_ARG
-	EXIT_CODE=$?
-	if [[ ! $EXIT_CODE -eq 0 ]]; then
-		echo "Exit code: $EXIT_CODE"
-		$CHECKS_DIR/active-container-check.sh
-	fi
-elif [[ $1 == "check" ]]; then
-	check
-else
-	echo -e "Unexpected parameter found <$1>!\n"
-        help
-	exit 1
+if [[ ! $EXIT_CODE -eq 0 ]]; then
+	echo "Exit code: $EXIT_CODE"
+	$CHECKS_DIR/active-container-check.sh
 fi
 
