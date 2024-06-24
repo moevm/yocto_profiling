@@ -123,7 +123,7 @@ def create_containers(cl: docker.DockerClient, *,
         return container
 
     def create_port(port: int) -> Dict[str, int]:
-        return {f'{port}/tcp': port}
+        return {f'8000/tcp': port}
 
     # create container for universal cache dir
     containers: list[Container] = [
