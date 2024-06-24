@@ -1,7 +1,7 @@
 import argparse
 import sys
 import os
-from typing import Optional, Union, Tuple, List, Dict
+from typing import Optional, Union, Tuple, List
 
 import docker
 import docker.errors
@@ -12,7 +12,7 @@ def connect_to_docker() -> docker.DockerClient:
     try:
         cl = docker.from_env()
     except docker.errors.DockerException as e:
-        raise docker.errors.DockerException(
+        raise Exception(
             f"An error occurred while retrieving docker information, check that docker is installed and running.\n{e}"
         )
 
@@ -37,26 +37,26 @@ def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> Tup
     return start_port, count_of_servers
 
 
-def find_image(cl: docker.DockerClient, image: str) -> bool:
+def find_image(image: str) -> bool:
     try:
-        cl.images.get(image)
+        CLIENT.images.get(image)
     except docker.errors.ImageNotFound:
         return False
     return True
 
 
-def pull_reqs_images(cl: docker.DockerClient, *, images: Optional[List[str]] = None) -> None:
-    if not images:
+def pull_reqs_images(*, images: Optional[List[str]] = None) -> None:
+    if images is None or not images:
         return
 
     for image in images:
-        if find_image(cl, image):
+        if find_image(image):
             continue
 
         try:
-            cl.images.pull(image)
+            CLIENT.images.pull(image)
         except docker.errors.APIError as e:
-            raise e
+            raise Exception(f"Error while pulling image {image}: {e}")
 
     return
 
@@ -70,10 +70,8 @@ def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
 
 
 def create_volumes() -> Tuple[List[str], str]:
-    global SSTATE_DIR_PATH
 
     def create_volume(cache_dir: str) -> str:
-        global SSTATE_DIR_PATH
         return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/"
 
     volume_list, universal_volume = [], ''
@@ -95,23 +93,17 @@ def create_volumes() -> Tuple[List[str], str]:
     return volume_list, universal_volume
 
 
-def create_containers(cl: docker.DockerClient, *,
-                      image: str,
-                      vol: Tuple[List[str], str]) -> Tuple[Container, ...]:
-    global COUNT_OF_SERVERS, START_PORT
-    PORT_INSIDE_CONTAINER: int = 9000
+def create_containers(*, image: str, vol: Tuple[List[str], str]) -> Tuple[Container, ...]:
     parted_vol, universal_vol = vol
 
-    if not find_image(cl, image):
+    if not find_image(image):
         raise docker.errors.ImageNotFound("Base image not found!")
 
-    remove_exists_containers(cl, image=image)
+    remove_exists_containers(image=image)
 
-    def create(*, name: str, port: Dict[str, int], volume: Union[List[str], str]) -> Container:
-        nonlocal image, PORT_INSIDE_CONTAINER
-
+    def create(*, name: str, port: int, volume: Union[List[str], str]) -> Container:
         try:
-            container = cl.containers.create(
+            container = CLIENT.containers.create(
                 image,
                 name=f"cache-{name}",
                 ports={
@@ -124,7 +116,7 @@ def create_containers(cl: docker.DockerClient, *,
                 read_only=True
             )
         except docker.errors.APIError as e:
-            raise Exception(f"Error during creating containers, retry or delete already exists containers. {e}")
+            raise Exception(f"Error while creating containers, retry or delete already exists containers. {e}")
 
         return container
 
@@ -142,19 +134,17 @@ def create_containers(cl: docker.DockerClient, *,
     return tuple(containers)
 
 
-def start_containers(cl: docker.DockerClient, *,
-                     image: str,
-                     containers: Tuple[Container, ...]) -> None:
+def start_containers(*, image: str, containers: Tuple[Container, ...]) -> None:
     for container in containers:
         try:
             container.start()
         except docker.errors.APIError as e:
-            remove_exists_containers(cl, image=image)
+            remove_exists_containers(image=image)
             raise e
 
 
-def remove_exists_containers(cl: docker.DockerClient, *, image: str) -> None:
-    exists_containers = cl.containers.list(all=True, filters={'ancestor': image})
+def remove_exists_containers(*, image: str) -> None:
+    exists_containers = CLIENT.containers.list(all=True, filters={'ancestor': image})
     if exists_containers:
         for container in exists_containers:
             remove_container(container)
@@ -178,34 +168,30 @@ def stop_container(container: Container) -> None:
         )
 
 
-def build_base_image(cl: docker.DockerClient, *, tag: str) -> None:
-    current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    result_path = current_path + '/servers_reqs'
+def build_base_image(*, tag: str) -> None:
     try:
-        image, _ = cl.images.build(path=result_path, dockerfile='Dockerfile', tag=tag, forcerm=True)
+        image, _ = CLIENT.images.build(path=CONTEXT, dockerfile='Dockerfile', tag=tag, forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
         raise Exception(f'An error occurred while building base image! {e}')
     except TypeError as e:
         raise e
 
 
-def option_create(cl: docker.DockerClient, image: str) -> Tuple:
-    global START_PORT, COUNT_OF_SERVERS
-
-    pull_reqs_images(cl, images=['alpine:3.18'])
-    build_base_image(cl, tag=image)
+def option_create() -> Tuple:
+    pull_reqs_images(images=['alpine:3.18'])
+    build_base_image(tag=IMAGE_NAME)
 
     volumes = create_volumes()
-    container_tuple = create_containers(cl, image=image_name, vol=volumes)
+    container_tuple = create_containers(image=IMAGE_NAME, vol=volumes)
     return container_tuple
 
 
-def option_start(cl: docker.DockerClient, image: str, containers: Tuple[Container, ...]) -> None:
-    start_containers(cl, image=image, containers=containers)
+def option_start(containers: Tuple[Container, ...]) -> None:
+    start_containers(image=IMAGE_NAME, containers=containers)
 
 
-def option_kill(cl: docker.DockerClient, image: str) -> None:
-    remove_exists_containers(cl, image=image)
+def option_kill() -> None:
+    remove_exists_containers(image=IMAGE_NAME)
 
 
 if __name__ == "__main__":
@@ -214,21 +200,24 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', type=int, default=9000)
     parser.add_argument('-c', '--count', type=int, default=4)
     parser.add_argument('--path', type=str, default='/build/sstate-cache')
+    parser.add_argument('--context', type=str, default=os.path.dirname(os.path.realpath(sys.argv[0])) + '/servers_reqs')
 
     args = parser.parse_args()
 
     START_PORT, COUNT_OF_SERVERS = variables_check(start_port=args.port, count_of_servers=args.count)
     SSTATE_DIR_PATH = sstate_dir_check(path=args.path)
+    CONTEXT = args.context
 
-    client = connect_to_docker()
+    CLIENT = connect_to_docker()
     IMAGE_NAME: str = 'parted-sstate-cache:latest'
+    PORT_INSIDE_CONTAINER: int = 9000
 
     if args.action == 'create':
-        option_create(client, IMAGE_NAME)
+        option_create()
     elif args.action == 'start':
-        create_result = option_create(client, IMAGE_NAME)
-        option_start(client, IMAGE_NAME, create_result)
+        create_result = option_create()
+        option_start(create_result)
     elif args.action == 'kill':
-        option_kill(client, IMAGE_NAME)
+        option_kill()
     else:
         raise Exception('No actions! Try: python3 main.py -h')
