@@ -16,23 +16,23 @@ git clone https://github.com/moevm/os_profiling.git
         ./entrypoint.sh
         ```
         После выполнения команды будет выведена информационная справка по использованию скрипта, то есть возможные аргументы и т.д. 
-        ```
+        ```shell
         This script is needed for interaction with the image of Yocto Project.
         List of available parameters:
-        	<build_env> -- builds an image of the virtual environment.
-        		<--no-perf> -- disables installation of the perf.
-        	*ONLY AFTER STAGE*: build_env
-        	<shell> -- opens a terminal in container.
-        	<build_yocto_image> -- build the yocto image in container.
-        	*ONLY AFTER STAGE*: build_yocto_image
-        	<start_yocto> -- up the yocto image.
-        
+	        <build_env> -- builds an image of the virtual environment.
+		        <--no-perf> -- disables installation of the perf.
+	        *ONLY AFTER STAGE*: build_env
+	        <shell> -- opens a terminal in container.
+	        <build_yocto_image> -- build the yocto image in container.
+		        <--only-poky> -- only clones poky instead of a full build.
+	        *ONLY AFTER STAGE*: build_yocto_image
+	        <start_yocto> -- up the yocto image.
+
         Verify that dependencies are installed for the project:
-        	<check> -- check of all dependencies.
+            	<check> -- check of all dependencies.
         ```
-        i.2 - чтобы просто склонировать poky и не производить сборку, нужно ввести `./entrypoint.sh shell < любой-аргумент > `, например `./entrypoint.sh shell 2`.
        
-    3. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
+    2. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
         ```
         ./entrypoint.sh check
         ```
@@ -44,7 +44,7 @@ git clone https://github.com/moevm/os_profiling.git
         Verification completed successfully!
         ```
         
-    4. Чтобы создать образ среды для проекта требуется выполнить команду:
+    3. Чтобы создать образ среды для проекта требуется выполнить команду:
         ```
         ./entrypoint.sh build_env
         ```
@@ -63,7 +63,7 @@ git clone https://github.com/moevm/os_profiling.git
          => => naming to docker.io/library/yocto-image          
         ```
     
-    5.  Чтобы получить доступ к файловой системе контейнера требуется выполнить команду:
+    4.  Чтобы получить доступ к файловой системе контейнера требуется выполнить команду:
         ```
         ./entrypoint.sh shell
         ```
@@ -78,7 +78,7 @@ git clone https://github.com/moevm/os_profiling.git
         ...
         ```
     
-    6.  Чтобы собрать образ Yocto требуется выполнить команду:
+    5.  Чтобы собрать образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh build_yocto_image
         ```
@@ -117,7 +117,7 @@ git clone https://github.com/moevm/os_profiling.git
         yocto_project exited with code 0
         ```
     
-    7.  Чтобы запустить образ Yocto требуется выполнить команду:
+    6.  Чтобы запустить образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh start_yocto
         ```
