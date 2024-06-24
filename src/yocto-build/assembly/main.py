@@ -99,6 +99,7 @@ def create_containers(cl: docker.DockerClient, *,
                       image: str,
                       vol: Tuple[List[str], str]) -> Tuple[Container, ...]:
     global COUNT_OF_SERVERS, START_PORT
+    PORT_INSIDE_CONTAINER: int = 9000
     parted_vol, universal_vol = vol
 
     if not find_image(cl, image):
@@ -107,33 +108,35 @@ def create_containers(cl: docker.DockerClient, *,
     remove_exists_containers(cl, image=image)
 
     def create(*, name: str, port: Dict[str, int], volume: Union[List[str], str]) -> Container:
-        nonlocal image
+        nonlocal image, PORT_INSIDE_CONTAINER
 
         try:
             container = cl.containers.create(
                 image,
                 name=f"cache-{name}",
-                ports=port,
+                ports={
+                    f'{PORT_INSIDE_CONTAINER}/tcp': port
+                    },
+                environment={
+                    "PORT": PORT_INSIDE_CONTAINER
+                    },
                 volumes=volume,
                 read_only=True
             )
         except docker.errors.APIError as e:
-            raise e
+            raise Exception(f"Error during creating containers, retry or delete already exists containers. {e}")
 
         return container
 
-    def create_port(port: int) -> Dict[str, int]:
-        return {f'{port}/tcp': port}
-
     # create container for universal cache dir
     containers: list[Container] = [
-        create(name='universal', port=create_port(START_PORT + COUNT_OF_SERVERS - 1), volume=[universal_vol])
+        create(name='universal', port=START_PORT + COUNT_OF_SERVERS - 1, volume=[universal_vol])
     ]
 
     # create containers for parted cache
     for i in range(COUNT_OF_SERVERS - 1):
         containers.append(
-            create(name=f'part-{i}', port=create_port(START_PORT + i), volume=parted_vol[i::COUNT_OF_SERVERS - 1])
+            create(name=f'part-{i}', port=START_PORT + i, volume=parted_vol[i::COUNT_OF_SERVERS - 1])
         )
 
     return tuple(containers)
@@ -178,7 +181,6 @@ def stop_container(container: Container) -> None:
 def build_base_image(cl: docker.DockerClient, *, tag: str) -> None:
     current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     result_path = current_path + '/servers_reqs'
-    print(result_path)
     try:
         image, _ = cl.images.build(path=result_path, dockerfile='Dockerfile', tag=tag, forcerm=True)
     except (docker.errors.BuildError, docker.errors.APIError) as e:
@@ -219,14 +221,14 @@ if __name__ == "__main__":
     SSTATE_DIR_PATH = sstate_dir_check(path=args.path)
 
     client = connect_to_docker()
-    image_name = 'parted-sstate-cache:latest'
+    IMAGE_NAME: str = 'parted-sstate-cache:latest'
 
     if args.action == 'create':
-        option_create(client, image_name)
+        option_create(client, IMAGE_NAME)
     elif args.action == 'start':
-        create_result = option_create(client, image_name)
-        option_start(client, image_name, create_result)
+        create_result = option_create(client, IMAGE_NAME)
+        option_start(client, IMAGE_NAME, create_result)
     elif args.action == 'kill':
-        option_kill(client, image_name)
+        option_kill(client, IMAGE_NAME)
     else:
         raise Exception('No actions! Try: python3 main.py -h')

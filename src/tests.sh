@@ -67,14 +67,14 @@ case "$1" in
 		
 		if [ ! -z "$2" ]; then
 			result=$(echo $2 | grep -E '^[[:digit:]]+$')
-			if [[ ! -z "$result" && $result > 8000 ]]; then
+			if [[ ! -z "$result" && "$result" -gt "8000" ]]; then
 				PORT=$result
 			fi
 		fi
 
 		if [ ! -z "$3" ]; then
                         result=$(echo $3 | grep -E '^[[:digit:]]+$')
-                        if [[ ! -z "$result" && $result > 2 ]]; then
+                        if [[ ! -z "$result" && "$result" -ge "2" ]]; then
                                 COUNT_OF_SERVERS=$result
 			fi
                 fi
