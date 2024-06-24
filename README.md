@@ -83,6 +83,7 @@ git clone https://github.com/moevm/os_profiling.git
         ./entrypoint.sh build_yocto_image
         ```
         После выполнения команды начнётся сборка образа `Yocto` внутри контейнера, когда произойдет автоматическое закрытие контейнера (с кодом 0) -- всё будет установлено. При необходимости можно только склонировать `poky`, для этого к предыдущей команде необходимо добавить флаг `--only-poky`.
+        
         Пример удачной сборки:
         ```
         [+] Running 1/1
@@ -117,7 +118,7 @@ git clone https://github.com/moevm/os_profiling.git
         yocto_project exited with code 0
         ```
     
-    6.  Чтобы запустить образ Yocto требуется выполнить команду:
+    7.  Чтобы запустить образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh start_yocto
         ```
