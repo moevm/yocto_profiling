@@ -9,29 +9,29 @@ function build_env(){
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
-                echo -e "\nError during building env."
-                exit 1
-        fi
+		echo -e "\nError during building env."
+		exit 1
+	fi
 }
 
 function build_yocto_image(){
 	./entrypoint.sh build_yocto_image
 	
 	EXIT_CODE=$?
-        if [[ ! $EXIT_CODE -eq 0 ]]; then
-                echo -e "\nError during building yocto image."
-                exit 1
-        fi
+	if [[ ! $EXIT_CODE -eq 0 ]]; then
+		echo -e "\nError during building yocto image."
+		exit 1
+	fi
 }
 
 function start_servers(){
 	python3 $DOCKERFILE_DIR/assembly/main.py start --path $PATH_TO_CACHE -p $1 -c $2
 
 	EXIT_CODE=$?
-        if [[ ! $EXIT_CODE -eq 0 ]]; then
-                echo -e "\nError during upping sstate-cache servers."
-                exit 1
-        fi
+	if [[ ! $EXIT_CODE -eq 0 ]]; then
+		echo -e "\nError during upping sstate-cache servers."
+		exit 1
+	fi
 }
 
 function pipeline(){
