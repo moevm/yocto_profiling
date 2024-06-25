@@ -65,11 +65,29 @@ NOTE: Tasks Summary: Attempted 858 tasks of which 854 didn't need to be rerun an
 
 Аналогично языку [Golang](#golang) в Node.js используется переменная `NPM_SHRINKWRAP`, для указания пути до `npm-shrinkwrap.json` пакета. Дальнейшие действия аналогичны.
 
+## Yocto и кэширование Node.js
+Был проведен эксперимент: по [инструкции](https://docs.yoctoproject.org/dev/dev-manual/packages.html#creating-node-package-manager-npm-packages) был создан рецепт. Далее была запущена сборка с помощью команды
+```shell
+devtool build cute-files
+```
+Затем из рабочей директории были удалены папки `npm_cache` и `node_modules`. Была запущена пересборка. Полученный результат:
+```
+Initialising tasks: 100% |#################################################| Time: 0:00:00
+Sstate summary: Wanted 5 Local 5 Mirrors 0 Missed 0 Current 249 (100% match, 100% complete)
+NOTE: Executing Tasks
+NOTE: Tasks Summary: Attempted 818 tasks of which 818 didn't need to be rerun and all succeeded.
+
+Summary: There was 1 WARNING message.
+```
+Как видим, данные были восстановлены из кэша.
+
 ## Источники
 1. https://git.openembedded.org/openembedded-core/tree/meta/classes/go.bbclass?h=pyro
 2. https://blog.gopheracademy.com/advent-2015/go-in-a-yocto-project/
 
 # Список поддерживаемых (поддержка кэша) систем сборок в Yocto
+* Go - класс `go.bbclass`, слой [openembedded-core](https://layers.openembedded.org/layerindex/branch/master/layer/openembedded-core/)
+* Node.js - рецепт `nodejs`, слой [meta-oe](https://layers.openembedded.org/layerindex/branch/jethro/layer/meta-oe/)
 * CMake - класс `cmake.bbclass`, слой [openembedded-core](https://layers.openembedded.org/layerindex/branch/master/layer/openembedded-core/)
 * Apache Maven - рецепт `maven`, слой [meta-iot-cloud](https://layers.openembedded.org/layerindex/branch/gatesgarth/layer/meta-iot-cloud/)
 * Bazel - класс `bazel.bbclass` , слой [meta-tensorflow](https://layers.openembedded.org/layerindex/branch/master/layer/meta-tensorflow/)
