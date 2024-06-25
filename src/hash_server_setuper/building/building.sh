@@ -17,6 +17,12 @@ commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
 cd ./poky
 
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "$branch_name" ]; then
+	echo "Switch the branch."
+	git checkout $commit_hash -b $branch_name
+fi
+
 . oe-init-build-env build
 # source oe-init-build-env
 

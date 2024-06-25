@@ -41,10 +41,9 @@ RUN apt-get update && \
 	strace 
 
 
-COPY ./building ./building/
-COPY ./get_ip.py ./building/get_ip.py
-
-WORKDIR ./building 
+WORKDIR ./building
+COPY ./building ./
+COPY ./get_ip.py ./get_ip.py
 
 
 ENV PORT=8888
