@@ -47,8 +47,7 @@ COPY ./get_ip.py ./get_ip.py
 
 
 ENV PORT=8888
-ENV HOST_IP=0.0.0.0
 
 EXPOSE ${PORT}
 
-CMD ["sh", "-c", "./building.sh $PORT $HOST_IP"]	
+CMD ["sh", "-c", "./building.sh $PORT"]	

@@ -2,8 +2,6 @@
 
 PORT=$1
 
-# ip=$2
-
 ip=$(python3 get_ip.py)
 
 
