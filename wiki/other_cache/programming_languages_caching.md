@@ -81,6 +81,18 @@ Summary: There was 1 WARNING message.
 ```
 Как видим, данные были восстановлены из кэша.
 
+Затем рецепт был изменен (добавлена строка `echo "hello"`) и запущена пересборка. Результат:
+```text
+Initialising tasks: 100% |#######################################| Time: 0:00:00
+Sstate summary: Wanted 8 Local 5 Mirrors 0 Missed 3 Current 246 (62% match, 98% complete)
+Removing 1 stale sstate objects for arch qemux86_64: 100% |######| Time: 0:00:00
+Removing 2 stale sstate objects for arch core2-64: 100% |########| Time: 0:00:00
+NOTE: Executing Tasks
+NOTE: cute-files: compiling from external source tree /home/user/poky/build/workspace/sources/cute-files
+NOTE: Tasks Summary: Attempted 818 tasks of which 813 didn't need to be rerun and all succeeded.
+```
+По итогу заново было выполнено всего 5 задачи.
+
 ## Источники
 1. https://git.openembedded.org/openembedded-core/tree/meta/classes/go.bbclass?h=pyro
 2. https://blog.gopheracademy.com/advent-2015/go-in-a-yocto-project/
