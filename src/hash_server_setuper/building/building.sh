@@ -1,6 +1,6 @@
 #! /bin/bash
 
-PORT=$1
+PORT=8888
 
 ip=$(python3 get_ip.py)
 
@@ -34,7 +34,6 @@ echo "start hash server at -- $ip:$PORT"
 
 bitbake-hashserv -b $ip:$PORT
 
-echo "LL smth wrong"
+echo "Something wrong with your bitbake-hashserv"
 
-sleep infinity
-
+exit 1

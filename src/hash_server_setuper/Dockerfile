@@ -46,8 +46,6 @@ COPY ./building ./
 COPY ./get_ip.py ./get_ip.py
 
 
-ENV PORT=8888
+EXPOSE ${8888}
 
-EXPOSE ${PORT}
-
-CMD ["sh", "-c", "./building.sh $PORT"]	
+CMD ["sh", "-c", "./building.sh"]	

@@ -11,4 +11,4 @@ if [ -z "$PORT" ]; then
 fi
 
 
-docker run -d -p $PORT:$PORT -e PORT=$PORT hash
+docker run -d -p $PORT:8888 hash
