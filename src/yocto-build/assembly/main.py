@@ -19,20 +19,19 @@ def connect_to_docker() -> docker.DockerClient:
     return cl
 
 
+def checks(start_port: int, count_of_servers: int) -> bool:
+    if (int != type(start_port)) or (type(count_of_servers) != int):
+        return False
+    if start_port < 1024:
+        return False
+    if count_of_servers < 2:
+        return False
+
+    return True
+
+
 def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> Tuple[int, int]:
-    def checks() -> bool:
-        nonlocal start_port, count_of_servers
-
-        if (int != type(start_port)) or (type(count_of_servers) != int):
-            return False
-        if start_port < 1024:
-            return False
-        if count_of_servers < 2:
-            return False
-
-        return True
-
-    if not checks():
+    if not checks(start_port, count_of_servers):
         raise ValueError('Variables check for PORTS and SERVER COUNT failed!')
     return start_port, count_of_servers
 
@@ -69,21 +68,21 @@ def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
     return result_path
 
 
+def create_volume_note(cache_dir: str) -> str:
+    return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/"
+
+
 def create_volumes() -> Tuple[List[str], str]:
-
-    def create_volume(cache_dir: str) -> str:
-        return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/"
-
     volume_list, universal_volume = [], ''
     for elem in os.listdir(SSTATE_DIR_PATH):
         if not os.path.isdir(os.path.join(SSTATE_DIR_PATH, elem)):
             continue
 
         if elem == 'universal':
-            universal_volume = create_volume(elem)
+            universal_volume = create_volume_note(elem)
             continue
 
-        volume_list.append(create_volume(elem))
+        volume_list.append(create_volume_note(elem))
 
     if not (volume_list and universal_volume):
         raise Exception('Volume list and universal volume was not found or it is empty!')
@@ -91,6 +90,26 @@ def create_volumes() -> Tuple[List[str], str]:
     print(f"Created volumes for sstate-cache:", *volume_list, sep='\n', end='\n\n')
     print(f"Created volume for universal sstate-cache:", universal_volume, sep='\n', end='\n')
     return volume_list, universal_volume
+
+
+def container_creator(*, image: str, name: str, port: int, volume: Union[List[str], str]) -> Container:
+    try:
+        container = CLIENT.containers.create(
+            image=image,
+            name=f"cache-{name}",
+            ports={
+                f'{PORT_INSIDE_CONTAINER}/tcp': port
+                },
+            environment={
+                "PORT": PORT_INSIDE_CONTAINER
+                },
+            volumes=volume,
+            read_only=True
+        )
+    except docker.errors.APIError as e:
+        raise Exception(f"Error while creating containers, retry or delete already exists containers. {e}")
+
+    return container
 
 
 def create_containers(*, image: str, vol: Tuple[List[str], str]) -> Tuple[Container, ...]:
@@ -101,34 +120,25 @@ def create_containers(*, image: str, vol: Tuple[List[str], str]) -> Tuple[Contai
 
     remove_exists_containers(image=image)
 
-    def create(*, name: str, port: int, volume: Union[List[str], str]) -> Container:
-        try:
-            container = CLIENT.containers.create(
-                image,
-                name=f"cache-{name}",
-                ports={
-                    f'{PORT_INSIDE_CONTAINER}/tcp': port
-                    },
-                environment={
-                    "PORT": PORT_INSIDE_CONTAINER
-                    },
-                volumes=volume,
-                read_only=True
-            )
-        except docker.errors.APIError as e:
-            raise Exception(f"Error while creating containers, retry or delete already exists containers. {e}")
-
-        return container
-
     # create container for universal cache dir
     containers: list[Container] = [
-        create(name='universal', port=START_PORT + COUNT_OF_SERVERS - 1, volume=[universal_vol])
+        container_creator(
+            image=image,
+            name='universal',
+            port=START_PORT + COUNT_OF_SERVERS - 1,
+            volume=[universal_vol]
+        )
     ]
 
     # create containers for parted cache
     for i in range(COUNT_OF_SERVERS - 1):
         containers.append(
-            create(name=f'part-{i}', port=START_PORT + i, volume=parted_vol[i::COUNT_OF_SERVERS - 1])
+            container_creator(
+                image=image,
+                name=f'part-{i}',
+                port=START_PORT + i,
+                volume=parted_vol[i::COUNT_OF_SERVERS - 1]
+            )
         )
 
     return tuple(containers)
