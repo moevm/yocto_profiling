@@ -1,0 +1,50 @@
+--- buildstats.bbclass	2024-06-27 11:53:47.880247435 +0300
++++ buildstats_new_bbclass.bbclass	2024-06-27 12:09:44.506397203 +0300
+@@ -31,6 +31,7 @@
+         'cstime' : fields[16],  
+     }
+     iostats = {}
++    netstats = {}
+     if os.path.isfile("/proc/%d/io" % pid):
+         with open("/proc/%d/io" % pid, "r") as f:
+             while True:
+@@ -44,9 +45,18 @@
+                     break
+                 i = i.split(": ")
+                 iostats[i[0]] = i[1]
++    if os.path.isfile("/proc/%d/net/dev" % pid):
++        with open("/proc/6/net/dev", "r") as f:
++            lines = [line for line in f]
++            for line in lines:
++                if not ":" in line:
++                    continue
++                line = line.split(":")
++                line[1] = (' '.join(line[1].split())).split()
++                netstats[line[0]] = float(line[1][0])
+     resources = resource.getrusage(resource.RUSAGE_SELF)
+     childres = resource.getrusage(resource.RUSAGE_CHILDREN)
+-    return stats, iostats, resources, childres
++    return stats, iostats, resources, childres, netstats
+ 
+ def get_cputime():
+     with open("/proc/stat", "r") as f:
+@@ -91,7 +101,8 @@
+         if elapsedtime:
+             f.write(d.expand("${PF}: %s\n" % e.task))
+             f.write(d.expand("Elapsed time: %0.2f seconds\n" % elapsedtime))
+-            cpu, iostats, resources, childres = get_process_cputime(os.getpid())
++            cpu, iostats, resources, childres, netstats = get_process_cputime(os.getpid())
++            sum_bytes = 0
+             if cpu:
+                 f.write("utime: %s\n" % cpu['utime'])
+                 f.write("stime: %s\n" % cpu['stime'])
+@@ -104,6 +115,9 @@
+                 f.write("rusage %s: %s\n" % (i, getattr(resources, i)))
+             for i in rusages:
+                 f.write("Child rusage %s: %s\n" % (i, getattr(childres, i)))
++            for i in netstats:
++                sum_bytes += float(netstats[i]);
++            f.write("recieve_speed: %0.2f B\sec \n" % (sum_bytes / float(elapsedtime)))
+         if status == "passed":
+             f.write("Status: PASSED \n")
+         else:
