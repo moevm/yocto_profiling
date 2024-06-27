@@ -26,6 +26,8 @@ echo "hash_usr = $hash_usr"
 echo "cache_start_port = $cache_start_port"
 echo "cache_num_port = $cache_num_port"
 echo "hash_port = $hash_port"
+echo "step = $step"
+echo "max_servsers = $max_servsers"
 
 cache_desktop_path="/home/$cache_usr/Desktop"
 hash_desktop_path="/home/$hash_usr/Desktop"
