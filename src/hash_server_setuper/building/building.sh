@@ -2,8 +2,6 @@
 
 PORT=8888
 
-ip=$(python3 get_ip.py)
-
 branch_name=my-upstream_5.0.1
 commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
@@ -26,7 +24,7 @@ cd hashserver
 echo "$PWD"
 echo "start hash server at -- $ip:$PORT"
 
-bitbake-hashserv -b $ip:$PORT
+bitbake-hashserv -b :$PORT
 
 echo "Something wrong with your bitbake-hashserv"
 

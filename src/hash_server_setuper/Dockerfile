@@ -45,7 +45,6 @@ RUN git clone git://git.yoctoproject.org/poky
 
 WORKDIR /building
 COPY ./building ./
-COPY ./get_ip.py ./get_ip.py
 
 EXPOSE ${8888}
 
