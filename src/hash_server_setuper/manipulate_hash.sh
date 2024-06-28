@@ -10,11 +10,18 @@ if [ -n "$CONTAINERS" ]; then
     for CONTAINER in $CONTAINERS; do
         CONTAINER_STATUS=$(docker inspect --format '{{.State.Status}}' $CONTAINER)
         if [ "$CONTAINER_STATUS" == "running" ]; then
-            echo "Stopping container $CONTAINER..."
-            docker stop $CONTAINER
+            if [ "$1" == "stop" ]; then
+                echo "Stopping container $CONTAINER..."
+                docker stop $CONTAINER
+            fi   
         fi
-        echo "Removing container $CONTAINER..."
-        docker rm $CONTAINER
+        if [ "$1" == "rm" ]; then
+            echo "Removing container $CONTAINER..."
+            docker rm $CONTAINER
+        elif [ "$1" == "start" ]; then
+            echo "Starting container $CONTAINER..."
+            docker start $CONTAINER
+        fi
     done
 else
     echo "No containers found from $IMAGE_NAME image."
