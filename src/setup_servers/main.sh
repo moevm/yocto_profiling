@@ -137,15 +137,20 @@ for (( i=2; i<$max_servers; i+=$step ))
 do
 	# 5. Сборка и подъём кэш серверов
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
-	python3 set_num_ports.py --cache_num_port $i
+	python3 set_num_ports.py --cache_num_port ${i+cache_start_port}
+    	echo "set cache_num_port = ${i+cache_start_port}"
+
 
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
 	for i in 1 2
 	do
-		# ГЕНЕРАЦИЯ КОНФИГОВ
-		cd ..
-		./entrypoint.sh build_yocto_image
-		cd -
+		pushd ../yocto-build/assembly/poky && source oe-init-build-env && popd
+	        cp ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
+	        cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
+	        cp -f ./auto_conf/conf/local.conf ../../build/conf/
+	
+	        # Запуск сборки 
+			cd .. && ./entrypoint.sh build_yocto_image && cd -
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
 done
