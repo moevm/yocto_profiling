@@ -93,25 +93,25 @@ echo "Hash server started at $hash_ip:$hash_port"
 
 # 1. Копирование необходимых частей проекта:
 echo -e "COPYING: START."
-scp -r ../yocto-build/ $cache_usr@$cache_ip:$cache_desktop_path/test/
-scp -r ../scripts/ $cache_usr@$cache_ip:$cache_desktop_path/test/
-scp -r ../entrypoint.sh $cache_usr@$cache_ip:$cache_desktop_path/test/
-scp -r ../tests.sh $cache_usr@$cache_ip:$cache_desktop_path/test/
+scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/
+scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/
 echo -e "COPYING: DONE."
+
+CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 
 # 2. Сборка образа системы для Yocto
 echo -e "BUILDING ENV: START."
-ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_env --no-perf"
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_env --no-perf"
 echo -e "BUILDING ENV: DONE."
 
 # 3. Клонирование poky
 echo -e "CLONING POKY: START."
-ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_yocto_image --only-poky"
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image --only-poky"
 echo -e "CLONING POKY: DONE."
 
 # 4. Сборка Yocto
 echo -e "BUILDING YOCTO: START."
-ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_yocto_image"
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image"
 echo -e "BUILDING YOCTO: DONE."
 
 # LOOP
@@ -119,10 +119,19 @@ echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
 for (( i=2; i < $max_servers; i += $step ))
 do
 	# 5. Сборка и подъём кэш серверов
-	# ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./tests.sh start $cache_start_port $i"
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
+	python3 set_num_ports.py --cache_num_port $i
 
-	# ОСНОВНАЯ СБОРКА
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
+	for i in 1 2
+	do
+		# ГЕНЕРАЦИЯ КОНФИГОВ
+		# ОСНОВНАЯ СБОРКА
+	done
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
 done
+echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
+
 
 # Убиваем контейнер. Отлично убивается контейнер.
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./stop_hash.sh $hash_port"
