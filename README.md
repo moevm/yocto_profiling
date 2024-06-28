@@ -1,5 +1,5 @@
 # **Instructions**
-> Для образа потребуется не менее 90Gb памяти. Процесс сборки займёт более 2 часов.
+> Для образа потребуется не менее 90Gb памяти. Процесс сборки займёт более 2 часов (зависит от выделенных ресурсов).
 
 > Для выполнения следующих шагов необходим `Docker` и `Docker compose v2`!
 
@@ -16,19 +16,22 @@ git clone https://github.com/moevm/os_profiling.git
         ./entrypoint.sh
         ```
         После выполнения команды будет выведена информационная справка по использованию скрипта, то есть возможные аргументы и т.д. 
-        ```
+        ```shell
         This script is needed for interaction with the image of Yocto Project.
         List of available parameters:
 	        <build_env> -- builds an image of the virtual environment.
-    		    <--no-perf> -- disables installation of the perf.
-        	<shell> -- opens a terminal in container.
-        	<build_yocto_image> -- build the yocto image in container.
-        	<start_yocto> -- up the yocto image.
-        	
+		        <--no-perf> -- disables installation of the perf.
+	        *ONLY AFTER STAGE*: build_env
+	        <shell> -- opens a terminal in container.
+	        <build_yocto_image> -- build the yocto image in container.
+		        <--only-poky> -- only clones poky instead of a full build.
+	        *ONLY AFTER STAGE*: build_yocto_image
+	        <start_yocto> -- up the yocto image.
+
         Verify that dependencies are installed for the project:
-        	<check> -- check of all dependencies.
+            	<check> -- check of all dependencies.
         ```
-    
+       
     2. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
         ```
         ./entrypoint.sh check
@@ -79,7 +82,9 @@ git clone https://github.com/moevm/os_profiling.git
         ```
         ./entrypoint.sh build_yocto_image
         ```
-        После выполнения команды начнётся сборка образа `Yocto` внутри контейнера, когда произойдет автоматическое закрытие контейнера (с кодом 0) -- всё будет установлено. Пример удачной сборки:
+        После выполнения команды начнётся сборка образа `Yocto` внутри контейнера, когда произойдет автоматическое закрытие контейнера (с кодом 0) -- всё будет установлено. При необходимости можно только склонировать `poky`, для этого к предыдущей команде необходимо добавить флаг `--only-poky`.
+        
+        Пример удачной сборки:
         ```
         [+] Running 1/1
         Attaching to yocto_project
@@ -113,7 +118,7 @@ git clone https://github.com/moevm/os_profiling.git
         yocto_project exited with code 0
         ```
     
-    6.  Чтобы запустить образ Yocto требуется выполнить команду:
+    7.  Чтобы запустить образ Yocto требуется выполнить команду:
         ```
         ./entrypoint.sh start_yocto
         ```

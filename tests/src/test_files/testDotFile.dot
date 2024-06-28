@@ -1,0 +1,19 @@
+digraph depends {
+"core-image-sato.do_build" [label="core-image-sato do_build\n:1.0-r0\n/home/user/dok/poky/meta/recipes-sato/images/core-image-sato.bb"]
+"core-image-sato.do_build" -> "core-image-sato.do_create_runtime_spdx"
+"core-image-sato.do_build" -> "core-image-sato.do_create_spdx"
+"core-image-sato.do_build" -> "core-image-sato.do_image_complete"
+"core-image-sato.do_build" -> "core-image-sato.do_populate_lic_deploy"
+"core-image-sato.do_build" -> "core-image-sato.do_recipe_qa"
+"core-image-sato.do_build" -> "dnf.do_package_write_rpm"
+"core-image-sato.do_build" -> "glibc-locale.do_package_write_rpm"
+"core-image-sato.do_build" -> "linux-yocto.do_deploy"
+"core-image-sato.do_build" -> "packagegroup-base.do_package_write_rpm"
+"core-image-sato.do_build" -> "packagegroup-core-boot.do_package_write_rpm"
+"core-image-sato.do_build" -> "packagegroup-core-ssh-dropbear.do_package_write_rpm"
+"core-image-sato.do_build" -> "packagegroup-core-x11-base.do_package_write_rpm"
+"core-image-sato.do_build" -> "packagegroup-core-x11-sato.do_package_write_rpm"
+"core-image-sato.do_build" -> "psplash.do_package_write_rpm"
+"core-image-sato.do_build" -> "rpm.do_package_write_rpm"
+"core-image-sato.do_build" -> "run-postinsts.do_package_write_rpm"
+}

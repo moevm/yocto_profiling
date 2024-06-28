@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from log_iterator import log_files_iterator, log_iterator
+from src.statistics_analyzer.src.log_iterator import log_files_iterator, log_iterator
 
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',
@@ -34,6 +34,7 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.pid_info = {}
+        self.timeline = {}
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
 
@@ -56,15 +57,20 @@ class Parser:
 
     def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
         for log_file in log_files_iterator(path):
-            package_dir = os.path.dirname(log_file)
-            if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
-                    os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
-                self.parse_buildstats_file(log_file)
+            timeline_files = ['reduced_proc_stat.log', 'reduced_proc_meminfo.log', 'reduced_proc_diskstats.log', 'monitor_disk.log']
+            if os.path.basename(log_file) in timeline_files:
+                self.parse_timeline_file(log_file)
+            else:
+                package_dir = os.path.dirname(log_file)
+                if not os.path.basename(package_dir).endswith('reduced_proc_pressure') and all(
+                        os.path.isfile(os.path.join(package_dir, f)) for f in os.listdir(package_dir)):
+                    self.parse_buildstats_file(log_file)
+
 
     # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
     # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
     def parse_buildstats_file(self, path):
-        ignore_list = ['Event', 'Ended', 'Status']
+        ignore_list = ['Event', 'Status']
         pkg_name, task_type = '', ''
         package_info = {}
         for line in log_iterator(path):
@@ -89,6 +95,42 @@ class Parser:
                     package_info.update({metric: value})
         self.info[pkg_name].update({task_type: package_info})
 
+    def get_tasks_for_timeline(self):
+        for time, info in self.timeline.items():
+            for package in self.info:
+                for task in self.info[package]:
+                    if time > float(self.info[package][task]['Started']) and time < float(self.info[package][task]['Ended']):
+                        self.timeline[time]['tasks'].append(f'{package}.{task}')
+
+    def parse_timeline_file(self, path):
+        filename = os.path.basename(path)
+        if filename == 'reduced_proc_stat.log':
+            self.parse_cpu_timeline(path)
+        elif filename == 'reduced_proc_meminfo.log':
+            self.parse_ram_timeline(path)
+
+    def parse_ram_timeline(self, path):
+        current_timestamp = 0
+        for index, line in enumerate(log_iterator(path)):
+            if index % 3 == 0:
+                current_timestamp = int(line.replace('\n', ''))
+            if index % 3 == 1:
+                if not current_timestamp in self.timeline:
+                    self.timeline[current_timestamp] = {'cpu': None, 'io': None, 'ram': None, 'tasks': []}
+                values = list(map(float, line.split(' ')))
+                self.timeline[current_timestamp]['ram'] = (values[0] - values[1])/values[0]
+
+    def parse_cpu_timeline(self, path):
+        current_timestamp = 0
+        for index, line in enumerate(log_iterator(path)):
+            if index % 3 == 0:
+                current_timestamp = int(line.replace('\n', ''))
+            if index % 3 == 1:
+                if not current_timestamp in self.timeline:
+                    self.timeline[current_timestamp] = {'cpu': None, 'io': None, 'ram': None, 'tasks': []}
+                values = list(map(float, line.split(' ')))
+                self.timeline[current_timestamp]['cpu'] = values[0] + values[1]
+                self.timeline[current_timestamp]['io'] = values[2]
 
     def collect_pid(self, path, pkg_name):
         temp = path.split('/')

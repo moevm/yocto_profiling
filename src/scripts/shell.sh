@@ -9,10 +9,10 @@ if [[ $? -eq 1 ]]; then
 	exit 1
 fi
 
-
 cd $1
 
-STAGE_VAR="stage_run" docker compose up -d
+STAGE_VAR="sleep" docker compose up -d
+
 docker container exec -it yocto_project /bin/bash
 
 docker compose stop

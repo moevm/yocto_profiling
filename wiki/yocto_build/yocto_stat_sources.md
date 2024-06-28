@@ -4,9 +4,10 @@ Yocto собирает информацию о давлении на CPU, IO и 
 - /proc/pressure/cpu
 - /proc/pressure/io
 - /proc/pressure/memory
+
 Для процессов информация берется из файлов:
-- proc/<pid>/stat
-- /proc/<pid>/io
+- proc/\<pid\>/stat
+- /proc/\<pid\>/io
 ### Частота сбора информации
 Обновление статистики происходит примерно раз в 1 секунду (переменная `psi_accumulation_interval` установлена в 1.0)
 ### Влияние на время сборки

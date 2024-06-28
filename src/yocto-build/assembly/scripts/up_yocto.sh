@@ -11,6 +11,7 @@ do
 	fi
 done
 
+echo "Try to start yocto-project."
 ./poky/scripts/runqemu ./build_yocto/tmp/deploy/images/qemux86-64 slirp nographic
 
 # Shutdown system = `Ctrl + A`, press `X`

@@ -12,8 +12,8 @@ if [ ! -d "./poky" ]; then
 	git clone git://git.yoctoproject.org/poky
 fi
 
-branch_name=my-upstream
-commit_hash=1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a
+branch_name=my-upstream_5.0.1
+commit_hash=$YOCTO_COMMIT_HASH
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
 current_branch=$(git branch --show-current)
@@ -24,6 +24,12 @@ fi
 
 
 cd $YOCTO_INSTALL_PATH/assembly
+
+
+if [[ "$STAGE_VAR" == "clone_poky" ]]; then
+    echo "Only cloning because of breaking flag!"
+    exit 0
+fi
 
 function start_logging() {
 	# start utils for logging
@@ -57,12 +63,17 @@ function decorate_logs() {
 	finish_logging $log_file
 }
 
-function build_yocto() {
-	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env 
+
+function build() {
+	./scripts/add_layers.sh
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf 
+	bitbake-layers show-layers
 	bitbake core-image-minimal
-	echo "yocto building ends with code: $?"
+	YOCTO_EXIT_CODE=$?
+	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
 
+decorate_logs build
 
-decorate_logs build_yocto
-
+exit $YOCTO_EXIT_CODE

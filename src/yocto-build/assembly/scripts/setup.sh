@@ -3,9 +3,8 @@
 
 cd $YOCTO_INSTALL_PATH/assembly/scripts
 
-case "$STAGE_VAR" in 
-	"stage_run")
-		echo "Try to start yocto-project."
+case "$STAGE_VAR" in
+	"sleep")
         	sleep infinity
 		;;
 	*)
@@ -13,4 +12,3 @@ case "$STAGE_VAR" in
 		./building.sh
 		;;
 esac
-
