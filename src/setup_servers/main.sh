@@ -27,7 +27,7 @@ echo "cache_start_port = $cache_start_port"
 echo "cache_num_port = $cache_num_port"
 echo "hash_port = $hash_port"
 echo "step = $step"
-echo "max_servsers = $max_servsers"
+echo "max_servers = $max_servers"
 
 cache_desktop_path="/home/$cache_usr/Desktop"
 hash_desktop_path="/home/$hash_usr/Desktop"
@@ -63,12 +63,12 @@ else
 fi
 
 
-# создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
+создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
 if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
 else
     echo "Delete and make cleen cache test"
-    # ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
+    ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
 fi
 
@@ -77,7 +77,7 @@ if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 else
     echo "Delete and make cleen hash test"
-    # ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
+    ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 fi
 
@@ -90,70 +90,88 @@ ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./star
 echo "Hash server started at $hash_ip:$hash_port"
 
 
-# echo -e "PREPARE HOST FOR BUILD:"
+echo -e "PREPARE HOST FOR BUILD:"
 cd ..
 
-# echo -e "BUILDING ENV ON HOST: START."
+echo -e "BUILDING ENV ON HOST: START."
 ./entrypoint.sh build_env --no-perf >> /dev/null
-# echo -e "BUILDING ENV ON HOST: DONE."
+echo -e "BUILDING ENV ON HOST: DONE."
 
-# echo -e "CLONING POKY ON HOST: START."
+echo -e "CLONING POKY ON HOST: START."
 ./entrypoint.sh build_yocto_image --only-poky >> /dev/null
-# echo -e "CLONING POKY ON HOST: DONE."
+echo -e "CLONING POKY ON HOST: DONE."
 
 cd - >> /dev/null
 
 # Работа с кэш серверами:
-# echo -e "PREPARE CACHE SERVERS:"
+echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
-# echo -e "COPYING: START."
-scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
-scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
-# echo -e "COPYING: DONE."
+echo -e "COPYING: START."
+scp -r ../../src/$cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../../build/$cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+echo -e "COPYING: DONE."
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/server_reqs && pip3 install -r requirements.txt" >> /dev/null
 
 # 2. Сборка образа системы для Yocto
-# echo -e "BUILDING ENV: START."
+echo -e "BUILDING ENV: START."
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_env --no-perf" >> /dev/null
-# echo -e "BUILDING ENV: DONE."
+echo -e "BUILDING ENV: DONE."
 
 # 3. Клонирование poky
-# echo -e "CLONING POKY: START."
+echo -e "CLONING POKY: START."
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image --only-poky" >> /dev/null
-# echo -e "CLONING POKY: DONE."
+echo -e "CLONING POKY: DONE."
 
 # 4. Сборка Yocto
-# echo -e "BUILDING YOCTO: START."
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image" >> /dev/null
-# echo -e "BUILDING YOCTO: DONE."
+echo -e "BUILDING YOCTO: START."
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image"
+echo -e "BUILDING YOCTO: DONE."
 
 # LOOP
-# echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
+echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
+
+echo "_____________________"
+
+. ./auto_conf/read_config.sh
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 config_file"
+    exit 1
+fi
+
+if [ ! -f "$1" ]; then
+    echo "Error: File $1 not found."
+    exit 1
+fi
+
 for (( i=2; i<$max_servers; i+=$step ))
 do
 	# 5. Сборка и подъём кэш серверов
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
-	python3 set_num_ports.py --cache_num_port ${i+cache_start_port}
-    echo "set cache_num_port = ${i+cache_start_port}"
 
-	# echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
+	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
+    echo "set cache_num_port = $i"
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
 	for j in 1 2
 	do
-		pushd ../yocto-build/assembly/poky && source oe-init-build-env && popd
+		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
         cp ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
         cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
         cp -f ./auto_conf/conf/local.conf ../../build/conf/
-
         # Запуск сборки 
-        cd .. && ./entrypoint.sh build_yocto_image && cd -
+        filename="test_${i}_${j}.txt"
+        # я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
+        cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
+        # TODO - удаление папки build
 	done
-	# echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
+    exit 0
 done
-# echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
+echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
 
 # Убиваем контейнер. Отлично убивается контейнер.
