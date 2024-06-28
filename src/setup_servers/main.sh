@@ -88,10 +88,38 @@ ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./buil
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
 
 echo "Hash server started at $hash_ip:$hash_port"
-# Это для демонстрации работы. Когда будет распределение кэша - этого sleep не будет 
-sleep 20
+
+# Работа с кэш серверами:
+
+# 1. Копирование необходимых частей проекта:
+scp -r ../yocto-build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../scripts/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../entrypoint.sh $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../tests.sh $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+
+# 2. Сборка образа системы для Yocto
+ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_env --no-perf"
+
+# 3. Клонирование poky
+ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_yocto_image --only-poky"
+
+# 4. Сборка Yocto
+ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./entrypoint.sh build_yocto_image"
+
+
+# LOOP FOR COUNT OF SERVERS
+# 5. Сборка и подъём кэш серверов
+ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./tests.sh start"
+
+
+# ОСНОВНАЯ СБОРКА
+
+
 # Убиваем контейнер. Отлично убивается контейнер.
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./stop_hash.sh $hash_port"
+
+# Убиваем кэш сервера
+ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test && ./tests.sh kill"
 
 
 : '
