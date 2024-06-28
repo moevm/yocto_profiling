@@ -57,6 +57,7 @@ if [[ ${scripts_list[@]} =~ "$1" ]]; then
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
 		echo "Exit code: $EXIT_CODE"
 		$CHECKS_DIR/active-container-check.sh
+		exit $EXIT_CODE
 	fi
 elif [[ $1 == "check" ]]; then
 	check

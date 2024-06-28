@@ -23,6 +23,7 @@ services:
     privileged: true
     environment:
       - STAGE_VAR
+      - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
     volumes:
       - ./assembly:/home/yocto_user/project/assembly
       - /sys/kernel/debug:/sys/kernel/debug
