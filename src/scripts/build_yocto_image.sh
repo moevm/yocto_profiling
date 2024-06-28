@@ -12,6 +12,7 @@ fi
 cd $1
 
 
+
 if [[ "$2" == "clone_poky" ]]; then
 	STAGE_VAR="$2" docker compose up
 elif [[ "$2" == "full" ]]; then

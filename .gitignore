@@ -5,5 +5,5 @@
 **/*.swp
 
 # YOCTO
-**/assembly/build_yocto
+**/assembly/build*
 **/assembly/poky

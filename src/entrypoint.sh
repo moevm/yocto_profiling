@@ -44,6 +44,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+
 EXIT_CODE=0
 case "$1" in 
 	"build_env")
@@ -92,5 +93,6 @@ esac
 if [[ ! $EXIT_CODE -eq 0 ]]; then
 	echo "Exit code: $EXIT_CODE"
 	$CHECKS_DIR/active-container-check.sh
+
 fi
 

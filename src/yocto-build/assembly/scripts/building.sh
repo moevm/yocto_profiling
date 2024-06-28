@@ -13,7 +13,7 @@ if [ ! -d "./poky" ]; then
 fi
 
 branch_name=my-upstream_5.0.1
-commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
+commit_hash=$YOCTO_COMMIT_HASH
 
 cd $YOCTO_INSTALL_PATH/assembly/poky 
 current_branch=$(git branch --show-current)
@@ -63,13 +63,17 @@ function decorate_logs() {
 	finish_logging $log_file
 }
 
-function build_yocto() {
-	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env
-       	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf	
+
+function build() {
+	./scripts/add_layers.sh
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf 
+	bitbake-layers show-layers
 	bitbake core-image-minimal
-	echo "yocto building ends with code: $?"
+	YOCTO_EXIT_CODE=$?
+	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
 
+decorate_logs build
 
-decorate_logs build_yocto
-
+exit $YOCTO_EXIT_CODE
