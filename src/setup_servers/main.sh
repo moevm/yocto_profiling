@@ -89,7 +89,19 @@ ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./star
 
 echo "Hash server started at $hash_ip:$hash_port"
 
+
+echo -e "PREPARE HOST FOR BUILD:"
+echo -e "BUILDING ENV ON HOST: START."
+../entrypoint.sh build_env --no-perf
+echo -e "BUILDING ENV ON HOST: DONE."
+
+echo -e "CLONING POKY ON HOST: START."
+../entrypoint.sh build_yocto_image --only-poky
+echo -e "CLONING POKY ON HOST: DONE."
+
+
 # Работа с кэш серверами:
+echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
 echo -e "COPYING: START."
@@ -126,7 +138,7 @@ do
 	for i in 1 2
 	do
 		# ГЕНЕРАЦИЯ КОНФИГОВ
-		# ОСНОВНАЯ СБОРКА
+		../entrypoint.sh build_yocto_image
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
 done
