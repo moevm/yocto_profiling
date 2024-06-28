@@ -25,6 +25,12 @@ fi
 
 cd $YOCTO_INSTALL_PATH/assembly
 
+
+if [[ "$STAGE_VAR" == "clone_poky" ]]; then
+    echo "Only cloning because of breaking flag!"
+    exit 0
+fi
+
 function start_logging() {
 	# start utils for logging
 	# $1 is txt file for logs
