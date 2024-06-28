@@ -33,9 +33,7 @@ cache_desktop_path="/home/$cache_usr/Desktop"
 hash_desktop_path="/home/$hash_usr/Desktop"
 
 
-# Проверка подключения к hash серверу
 if nc -zvw3 $hash_ip 22; then
-    # Попытка подключения по SSH
     if ssh -o ConnectTimeout=5 -o BatchMode=yes $hash_usr@$hash_ip true; then
         echo "SSH connection to $hash_ip works"
     else
@@ -48,9 +46,7 @@ else
 fi
 
 
-# Проверка подключения к cache серверу
 if nc -zvw3 $cache_ip 22; then
-    # Попытка подключения по SSH
     if ssh -o ConnectTimeout=5 -o BatchMode=yes $cache_usr@$cache_ip true; then
         echo "SSH connection to $cache_ip works"
     else
@@ -82,7 +78,6 @@ else
 fi
 
 
-# Setup hash server :: Проблема - почему-то не работает >> /dev/null
 scp -r ../hash_server_setuper/ $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  >> /dev/null
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
@@ -103,7 +98,6 @@ echo -e "CLONING POKY ON HOST: DONE."
 
 cd - >> /dev/null
 
-# Работа с кэш серверами:
 echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
@@ -152,12 +146,13 @@ do
         # я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
         cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
         # TODO - удаление папки build
-        # TODO - удаление контейнеров распределения кэша
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
     ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
     ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
     ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
+    # TODO - удаление контейнеров распределения кэша
+
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
