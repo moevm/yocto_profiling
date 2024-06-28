@@ -1,0 +1,7 @@
+Timestamp: 2024-06-25 16:44:03
+RAM: {'VmPeak': '147184 kB', 'VmSize': '147184 kB', 'VmHWM': '58656 kB', 'VmRSS': '58656 kB'}
+IO Stats: {'rchar': '335006', 'wchar': '9210', 'syscr': '33', 'syscw': '20', 'read_bytes': '0', 'write_bytes': '8192', 'cancelled_write_bytes': '0'}
+
+Timestamp: 2024-06-25 16:44:04
+RAM: {'VmPeak': '147184 kB', 'VmSize': '147184 kB', 'VmHWM': '58784 kB', 'VmRSS': '58784 kB'}
+IO Stats: {'rchar': '338630', 'wchar': '53848', 'syscr': '63', 'syscw': '68', 'read_bytes': '0', 'write_bytes': '65536', 'cancelled_write_bytes': '0'}
