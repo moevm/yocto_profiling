@@ -91,8 +91,9 @@ echo "Hash server started at $hash_ip:$hash_port"
 
 
 echo -e "PREPARE HOST FOR BUILD:"
-echo -e "BUILDING ENV ON HOST: START."
 cd ..
+
+echo -e "BUILDING ENV ON HOST: START."
 ./entrypoint.sh build_env --no-perf
 echo -e "BUILDING ENV ON HOST: DONE."
 
@@ -113,6 +114,8 @@ echo -e "COPYING: DONE."
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/server_reqs && pip3 install -r requirements.txt"
+
 # 2. Сборка образа системы для Yocto
 echo -e "BUILDING ENV: START."
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_env --no-perf"
@@ -130,7 +133,7 @@ echo -e "BUILDING YOCTO: DONE."
 
 # LOOP
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
-for (( i=2; i < $max_servers; i += $step ))
+for (( i=2; i<$max_servers; i+=$step ))
 do
 	# 5. Сборка и подъём кэш серверов
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
@@ -140,7 +143,9 @@ do
 	for i in 1 2
 	do
 		# ГЕНЕРАЦИЯ КОНФИГОВ
-		../entrypoint.sh build_yocto_image
+		cd ..
+		./entrypoint.sh build_yocto_image
+		cd -
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
 done
