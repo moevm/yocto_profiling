@@ -63,7 +63,7 @@ else
 fi
 
 
-создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
+# создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
 if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
 else
@@ -152,6 +152,7 @@ do
         # я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
         cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
         # TODO - удаление папки build
+        # TODO - удаление контейнеров распределения кэша
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
     ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
