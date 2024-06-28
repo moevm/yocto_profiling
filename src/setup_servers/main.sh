@@ -144,7 +144,7 @@ do
 	for j in 1 2
 	do
 		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
-        cp ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
+        cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
         cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
         cp -f ./auto_conf/conf/local.conf ../../build/conf/
         # Запуск сборки 
