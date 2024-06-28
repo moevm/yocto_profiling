@@ -92,13 +92,15 @@ echo "Hash server started at $hash_ip:$hash_port"
 
 echo -e "PREPARE HOST FOR BUILD:"
 echo -e "BUILDING ENV ON HOST: START."
-../entrypoint.sh build_env --no-perf
+cd ..
+./entrypoint.sh build_env --no-perf
 echo -e "BUILDING ENV ON HOST: DONE."
 
 echo -e "CLONING POKY ON HOST: START."
-../entrypoint.sh build_yocto_image --only-poky
+./entrypoint.sh build_yocto_image --only-poky
 echo -e "CLONING POKY ON HOST: DONE."
 
+cd -
 
 # Работа с кэш серверами:
 echo -e "PREPARE CACHE SERVERS:"
