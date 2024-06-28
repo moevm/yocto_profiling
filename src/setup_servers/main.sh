@@ -133,21 +133,6 @@ echo -e "BUILDING YOCTO: DONE."
 
 # LOOP
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
-
-echo "_____________________"
-
-. ./auto_conf/read_config.sh
-
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 config_file"
-    exit 1
-fi
-
-if [ ! -f "$1" ]; then
-    echo "Error: File $1 not found."
-    exit 1
-fi
-
 for (( i=2; i<$max_servers; i+=$step ))
 do
 	# 5. Сборка и подъём кэш серверов
@@ -169,7 +154,9 @@ do
         # TODO - удаление папки build
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
-    exit 0
+    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
+    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
+    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
