@@ -102,8 +102,8 @@ echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
 echo -e "COPYING: START."
-scp -r ../../src/$cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
-scp -r ../../build/$cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
 echo -e "COPYING: DONE."
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
@@ -133,26 +133,25 @@ do
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
 
 	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
-    echo "set cache_num_port = $i"
+	echo "set cache_num_port = $i"
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
 	for j in 1 2
 	do
 		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
-        cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
-        cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
-        cp -f ./auto_conf/conf/local.conf ../../build/conf/
-        # Запуск сборки 
-        filename="test_${i}_${j}.txt"
-        # я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
-        cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
-        # TODO - удаление папки build
+		cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
+        	cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
+        	cp -f ./auto_conf/conf/local.conf ../../build/conf/
+        	# Запуск сборки 
+        	filename="test_${i}_${j}.txt"
+        	# я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
+        	cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
+        	# TODO - удаление папки build
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
-    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
-    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
-    ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
-    # TODO - удаление контейнеров распределения кэша
-
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
+	# TODO - удаление контейнеров распределения кэша
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
