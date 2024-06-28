@@ -13,6 +13,8 @@ if [ -n "$CONTAINERS" ]; then
             echo "Stopping container $CONTAINER..."
             docker stop $CONTAINER
         fi
+        echo "Removing container $CONTAINER..."
+        docker rm $CONTAINER
     done
 else
     echo "No containers found from $IMAGE_NAME image."

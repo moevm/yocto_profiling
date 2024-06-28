@@ -40,14 +40,14 @@ RUN apt-get update && \
 	sysstat \
 	strace 
 
+RUN git clone git://git.yoctoproject.org/poky
 
-WORKDIR ./building
+
+WORKDIR /building
 COPY ./building ./
 COPY ./get_ip.py ./get_ip.py
 
-
 EXPOSE ${8888}
 
-RUN git clone git://git.yoctoproject.org/poky
 
 CMD ["sh", "-c", "./building.sh"]	

@@ -7,7 +7,7 @@ ip=$(python3 get_ip.py)
 branch_name=my-upstream_5.0.1
 commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
-cd ./poky
+cd ../poky
 
 current_branch=$(git branch --show-current)
 if [ "$current_branch" != "$branch_name" ]; then
