@@ -18,6 +18,8 @@
   - `psutil.Process.connections()`: возвращает список всех сетевых соединений для указанного процесса.
   - `process.memory_maps()`: получение информации об отображенных в память файлах для указанного процесса.
 
+  - Как можно анализировать: анализ списка открытых файлов для выявления возможных узких мест и ресурсозатратных операций, подсчет количества сетевых соединений для определения нагрузки на сеть.
+
 * Статистика сборки ([buildstats](../wiki/yocto_build/yocto_buildstats.md)):
   - Собирает:
     - Информацию о хост-системе [build_stats.txt](log_files/build_stats.txt).
@@ -28,6 +30,8 @@
     - Данные о начале, конце выполнения и статусе задач (do_configure, do_install, do_compile и др.).
   Пример файла содержащего статистику одной задачи - [do_fetch](log_files/do_fetch.txt)
   Пример файла содержащего временные ряды для одной задачи - [do_fetch_timestamps](log_files/do_fetch_timestamps.txt)
+    
+    - Как можно анализировать: можно рассчитать среднюю нагрузку на диск, IO, память, CPU, а также выявить наиболее ресурсоемкие задачи.
 
 ## Разработанные нами решения
 
@@ -49,6 +53,7 @@
       RAM: VmPeak: 147628 kB, VmSize: 147628 kB, VmHWM: 59252 kB, VmRSS: 59252 kB
       IO Stats: rchar: 576639, wchar: 47799, syscr: 53, syscw: 46, read_bytes: 0, write_bytes: 36864, cancelled_write_bytes: 0
       ```
+    - Как можно анализировать: можно выявлять пики, определять наиболее загруженные моменты, визуализировать для наглядности данные.
 
 * Время парсинга рецептов из различных слоев: [parsing_statistics](https://github.com/moevm/os_profiling/blob/b65661fd3477a63ae9cf38e917ba3cdaf1662bd0/build/parsing_statistics/poky_dir.patch)
     - Пример результата ([файл](log_files/layer_parsing_time.log)):
@@ -56,6 +61,8 @@
       meta: 113.22 seconds
       meta-poky: 0.03 seconds
       ```
+    - Как можно анализировать: можно выявлять слои, которые требуют наибольшего времени на парсинг, и слои с минимальным временем парсинга.
+
 * Время парсинга каждого рецепта: [parsing_statistics](https://github.com/moevm/os_profiling/blob/b65661fd3477a63ae9cf38e917ba3cdaf1662bd0/build/parsing_statistics/poky_dir.patch)
     - Пример результата ([файл](log_files/recipe_parsing_time.log)):
       ```
@@ -63,6 +70,9 @@
       /home/elizaveta/poky/meta/recipes-devtools/opkg/opkg-keyrings_1.0.bb: 0.15 seconds
       /home/elizaveta/poky/meta/recipes-graphics/libva/libva-utils_2.20.1.bb: 0.16 seconds
       ```
+    - Как можно анализировать: можно выявлять рецепты, которые требуют наибольшего времени на парсинг, и рецепты с минимальным временем парсинга.
+
 
 * Сопоставление информации о ресурсах к пакету: [packages_charts](../src/packages-charts/packages_charts.md)
   - Собирает информацию о том, сколько ресурсов понадобилась определенному пакету.
+  - Как можно анализировать: визуализация (уже сделано), определение пакетов с наибольшим потреблением ресурсов для дальнейшей оптимизации.
