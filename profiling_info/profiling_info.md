@@ -113,7 +113,7 @@
       ```
     - Как можно анализировать: можно выявлять пики, определять наиболее загруженные моменты, визуализировать для наглядности данные.
 
-* Время парсинга рецептов из различных слоев: [parsing_statistics](https://github.com/moevm/os_profiling/blob/b65661fd3477a63ae9cf38e917ba3cdaf1662bd0/build/parsing_statistics/poky_dir.patch)
+* Время парсинга рецептов из различных слоев: [parsing_statistics](../build/parsing_statistics/collect_parsing_statistics.md)
     - Пример результата ([файл](log_files/layer_parsing_time.log)):
       ```
       meta: 113.22 seconds
@@ -121,7 +121,7 @@
       ```
     - Как можно анализировать: можно выявлять слои, которые требуют наибольшего времени на парсинг, и слои с минимальным временем парсинга.
 
-* Время парсинга каждого рецепта: [parsing_statistics](https://github.com/moevm/os_profiling/blob/b65661fd3477a63ae9cf38e917ba3cdaf1662bd0/build/parsing_statistics/poky_dir.patch)
+* Время парсинга каждого рецепта: [parsing_statistics](../build/parsing_statistics/collect_parsing_statistics.md)
     - Пример результата ([файл](log_files/recipe_parsing_time.log)):
       ```
       /home/elizaveta/poky/meta/recipes-core/initrdscripts/initramfs-live-boot_1.0.bb: 0.15 seconds
@@ -130,7 +130,10 @@
       ```
     - Как можно анализировать: можно выявлять рецепты, которые требуют наибольшего времени на парсинг, и рецепты с минимальным временем парсинга.
 
-
 * Сопоставление информации о ресурсах к пакету: [packages_charts](../src/packages-charts/packages_charts.md)
   - Собирает информацию о том, сколько ресурсов понадобилась определенному пакету.
   - Как можно анализировать: визуализация (уже сделано), определение пакетов с наибольшим потреблением ресурсов для дальнейшей оптимизации.
+
+* Сбор информации о скорости загрузки (do_fetch): [netstats_instruction](https://github.com/moevm/os_profiling/blob/d8f3d754a654bb7150eaeac9e3c6942985120f1d/netstats_instruction.md)
+  - Пример полученной информации: `recieve_speed: 437265162.12 B\sec`.
+  - Как можно анализировать: выявлять места с низкой скоростью загрузки, оптимизировать загрузку.
