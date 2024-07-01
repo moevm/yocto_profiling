@@ -59,23 +59,23 @@ else
 fi
 
 
-# создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
-if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
-    ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
-else
-    echo "Delete and make cleen cache test"
-    ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
-    ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
-fi
+# # # создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
+# if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
+#     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
+# else
+#     echo "Delete and make cleen cache test"
+#     ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
+#     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
+# fi
 
-# создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
-if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
-    ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
-else
-    echo "Delete and make cleen hash test"
-    ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
-    ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
-fi
+# # создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
+# if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
+#     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
+# else
+#     echo "Delete and make cleen hash test"
+#     ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
+#     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
+# fi
 
 
 scp -r ../hash_server_setuper/ $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
@@ -102,8 +102,8 @@ echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
 echo -e "COPYING: START."
-scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
-scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+# scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+# scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
 echo -e "COPYING: DONE."
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
@@ -139,19 +139,24 @@ do
 	do
 		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
 		cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
-        	cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
-        	cp -f ./auto_conf/conf/local.conf ../../build/conf/
-        	# Запуск сборки 
-        	filename="test_${i}_${j}.txt"
-        	# я то конфигурацию пробросил, а докер ее не подгрузил.......................................................
-        	cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
-        	# TODO - удаление папки build
+        cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
+        cp -f ./auto_conf/conf/local.conf ../../build/conf/
+        cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
+        filename="test_${i}_${j}.txt"
+        cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
+        # TODO - удаление папки build
+        echo "rm build folder"
+        cd .. && rm -rf ./build && cd -
+        sleep 5
+        # sleep на всякий случай
 	done
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
-	# TODO - удаление контейнеров распределения кэша
+    ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test/src && ./tests.sh kill"
+    sleep 10
+    # sleep на всякий случай
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
