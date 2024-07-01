@@ -77,6 +77,8 @@ fi
 #     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 # fi
 
+ssh $cache_usr@$cache_ip "pip3 list"
+ssh $cache_usr@$cache_ip "python3 --version && which python3"
 
 scp -r ../hash_server_setuper/ $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  >> /dev/null
@@ -134,8 +136,8 @@ do
 	# 5. Сборка и подъём кэш серверов
     echo 'Important cache server setup start'
     # Главная ошибка тут пока !!! WARN!!! ERRORR 
-    ssh $cache_usr@$cache_ip " cd $CACHE_SERVER_WORKDIR && python3 $PWD/yocto-build/assembly/main.py start --path /yocto-build/assembly/build/sstate-cache -p 9000 -c 2"
-	# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
+    # ssh $cache_usr@$cache_ip " cd $CACHE_SERVER_WORKDIR && python3 $PWD/yocto-build/assembly/main.py start --path /yocto-build/assembly/build/sstate-cache -p 9000 -c 2"
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
     echo 'Important cache server setup end'
 	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
 	echo "set cache_num_port = $i"
