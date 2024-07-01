@@ -8,7 +8,7 @@ def generate_strings(out:str, base_url:str, start_port:int, start_string:str, ta
     out += start_string + '\n'
     for i in range(start_port, start_port + num):
         mirror_url = base_url.replace("n", str(i))
-        tmp = f'file://.* {mirror_url}/server_folder_{i}/{target_str}/PATH;downloadfilename=PATH'
+        tmp = f'file://.* {mirror_url}/{target_str}/PATH;downloadfilename=PATH'
         out += tmp
         if i < start_port + num - 1:
             out += ' \\ \n'
