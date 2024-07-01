@@ -4,6 +4,64 @@
 
 * Трассировка с помощью ftrace: [cpu_tracer](../wiki/yocto_profiling_tools/cpu_tracer.md)
   - Собирает информацию о выполнении процессов на уровне ядра, трассировку событий, которые происходят в системе.
+  - Пример полученной информации:
+    
+    Скрипт 1:
+    ```text
+    # tracer: function
+    #
+    # entries-in-buffer/entries-written: 410058/1739128   #P:8
+    #
+    #                                _-----=> irqs-off/BH-disabled
+    #                               / _----=> need-resched
+    #                              | / _---=> hardirq/softirq
+    #                               / _--=> preempt-depth
+    #                              | / _-=> migrate-disable
+    #                              || /     delay
+    #           TASK-PID     CPU#  |||  TIMESTAMP  FUNCTION
+    #              | |         |   |||||     |         |
+      pipewire-pulse-4336    [005] d..2.   496.209665: ep_poll_callback <-__wake_up_common
+      pipewire-pulse-4336    [005] d..2.   496.209666: _raw_read_lock_irqsave <-ep_poll_callback
+      pipewire-pulse-4336    [005] d..3.   496.209666: __rcu_read_lock <-ep_poll_callback
+      pipewire-pulse-4336    [005] d..3.   496.209666: __rcu_read_unlock <-ep_poll_callback
+      pipewire-pulse-4336    [005] d..3.   496.209666: __wake_up <-ep_poll_callback
+      pipewire-pulse-4336    [005] d..3.   496.209666: __wake_up_common_lock <-__wake_up
+    ```
+    Скрипт 2:
+    ```text
+    # tracer: function_graph
+    #
+    # CPU  DURATION                  FUNCTION CALLS
+    # |     |   |                     |   |   |   |
+     7)   0.283 us    |                } /* __update_load_avg_se */
+     7)   0.273 us    |                __update_load_avg_cfs_rq();
+     7)               |                update_cfs_group() {
+     7)   0.268 us    |                  reweight_entity();
+     7)   0.751 us    |                }
+     7)   0.260 us    |                place_entity();
+     7)   3.779 us    |              } /* enqueue_entity */
+     7)   0.308 us    |              cpu_util();
+     7)   0.264 us    |              hrtick_update();
+     7) + 20.855 us   |            } /* enqueue_task_fair */
+     7)               |            check_preempt_curr() {
+     7)   0.290 us    |              resched_curr();
+     7)   0.899 us    |            }
+     7) + 32.511 us   |          } /* ttwu_do_activate */
+     7)   0.269 us    |          _raw_spin_unlock();
+     7) + 35.396 us   |        } /* sched_ttwu_pending */
+     7) + 36.341 us   |      } /* __flush_smp_call_function_queue */
+     7) + 36.903 us   |    } /* flush_smp_call_function_queue */
+     7)               |    schedule_idle() {
+     7)   0.411 us    |      rcu_note_context_switch();
+     7)               |      raw_spin_rq_lock_nested() {
+     7)   0.258 us    |        _raw_spin_lock();
+     7)   0.773 us    |      }
+     7)   0.275 us    |      update_rq_clock();
+     7)               |      pick_next_task() {
+     7)               |        pick_next_task_fair() {
+     7)   0.258 us    |          put_prev_task_idle();
+     ...
+    ```
 
 * Различные утилиты для профилирования: [profiling_tools](../wiki/yocto_profiling_tools/profilling_tools.md)
   - perf: собирает информацию о производительности системы.
