@@ -191,7 +191,7 @@ do
         cd .. && script -c "./entrypoint.sh build_yocto_image" ../"$filename" && cd -
         # TODO - удаление папки build
         echo "rm build folder"
-        cd .. && rm -rf ./build && cd -
+        cd ../yocto-build/assembly && rm -rf ./build && cd -
         sleep 5
         # sleep на всякий случай
 	done
