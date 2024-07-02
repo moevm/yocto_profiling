@@ -65,7 +65,9 @@ def remove_comments_and_write_settings(filename, settings):
         for i, line in enumerate(lines):  
             if not line.startswith("#") and len(line) > 1:
                 output_file.write(line)
-            if i == len(lines) - 2:  
+            # узкое место - здесь мы выбираем на какое место в файле вставить настройки кэш и хэш серверов. Пока хардкод...
+            # TODO: анализ local.conf с целью поиска строки CONF_VERSION = "2" -- нужно вставлять до этого
+            if i == len(lines) - 8:  
                 output_file.write(settings + "\n")  
     os.rename(temp_filename, filename)
 

@@ -130,49 +130,15 @@ ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yoct
 echo -e "BUILDING YOCTO: DONE."
 
 # LOOP
-echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
-for (( i=2; i<$max_servers; i+=$step ))
-do
-	# 5. Сборка и подъём кэш серверов
-    echo 'Important cache server setup start'
-    # Главная ошибка тут пока !!! WARN!!! ERRORR 
-    # ssh $cache_usr@$cache_ip " cd $CACHE_SERVER_WORKDIR && python3 $PWD/yocto-build/assembly/main.py start --path /yocto-build/assembly/build/sstate-cache -p 9000 -c 2"
-	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
-    echo 'Important cache server setup end'
-	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
-	echo "set cache_num_port = $i"
-	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
-	for j in 1 2
-	do
-		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
-		cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
-        cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
-        cp -f ./auto_conf/conf/local.conf ../yocto-build/assembly/poky/build/conf/
-        cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
-        filename="test_${i}_${j}.txt"
-        cd ../yocto-build/assembly/poky/build/ && script -c "bitbake core-image-minimal" ../../"$filename".txt && cd -
-        echo "rm build folder"
-        cd ../yocto-build/assembly/poky/ && rm -rf ./build && cd -
-        sleep 5
-        # sleep на всякий случай
-	done
-	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
-    ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test/src && ./tests.sh kill"
-    sleep 10
-    # sleep на всякий случай
-done
-echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
-
-
-# ПОПЫТКА в docker 
+# echo -e "BUILDING AND UPPING CACHE CONTAINERS: START."
 # for (( i=2; i<$max_servers; i+=$step ))
 # do
 # 	# 5. Сборка и подъём кэш серверов
+#     echo 'Important cache server setup start'
+#     # Главная ошибка тут пока !!! WARN!!! ERRORR 
+#     # ssh $cache_usr@$cache_ip " cd $CACHE_SERVER_WORKDIR && python3 $PWD/yocto-build/assembly/main.py start --path /yocto-build/assembly/build/sstate-cache -p 9000 -c 2"
 # 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
-
+#     echo 'Important cache server setup end'
 # 	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
 # 	echo "set cache_num_port = $i"
 # 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
@@ -181,13 +147,12 @@ echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 # 		pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
 # 		cp -f ../yocto-build/assembly/poky/build/conf/local.conf ./auto_conf/conf/
 #         cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
-#         cp -f ./auto_conf/conf/local.conf ../../build/conf/
+#         cp -f ./auto_conf/conf/local.conf ../yocto-build/assembly/poky/build/conf/
 #         cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
-#         filename="test_${i}_${j}"
-#         cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
-#         # TODO - удаление папки build
+#         filename="test_${i}_${j}.txt"
+#         cd ../yocto-build/assembly/poky/build/ && script -c "bitbake core-image-minimal" ../../"$filename".txt && cd -
 #         echo "rm build folder"
-#         cd .. && rm -rf ./build && cd -
+#         cd ../yocto-build/assembly/poky/ && rm -rf ./build && cd -
 #         sleep 5
 #         # sleep на всякий случай
 # 	done
@@ -200,6 +165,45 @@ echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 #     # sleep на всякий случай
 # done
 # echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
+
+# В папке ../../build должен лежать конфиг сборки. Сейчас он учитывает доп слои. Нужно иметь его оригинал, для этого я создаю временную папку save_orirginal_config, куда положу оригинальный конфиг
+mkdir ../../build/save_orirginal_config
+cp -f ../../build/conf/local.conf ../../build/save_orirginal_config/local.conf
+
+# ПОПЫТКА в docker 
+for (( i=2; i<$max_servers; i+=$step ))
+do
+	# 5. Сборка и подъём кэш серверов
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./tests.sh start $cache_start_port $i"
+
+	cd ./auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
+	echo "set cache_num_port = $i"
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
+	for j in 1 2
+	do
+		# pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
+		cp -f ../../build/save_orirginal_config/local.conf ./auto_conf/conf/
+        cd ./auto_conf/ && python3 auto_compose_local_conf.py && cd -
+        cp -f ./auto_conf/conf/local.conf ../../build/conf/
+        # вроде как это не нужно 
+        # cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
+        filename="test_${i}_${j}"
+        cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
+        # TODO - удаление папки build
+        echo "rm build folder"
+        cd .. && rm -rf ./build && cd -
+        sleep 5
+        # sleep на всякий случай
+	done
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
+    ssh $cache_usr@$cache_ip "cd $cache_desktop_path/test/src && ./tests.sh kill"
+    sleep 10
+    # sleep на всякий случай
+done
+echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
 
 # Убиваем контейнер. Отлично убивается контейнер.
