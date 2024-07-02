@@ -188,7 +188,9 @@ do
         # вроде как это не нужно 
         # cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
         filename="test_${i}_${j}"
-        cd .. && script -c "./entrypoint.sh build_yocto_image" ../"$filename" && cd -
+        cd .. && ./entrypoint.sh build_yocto_image >> ../"$filename" && cd -
+        # и так можно, но не принципиально важно здесь использовать script
+        # cd .. && script -c "./entrypoint.sh build_yocto_image" ../"$filename" && cd -
         # TODO - удаление папки build
         echo "rm build folder"
         cd ../yocto-build/assembly && rm -rf ./build && cd -

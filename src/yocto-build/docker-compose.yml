@@ -3,6 +3,8 @@ services:
   yocto_project:
     container_name: yocto_project
     image: yocto-image
+    # stdin_open: true
+    tty: true
     build:
       context: ../../
       dockerfile: ./src/yocto-build/Dockerfile
