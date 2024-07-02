@@ -111,7 +111,7 @@ echo -e "COPYING: DONE."
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 
 echo 'Installing requirements start'
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/server_reqs && pip3 install -r requirements.txt" 
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/servers_reqs && pip3 install -r requirements.txt" 
 echo 'Installing requirements end'
 
 # 2. Сборка образа системы для Yocto
@@ -188,7 +188,7 @@ do
         # вроде как это не нужно 
         # cd .. && ./entrypoint.sh build_env --no-perf >> /dev/null && cd -
         filename="test_${i}_${j}"
-        cd .. && ./entrypoint.sh build_yocto_image >> "$filename".txt && cd -
+        cd .. && script -c "./entrypoint.sh build_yocto_image" ../"$filename" && cd -
         # TODO - удаление папки build
         echo "rm build folder"
         cd .. && rm -rf ./build && cd -
