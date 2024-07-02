@@ -59,23 +59,23 @@ else
 fi
 
 
-# # # создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
-# if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
-#     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
-# else
-#     echo "Delete and make cleen cache test"
-#     ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
-#     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
-# fi
-
 # # создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
-# if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
-#     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
-# else
-#     echo "Delete and make cleen hash test"
-#     ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
-#     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
-# fi
+if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
+    ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
+else
+    echo "Delete and make cleen cache test"
+    ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
+    ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
+fi
+
+# создаем папку test на рабочем столе, если ее не было, иначе удаляеем и создаем
+if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
+    ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
+else
+    echo "Delete and make cleen hash test"
+    ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
+    ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
+fi
 
 ssh $cache_usr@$cache_ip "pip3 list"
 ssh $cache_usr@$cache_ip "python3 --version && which python3"
@@ -104,8 +104,8 @@ echo -e "PREPARE CACHE SERVERS:"
 
 # 1. Копирование необходимых частей проекта:
 echo -e "COPYING: START."
-# scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
-# scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../../src/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
+scp -r ../../build/ $cache_usr@$cache_ip:$cache_desktop_path/test/ >> /dev/null
 echo -e "COPYING: DONE."
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
