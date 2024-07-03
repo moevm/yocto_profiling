@@ -7,7 +7,7 @@
 В результате сформируется новый файл poky/build/queue, который будет содержать информацию о задачах из очереди, готовых к выполнению. Вывод следующего формата: timestamp_buildable: {список задач, готовых к выполнению}.
 
 Пример: 
-1720020407.2793891_buildable: {'/home/olga/poky/meta/recipes-devtools/qemu/qemu-native_9.0.0.bb:do_recipe_qa', '/home/olga/poky/meta/recipes-devtools/gcc/libgcc_14.1.bb:do_recipe_qa', 
+`1720020407.2793891_buildable: {'/home/olga/poky/meta/recipes-devtools/qemu/qemu-native_9.0.0.bb:do_recipe_qa', '/home/olga/poky/meta/recipes-devtools/gcc/libgcc_14.1.bb:do_recipe_qa', 
 '/home/olga/poky/meta/recipes-support/ptest-runner/ptest-runner_2.4.4.bb:do_recipe_qa', 'virtual:native:/home/olga/poky/meta/recipes-graphics/xorg-lib/libxdmcp_1.1.5.bb:do_recipe_qa', 
 'virtual:native:/home/olga/poky/meta/recipes-support/libbsd/libbsd_0.12.2.bb:do_recipe_qa', 'virtual:native:/home/olga/poky/meta/recipes-extended/xz/xz_5.4.6.bb:do_recipe_qa', 
 '/home/olga/poky/meta/recipes-devtools/file/file_5.45.bb:do_recipe_qa', '/home/olga/poky/meta/recipes-core/coreutils/coreutils_9.5.bb:do_recipe_qa', 
@@ -20,6 +20,6 @@ virtual:native:/home/olga/poky/meta/recipes-devtools/autoconf-archive/autoconf-a
 'virtual:native:/home/olga/poky/meta/recipes-core/ncurses/ncurses_6.5.bb:do_recipe_qa', '/home/olga/poky/meta/recipes-extended/grep/grep_3.11.bb:do_recipe_qa', 
 'virtual:native:/home/olga/poky/meta/recipes-extended/pbzip2/pbzip2_1.1.13.bb:do_recipe_qa', 'virtual:native:/home/olga/poky/meta/recipes-support/libmicrohttpd/libmicrohttpd_1.0.1.bb:do_recipe_qa', 
 'virtual:native:/home/olga/poky/meta/recipes-extended/libtirpc/libtirpc_1.3.4.bb:do_recipe_qa', '/home/olga/poky/meta/recipes-core/images/core-image-minimal.bb:do_recipe_qa', 
-'/home/olga/poky/meta/recipes-core/sysvinit/sysvinit-inittab_2.88dsf.bb:do_recipe_qa'}
+'/home/olga/poky/meta/recipes-core/sysvinit/sysvinit-inittab_2.88dsf.bb:do_recipe_qa'}`
 
 Внимание: вывод обрезан!
