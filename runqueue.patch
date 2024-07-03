@@ -1,0 +1,15 @@
+--- runqueue.py	2024-07-03 18:14:56.568509092 +0300
++++ newrunqueue.py	2024-07-03 18:23:51.493851329 +0300
+@@ -247,6 +247,12 @@
+         # Bitbake requires that at least one task be active. Only check for pressure if
+         # this is the case, otherwise the pressure limitation could result in no tasks
+         # being active and no new tasks started thereby, at times, breaking the scheduler.
++
++        with open('./queue', 'a') as file:
++            file.write(str(time.time()) + '_buildable: ')
++            file.writelines(list(str(self.buildable) + '\n'))
++            file.write('\n')
++
+         if self.rq.stats.active and self.exceeds_max_pressure():
+             return None
+ 
