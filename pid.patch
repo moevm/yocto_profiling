@@ -1,0 +1,21 @@
+--- buildstats_old.bbclass	2024-07-06 15:46:29.168898000 +0300
++++ buildstats.bbclass	2024-07-06 16:02:48.972358894 +0300
+@@ -46,7 +46,7 @@
+                 iostats[i[0]] = i[1]
+     resources = resource.getrusage(resource.RUSAGE_SELF)
+     childres = resource.getrusage(resource.RUSAGE_CHILDREN)
+-    return stats, iostats, resources, childres
++    return pid, stats, iostats, resources, childres
+ 
+ def get_cputime():
+     with open("/proc/stat", "r") as f:
+@@ -91,7 +91,8 @@
+         if elapsedtime:
+             f.write(d.expand("${PF}: %s\n" % e.task))
+             f.write(d.expand("Elapsed time: %0.2f seconds\n" % elapsedtime))
+-            cpu, iostats, resources, childres = get_process_cputime(os.getpid())
++            pid, cpu, iostats, resources, childres = get_process_cputime(os.getpid())
++            f.write("PID: %d\n" % pid)
+             if cpu:
+                 f.write("utime: %s\n" % cpu['utime'])
+                 f.write("stime: %s\n" % cpu['stime'])

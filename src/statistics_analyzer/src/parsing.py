@@ -33,21 +33,7 @@ def create_parser_args():
 class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
-        self.pid_info = {}
         self.timeline = {}
-        self.traverse_pid_directories(poky_path, 'work')
-        self.traverse_pid_directories(poky_path, 'work-shared')
-
-    def traverse_pid_directories(self, poky_path, directory):
-        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),
-                                           lambda x: x.startswith('log.task_order')):
-            if directory == 'work':
-                pkg_name = log_file.split('/')[-4]
-            else: 
-                pkg_name = log_file.split('/')[-3]
-                if pkg_name.startswith('gcc'):
-                    pkg_name = 'gcc-source'
-            self.collect_pid(log_file, pkg_name)
 
     def add_info(self, target_info, pkg_name, task_type=None):
         if pkg_name not in target_info:
@@ -78,18 +64,8 @@ class Parser:
             value = (re.split(" |\n", value))[0]
             if value.startswith('do_'):
                 task_type = value
-                if 'gcc-source' not in metric:
-                    while ((metric not in self.pid_info.keys() and any(symbol.isdigit() for symbol in metric))
-                        or metric[-1] == '-'):
-                        metric = metric[: -1:]
-                    pkg_name = metric
-                else:
-                    pkg_name = 'gcc-source'
+                pkg_name = metric
                 self.add_info(self.info, pkg_name, task_type)
-                if pkg_name in self.pid_info.keys() and task_type in self.pid_info.get(
-                        pkg_name).keys():  # пытаемся сопоставить PID данной задаче
-
-                    package_info.update({'PID': self.pid_info.get(pkg_name).get(task_type).get("PID", None)})
             else:
                 if metric not in ignore_list:
                     package_info.update({metric: value})
@@ -131,16 +107,6 @@ class Parser:
                 values = list(map(float, line.split(' ')))
                 self.timeline[current_timestamp]['cpu'] = values[0] + values[1]
                 self.timeline[current_timestamp]['io'] = values[2]
-
-    def collect_pid(self, path, pkg_name):
-        temp = path.split('/')
-        with open(path, 'r') as file:
-            for line in file:
-                task_type = line.split(' ')[1]
-                pid = line.split(' ')[2][1: -2]
-                self.add_info(self.pid_info, pkg_name, task_type)
-                self.pid_info.get(pkg_name).get(task_type).update({"PID": pid})
-
 
     def write_data_about_task(self, task_type, metrics=None):
         with open(task_type + '.log', 'w') as file:
