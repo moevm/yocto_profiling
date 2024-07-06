@@ -35,8 +35,44 @@ class Parser:
         self.info = {}
         self.pid_info = {}
         self.timeline = {}
+        self.queue = {}
+        self.queue_path = os.path.join(poky_path, 'build/queue')
+        self.queue_analize()
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
+
+    def queue_analize(self):
+        with open(self.queue_path, 'r') as file:
+            lines = file.readlines()
+        lines = list(filter(lambda x: x != '\n', lines))
+        
+        for line in lines:
+            timestamp, tasks = line.split(': ')
+            tasks = tasks.replace('{', '')
+            tasks = tasks.replace('}', '')
+            tasks = tasks.split(', ')
+            tasks = set(tasks)
+
+
+               
+            timestamp = round(float(timestamp.replace('_buildable', '')))
+
+            if not timestamp in self.queue:
+                self.queue.update({timestamp: {'tasks': tasks}})
+            else:
+                self.queue[timestamp]['tasks'].update(tasks)
+        
+        for timestamp in self.queue:
+            task_types = {}
+            for task in self.queue[timestamp]['tasks']:
+                task_type = task[task.rfind(':') + 1: task.rfind("'") :]
+                    
+                if not task_type in task_types:
+                    task_types.update({task_type: 1})
+                else:
+                    task_types.update({task_type: task_types.get(task_type) + 1})
+            self.queue[timestamp].update({'task_types': task_types})
+
 
     def traverse_pid_directories(self, poky_path, directory):
         for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),

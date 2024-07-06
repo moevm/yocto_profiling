@@ -70,6 +70,8 @@ def write_to_excel(parser):
     ws.column_dimensions['C'].width = 10
     ws.column_dimensions['D'].width = 10
     ws.column_dimensions['E'].width = 50
+    ws.column_dimensions['F'].width = 125
+    ws.column_dimensions['G'].width = 50
     for index, time in enumerate(dict(sorted(parser.timeline.items()))):
         ws.cell(row=index+1, column=1).value = time
 
@@ -98,6 +100,10 @@ def write_to_excel(parser):
             ws.cell(row=index+1, column=4).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
 
         ws.cell(row=index+1, column=5).value = '\n'.join(parser.timeline[time]['tasks'])
+
+        if time in parser.queue:
+            ws.cell(row=index+1, column=6).value = '\n'.join(parser.queue[time]['tasks'])
+            ws.cell(row=index+1, column=7).value = '\n'.join([f'{key}: {value}' for key, value in parser.queue[time]['task_types'].items()])
 
         for i in range(1, 6):
             ws.cell(row=index+1, column=i).alignment = Alignment(wrap_text=True)
