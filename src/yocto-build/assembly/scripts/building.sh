@@ -1,6 +1,8 @@
 #! /bin/bash
 
 
+date=$(date +"%d-%m-%Y_%H:%M:%S")
+
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
 	echo "Create log dir."
@@ -67,9 +69,9 @@ function decorate_logs() {
 function build() {
 	./scripts/add_layers.sh
 	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf 
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf
 	bitbake-layers show-layers
-	bitbake core-image-minimal
+	bitbake core-image-minimal | tee >( grep -E -i '^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$' >$YOCTO_INSTALL_PATH/assembly/logs/filtered_logs_$date.txt)
 	YOCTO_EXIT_CODE=$?
 	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
