@@ -69,7 +69,7 @@ RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-FROM $REQS_ARG as base
+FROM $REQS_ARG AS base
 
 # Python utils
 RUN python3 -m pip install -U psutil numpy matplotlib 
