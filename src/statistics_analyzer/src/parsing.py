@@ -50,17 +50,17 @@ class Parser:
             timestamp, tasks = line.split(': ')
             tasks = tasks.replace('{', '')
             tasks = tasks.replace('}', '')
+            tasks = tasks.replace('\n', '')
             tasks = tasks.split(', ')
             tasks = set(tasks)
 
-
-               
             timestamp = round(float(timestamp.replace('_buildable', '')))
 
             if not timestamp in self.queue:
                 self.queue.update({timestamp: {'tasks': tasks}})
             else:
                 self.queue[timestamp]['tasks'].update(tasks)
+        
         
         for timestamp in self.queue:
             task_types = {}
