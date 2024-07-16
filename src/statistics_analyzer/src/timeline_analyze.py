@@ -1,7 +1,7 @@
 import json
 
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Color, PatternFill
+from openpyxl.styles import Alignment, Color, PatternFill, Font
 
 
 def get_tasks(parser, border, resource):
@@ -72,40 +72,60 @@ def write_to_excel(parser):
     ws.column_dimensions['E'].width = 50
     ws.column_dimensions['F'].width = 125
     ws.column_dimensions['G'].width = 50
+    ws.column_dimensions['H'].width = 50
+
+    first_timestamp = 0
+    ws.cell(row=1, column=1).value = 'Sec'
+    ws.cell(row=1, column=2).value = 'CPU'
+    ws.cell(row=1, column=3).value = 'IO'
+    ws.cell(row=1, column=4).value = 'RAM'
+    ws.cell(row=1, column=5).value = 'Running tasks'
+    ws.cell(row=1, column=6).value = 'Buildable tasks'
+    ws.cell(row=1, column=7).value = 'Buildable task types'
+    ws.cell(row=1, column=8).value = 'Skip start running info'
+
+    for i in range(1, 9):
+        ws.cell(row=1, column=i).font = Font(bold=True)
+
     for index, time in enumerate(dict(sorted(parser.timeline.items()))):
-        ws.cell(row=index+1, column=1).value = time
+        if not first_timestamp:
+            first_timestamp = time
+        ws.cell(row=index+2, column=1).value = time - first_timestamp
 
         if not parser.timeline[time]['cpu'] is None:
-            ws.cell(row=index+1, column=2).value = str(round(parser.timeline[time]['cpu'], 4))
+            ws.cell(row=index+2, column=2).value = str(round(parser.timeline[time]['cpu'], 4))
             cpu_color = Color(
                 rgb=f'ff{hex(int(255 * parser.timeline[time]["cpu"]))[2:].zfill(2)}{hex(int(255 * (1 - parser.timeline[time]["cpu"])))[2:].zfill(2)}{hex(0)[2:].zfill(2)}')
-            ws.cell(row=index + 1, column=2).fill = PatternFill(fgColor=cpu_color, fill_type='solid')
+            ws.cell(row=index+2, column=2).fill = PatternFill(fgColor=cpu_color, fill_type='solid')
         else:
-            ws.cell(row=index+1, column=2).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
+            ws.cell(row=index+2, column=2).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
 
         if not parser.timeline[time]['io'] is None:
-            ws.cell(row=index+1, column=3).value = str(round(parser.timeline[time]['io'], 4))
+            ws.cell(row=index+2, column=3).value = str(round(parser.timeline[time]['io'], 4))
             io_color = Color(
                 rgb=f'ff{hex(int(255 * parser.timeline[time]["io"]))[2:].zfill(2)}{hex(int(255 * (1 - parser.timeline[time]["io"])))[2:].zfill(2)}{hex(0)[2:].zfill(2)}')
-            ws.cell(row=index + 1, column=3).fill = PatternFill(fgColor=io_color, fill_type='solid')
+            ws.cell(row=index+2, column=3).fill = PatternFill(fgColor=io_color, fill_type='solid')
         else:
-            ws.cell(row=index + 1, column=3).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
+            ws.cell(row=index+2, column=3).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
 
         if not parser.timeline[time]['ram'] is None:
-            ws.cell(row=index+1, column=4).value = str(round(parser.timeline[time]['ram'], 4))
+            ws.cell(row=index+2, column=4).value = str(round(parser.timeline[time]['ram'], 4))
             ram_color = Color(
                 rgb=f'ff{hex(int(255 * parser.timeline[time]["ram"]))[2:].zfill(2)}{hex(int(255 * (1 - parser.timeline[time]["ram"])))[2:].zfill(2)}{hex(0)[2:].zfill(2)}')
-            ws.cell(row=index + 1, column=4).fill = PatternFill(fgColor=ram_color, fill_type='solid')
+            ws.cell(row=index+2, column=4).fill = PatternFill(fgColor=ram_color, fill_type='solid')
         else:
-            ws.cell(row=index+1, column=4).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
+            ws.cell(row=index+2, column=4).fill = PatternFill(fgColor=Color(rgb='ffffffff'), fill_type='solid')
 
-        ws.cell(row=index+1, column=5).value = '\n'.join(parser.timeline[time]['tasks'])
+        ws.cell(row=index+2, column=5).value = '\n'.join(parser.timeline[time]['tasks'])
 
         if time in parser.queue:
-            ws.cell(row=index+1, column=6).value = '\n'.join(parser.queue[time]['tasks'])
-            ws.cell(row=index+1, column=7).value = '\n'.join([f'{key}: {value}' for key, value in parser.queue[time]['task_types'].items()])
+            ws.cell(row=index+2, column=6).value = '\n'.join(parser.queue[time]['tasks'])
+            ws.cell(row=index+2, column=7).value = '\n'.join([f'{key}: {value}' for key, value in parser.queue[time]['task_types'].items()])
 
-        for i in range(1, 6):
-            ws.cell(row=index+1, column=i).alignment = Alignment(wrap_text=True)
+        if time in parser.skipped_info:
+            ws.cell(row=index+2, column=8).value = '\n'.join(parser.skipped_info[time])
+
+        for i in range(1, 9):
+            ws.cell(row=index+2, column=i).alignment = Alignment(wrap_text=True)
 
     wb.save('./src/statistics_analyzer/output/sources.xlsx')
