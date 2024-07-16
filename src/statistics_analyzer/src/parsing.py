@@ -36,10 +36,27 @@ class Parser:
         self.pid_info = {}
         self.timeline = {}
         self.queue = {}
+        self.skipped_info = {}
         self.queue_path = os.path.join(poky_path, 'build/queue')
+        self.skip_path = os.path.join(poky_path, 'build/skip')
         self.queue_analize()
+        self.skip_analize()
         self.traverse_pid_directories(poky_path, 'work')
         self.traverse_pid_directories(poky_path, 'work-shared')
+
+
+    def skip_analize(self):
+        with open(self.skip_path, 'r') as file:
+            lines = file.readlines()
+        
+        for line in lines:
+            timestamp, message = line.split(': ')
+            timestamp = round(float(timestamp))
+
+            if not timestamp in self.skipped_info:
+                self.skipped_info.update({timestamp: set([message])})
+            else:
+                self.skipped_info[timestamp].update([message])
 
     def queue_analize(self):
         with open(self.queue_path, 'r') as file:
