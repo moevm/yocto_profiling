@@ -82,6 +82,23 @@ case "$1" in
 	"check")
 		check
 		;;
+	"del")
+                CONTAINER_NAME=yocto_project
+                CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
+                docker stop $CONTAINER_ID
+                docker rm $CONTAINER_ID
+
+                $CHECKS_DIR/yocto-image-check.sh
+                CHECK_CODE=$?
+                if [ $CHECK_CODE -eq 0 ]; then
+                        IMAGE_NAME=yocto-image
+                        IMAGE_ID=$(docker inspect --format="{{.Id}}" yocto-image)
+                        docker rmi $IMAGE_ID
+                fi
+
+                ./entrypoint.sh build_env --no-perf
+                ;;
+
 	*)
 		echo -e "Unexpected parameter found <$1>!\n"
         	help
