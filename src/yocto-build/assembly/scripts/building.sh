@@ -1,5 +1,6 @@
 #! /bin/bash
 
+FRAGMENT_PATH=$YOCTO_INSTALL_PATH/assembly/poky/meta/recipes-kernel/linux
 
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
@@ -67,7 +68,9 @@ function decorate_logs() {
 function build() {
 	./scripts/add_layers.sh
 	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build_yocto/conf/local.conf 
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf 
+	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/fragment.cfg
+	cp $YOCTO_INSTALL_PATH/conf/linux-yocto_6.6.bb $FRAGMENT_PATH/linux-yocto_6.6.bb
 	bitbake-layers show-layers
 	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
