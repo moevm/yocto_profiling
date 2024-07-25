@@ -1,5 +1,5 @@
---- buildstats.bbclass	2024-06-27 11:53:47.880247435 +0300
-+++ buildstats_new_bbclass.bbclass	2024-06-27 12:09:44.506397203 +0300
+--- buildstats.bbclass	2024-07-25 11:58:06.916030099 +0300
++++ buildstats_new.bbclass	2024-07-25 12:03:23.927723914 +0300
 @@ -31,6 +31,7 @@
          'cstime' : fields[16],  
      }
@@ -13,7 +13,7 @@
                  i = i.split(": ")
                  iostats[i[0]] = i[1]
 +    if os.path.isfile("/proc/%d/net/dev" % pid):
-+        with open("/proc/6/net/dev", "r") as f:
++        with open("/proc/%d/net/dev" % pid, "r") as f:
 +            lines = [line for line in f]
 +            for line in lines:
 +                if not ":" in line:
