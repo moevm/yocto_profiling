@@ -103,7 +103,7 @@ def start_timeline_analyze(args):
         return -1
     parser = start_parser(args)
     parser.get_tasks_for_timeline()
-    #write_to_excel(parser)
+    write_to_excel(parser)
 
     cpu_intervals, cpu_sum_time = find_free_intervals(parser, 'cpu', 0.9)
     get_tasks_for_intervals(parser, cpu_intervals)
