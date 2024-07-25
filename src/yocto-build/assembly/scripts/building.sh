@@ -2,6 +2,8 @@
 
 
 date=$(date +"%d-%m-%Y_%H:%M:%S")
+hash_template='^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$'
+
 
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
@@ -71,7 +73,7 @@ function build() {
 	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
 	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf
 	bitbake-layers show-layers
-	bitbake core-image-minimal | tee >( grep -E -i '^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$' >$YOCTO_INSTALL_PATH/assembly/logs/filtered_logs_$date.txt)
+	bitbake core-image-minimal | tee >( grep -E -i $hash_template >$YOCTO_INSTALL_PATH/assembly/logs/filtered_logs_$date.txt)
 	YOCTO_EXIT_CODE=$?
 	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
