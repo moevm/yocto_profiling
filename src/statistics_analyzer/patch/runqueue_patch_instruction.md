@@ -23,3 +23,6 @@ virtual:native:/home/olga/poky/meta/recipes-devtools/autoconf-archive/autoconf-a
 '/home/olga/poky/meta/recipes-core/sysvinit/sysvinit-inittab_2.88dsf.bb:do_recipe_qa'}`
 
 Внимание: вывод обрезан!
+
+
+Помимо файла queue сформируется также файл poky/build/skip, который будет содержать информацию о пропущенном запуске задачи (иначе говоря, о тех ситуациях, когда bitbake попробовал запустить задачу, но в итоге ничего не запустил). Данный файл также содержит информацию о времени, когда случилось это событие.
