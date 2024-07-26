@@ -70,14 +70,12 @@ url="https://github.com/sartura/meta-sysrepo"
 commit_hash=09f73e78795caaecf15267406d241e501c6e0d62
 clone_layer
 
-pwd
-
 cd ..
 source ./poky/oe-init-build-env build
 cd ..
 
 
-
+echo "BITBAKE ADD LAYERS: PATH: $(pwd)"
 bitbake-layers add-layer ./poky/meta-openembedded/meta-webserver/ ./poky/meta-openembedded/meta-oe/ ./poky/meta-openembedded/meta-python/ ./poky/meta-openembedded/meta-networking/ ./poky/meta-openembedded/meta-filesystems/ ./poky/meta-openembedded/meta-perl/ ./poky/meta-openembedded/meta-multimedia/ ./poky/meta-security/ ./poky/meta-selinux/ ./poky/meta-cgl/meta-cgl-common/ ./poky/meta-clang/ ./poky/meta-virtualization/ ./poky/meta-cloud-services/ ./poky/meta-dpdk/ ./poky/meta-erlang/ ./poky/meta-java/ ./poky/meta-qt5/ ./poky/meta-xilinx/meta-xilinx-core/ ./poky/meta-xilinx/meta-xilinx-standalone/ ./poky/meta-xilinx-tools/
 
 

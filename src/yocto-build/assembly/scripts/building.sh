@@ -67,7 +67,7 @@ function decorate_logs() {
 
 function build() {
 	./scripts/add_layers.sh
-	#source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
+	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/ >/dev/null
 	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf 
 	
 	mkdir -p $FRAGMENT_PATH/files/
