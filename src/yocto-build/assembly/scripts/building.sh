@@ -70,7 +70,7 @@ function build() {
 	#source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/
 	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf 
 	
-	mkdir -p $FRAGMENT_PATH/files/ >> /dev/null
+	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	
 	cd $YOCTO_INSTALL_PATH/assembly
