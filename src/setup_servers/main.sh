@@ -81,6 +81,8 @@ ssh $cache_usr@$cache_ip "pip3 list"
 ssh $cache_usr@$cache_ip "python3 --version && which python3"
 
 scp -r ../hash_server_setuper/ $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
+ssh $hash_usr@$hash_ip "docker stop $(docker ps -q --filter ancestor=hash)" >> /dev/null
+ssh $hash_usr@$hash_ip "docker rm $(docker ps -q -a --filter ancestor=hash)" >> /dev/null
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  >> /dev/null
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
 
