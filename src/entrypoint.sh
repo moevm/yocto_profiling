@@ -22,8 +22,8 @@ function help() {
 	echo -e "\t<start_yocto> -- up the yocto image."
 	
 	echo -e ""
-	echo -e "\t<clean> -- removing existing container and image of yocto."
-	echo -e "\t<del_volume> -- removing poky and build dir."
+	echo -e "\t<clean-docker> -- removing existing container and image of yocto."
+	echo -e "\t<clean-build> -- removing poky and build dir."
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."
@@ -109,7 +109,7 @@ case "$p_command" in
 	"check")
 		check
 		;;
-	"clean")
+	"clean-docker")
                 CONTAINER_NAME=yocto_project
                 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
                 docker stop $CONTAINER_ID
@@ -125,7 +125,7 @@ case "$p_command" in
 	       	
                 ./entrypoint.sh build_env --no-perf ${args_arr[@]}
                 ;;
-	"del_volume")
+	"clean-build")
 		echo "REMOVING POKY"
 		rm -rf $DOCKERFILE_DIR/assembly/poky
 		echo "REMOVING BUILD DIR"
