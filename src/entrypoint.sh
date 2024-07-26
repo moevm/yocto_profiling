@@ -48,17 +48,26 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-args_count=$#
+args_count=$(($#-1))
+p_command=$1
+shift 1
+
+for (( i = 0; i < $args_count; i++ ))
+do
+	args_arr[$i]=$1
+	shift 1
+done
+
 
 EXIT_CODE=0
-case "$1" in 
+case "$p_command" in 
 	"build_env")
 		REQS_ARG="perf"
 		NO_CACHE=""
 
-		for (( i = 2; i <= $args_count; i++ ))
+		for (( i = 0; i < $args_count; i++ ))
 		do
-			case "$2" in
+			case "${args_arr[$i]}" in
 				"--no-perf")
 					echo "DISABLE PERF"
 					REQS_ARG="requirements"
@@ -68,10 +77,9 @@ case "$1" in
 					NO_CACHE="--no-cache"
 					;;
 				*)
-					echo "UNKNOWN ARG: $2"
+					echo "UNKNOWN ARG: ${args_arr[$i]}"
 					;;
 			esac
-			shift 1
 		done
 		echo "BUILDING ENV"
 		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG $NO_CACHE
@@ -83,12 +91,12 @@ case "$1" in
 		;;
 	"build_yocto_image")
 		STAGE_ARG="full"
-                if [[ ! -z "$2" ]]; then
-                        if [[ "$2" == "--only-poky" ]]; then
+                if [[ ! -z "${args_arr[0]}" ]]; then
+                        if [[ "${args_arr[0]}" == "--only-poky" ]]; then
                                 STAGE_ARG="clone_poky"
                         fi
                 fi
-
+		
 		$SCRIPTS_DIR/build_yocto_image.sh $DOCKERFILE_DIR $STAGE_ARG
 		
 		EXIT_CODE=$?
@@ -102,21 +110,6 @@ case "$1" in
 		check
 		;;
 	"clean")
-		NO_CACHE=""
-                for (( i = 2; i <= $args_count; i++ ))
-                do
-                        case "$2" in
-                                "--no-cache")
-                                        echo "DISABLE CACHING"
-                                        NO_CACHE="--no-cache"
-                                        ;;
-                                *)
-                                        echo "UNKNOWN ARG: $2"
-                                        ;;
-                        esac
-                        shift 1
-                done
-
                 CONTAINER_NAME=yocto_project
                 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
                 docker stop $CONTAINER_ID
@@ -128,8 +121,9 @@ case "$1" in
                         IMAGE_NAME=yocto-image
                         IMAGE_ID=$(docker inspect --format="{{.Id}}" yocto-image)
                         docker rmi $IMAGE_ID
-                fi 
-                ./entrypoint.sh build_env --no-perf $NO_CACHE
+                fi
+	       	
+                ./entrypoint.sh build_env --no-perf ${args_arr[@]}
                 ;;
 	"del_volume")
 		echo "REMOVING POKY"
@@ -138,7 +132,7 @@ case "$1" in
 		rm -rf $DOCKERFILE_DIR/assembly/build
 		;;
 	*)
-		echo -e "Unexpected parameter found <$1>!\n"
+		echo -e "Unexpected parameter found <$p_command>!\n"
         	help
         	exit 1
 		;;
