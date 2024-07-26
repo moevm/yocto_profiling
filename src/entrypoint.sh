@@ -11,6 +11,7 @@ function help() {
 
         echo -e "\t<build_env> -- builds an image of the virtual environment."
 	echo -e "\t\t<--no-perf> -- disables installation of the perf."
+	echo -e "\t\t<--no-cache> -- disables docker cache using."
 
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
         echo -e "\t<shell> -- opens a terminal in container."
@@ -19,7 +20,10 @@ function help() {
 
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
 	echo -e "\t<start_yocto> -- up the yocto image."
+	
 	echo -e ""
+	echo -e "\t<clean> -- removing existing container and image of yocto."
+	echo -e "\t<del_volume> -- removing poky and build dir."
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."
