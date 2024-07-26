@@ -44,18 +44,33 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+args_count=$#
 
 EXIT_CODE=0
 case "$1" in 
 	"build_env")
 		REQS_ARG="perf"
-	        if [[ ! -z "$2" ]]; then
-        	        if [[ "$2" == "--no-perf" ]]; then
-                	        REQS_ARG="requirements"
-                	fi
-        	fi
+		NO_CACHE=""
 
-		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG
+		for (( i = 2; i <= $args_count; i++ ))
+		do
+			case "$2" in
+				"--no-perf")
+					echo "DISABLE PERF"
+					REQS_ARG="requirements"
+					;;
+				"--no-cache")
+					echo "DISABLE CACHING"
+					NO_CACHE="--no-cache"
+					;;
+				*)
+					echo "UNKNOWN ARG: $2"
+					;;
+			esac
+			shift 1
+		done
+		echo "BUILDING ENV"
+		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG $NO_CACHE
 		;;
 	"shell")
 		$SCRIPTS_DIR/shell.sh $DOCKERFILE_DIR
@@ -82,7 +97,22 @@ case "$1" in
 	"check")
 		check
 		;;
-	"del")
+	"clean")
+		NO_CACHE=""
+                for (( i = 2; i <= $args_count; i++ ))
+                do
+                        case "$2" in
+                                "--no-cache")
+                                        echo "DISABLE CACHING"
+                                        NO_CACHE="--no-cache"
+                                        ;;
+                                *)
+                                        echo "UNKNOWN ARG: $2"
+                                        ;;
+                        esac
+                        shift 1
+                done
+
                 CONTAINER_NAME=yocto_project
                 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
                 docker stop $CONTAINER_ID
@@ -94,11 +124,15 @@ case "$1" in
                         IMAGE_NAME=yocto-image
                         IMAGE_ID=$(docker inspect --format="{{.Id}}" yocto-image)
                         docker rmi $IMAGE_ID
-                fi
-
-                ./entrypoint.sh build_env --no-perf
+                fi 
+                ./entrypoint.sh build_env --no-perf $NO_CACHE
                 ;;
-
+	"del_volume")
+		echo "REMOVING POKY"
+		rm -rf $DOCKERFILE_DIR/assembly/poky
+		echo "REMOVING BUILD DIR"
+		rm -rf $DOCKERFILE_DIR/assembly/build
+		;;
 	*)
 		echo -e "Unexpected parameter found <$1>!\n"
         	help
