@@ -82,10 +82,10 @@ bitbake-layers add-layer ./poky/meta-openembedded/meta-webserver/ ./poky/meta-op
 
 
 original_sysrepo="$(grep LAYERSERIES_COMPAT ./poky/meta-sysrepo/conf/layer.conf | sed 's/.$//')"
-original_rust="$(grep LAYERSERIES_COMPAT ./poky/meta-rust/conf/layer.conf | sed 's/.$//')"
+#original_rust="$(grep LAYERSERIES_COMPAT ./poky/meta-rust/conf/layer.conf | sed 's/.$//')"
 new_value=' scarthgap'
 sed -i "s/$original_sysrepo/$original_sysrepo$new_value/" ./poky/meta-sysrepo/conf/layer.conf
-sed -i "s/$original_rust/$original_rust$new_value/" ./poky/meta-rust/conf/layer.conf
+#sed -i "s/$original_rust/$original_rust$new_value/" ./poky/meta-rust/conf/layer.conf
 
 
 bitbake-layers add-layer ./poky/meta-sysrepo/
