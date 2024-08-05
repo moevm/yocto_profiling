@@ -34,16 +34,12 @@ class Parser:
     def __init__(self, poky_path):  # добавляем информацию о pid
         self.info = {}
         self.timeline = {}
-<<<<<<< HEAD
-=======
         self.queue = {}
         self.skipped_info = {}
         self.queue_path = os.path.join(poky_path, 'build/queue')
         self.skip_path = os.path.join(poky_path, 'build/skip')
         self.queue_analize()
         self.skip_analize()
-        self.traverse_pid_directories(poky_path, 'work')
-        self.traverse_pid_directories(poky_path, 'work-shared')
 
 
     def skip_analize(self):
@@ -90,19 +86,6 @@ class Parser:
                 else:
                     task_types.update({task_type: task_types.get(task_type) + 1})
             self.queue[timestamp].update({'task_types': task_types})
-
-
-    def traverse_pid_directories(self, poky_path, directory):
-        for log_file in log_files_iterator(os.path.join(poky_path, 'build/tmp/' + directory),
-                                           lambda x: x.startswith('log.task_order')):
-            if directory == 'work':
-                pkg_name = log_file.split('/')[-4]
-            else: 
-                pkg_name = log_file.split('/')[-3]
-                if pkg_name.startswith('gcc'):
-                    pkg_name = 'gcc-source'
-            self.collect_pid(log_file, pkg_name)
->>>>>>> main
 
     def add_info(self, target_info, pkg_name, task_type=None):
         if pkg_name not in target_info:
