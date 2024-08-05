@@ -1,0 +1,76 @@
+--- runqueue_old.py	2024-07-16 21:02:38.302349000 +0300
++++ runqueue.py	2024-07-16 20:13:14.956716181 +0300
+@@ -161,6 +161,13 @@
+ 
+         self.rev_prio_map = None
+         self.is_pressure_usable()
++        self.queue = open('./queue', 'a')
++        self.skip = open('./skip', 'a')
++        
++    def __del__(self):
++        self.queue.close()
++        self.skip.close()
++
+ 
+     def is_pressure_usable(self):
+         """
+@@ -242,12 +249,20 @@
+         buildable.difference_update(self.rq.holdoff_tasks)
+         buildable.intersection_update(self.rq.tasks_covered | self.rq.tasks_notcovered)
+         if not buildable:
++            self.skip.write(str(time.time()) + ': ' + 'no buildable tasks\n')
+             return None
+ 
+         # Bitbake requires that at least one task be active. Only check for pressure if
+         # this is the case, otherwise the pressure limitation could result in no tasks
+         # being active and no new tasks started thereby, at times, breaking the scheduler.
++        self.queue.write(str(time.time()) + '_buildable: ')
++        self.queue.writelines(list(str(self.buildable) + '\n'))
++        self.queue.write('\n')        
++        
++        
+         if self.rq.stats.active and self.exceeds_max_pressure():
++            self.skip.write(str(time.time()) + ': ')
++            self.skip.write('Pressure exceeded\n')
+             return None
+ 
+         # Filter out tasks that have a max number of threads that have been exceeded
+@@ -267,10 +282,15 @@
+             tid = buildable.pop()
+             taskname = taskname_from_tid(tid)
+             if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
++                self.skip.write(str(time.time()) + ': ')
++                self.skip.write(f'{taskname}:too much threads\n')
+                 return None
+             stamp = self.stamps[tid]
+             if stamp not in self.rq.build_stamps.values():
+                 return tid
++            else:
++                self.skip.write(str(time.time()) + ': ')
++                self.skip.write(f'{taskname}:task in buildstamps\n')
+ 
+         if not self.rev_prio_map:
+             self.rev_prio_map = {}
+@@ -284,9 +304,13 @@
+             if bestprio is None or bestprio > prio:
+                 taskname = taskname_from_tid(tid)
+                 if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
++                    self.skip.write(str(time.time()) + ': ')
++                    self.skip.write(f'{taskname}:too much threads\n')
+                     continue
+                 stamp = self.stamps[tid]
+                 if stamp in self.rq.build_stamps.values():
++                    self.skip.write(str(time.time()) + ': ')
++                    self.skip.write(f'{taskname}:task in buildstamps\n')
+                     continue
+                 bestprio = prio
+                 best = tid
+@@ -299,6 +323,8 @@
+         """
+         if self.rq.can_start_task():
+             return self.next_buildable_task()
++        else:
++            self.skip.write(str(time.time()) + ': too much threads\n')
+ 
+     def newbuildable(self, task):
+         self.buildable.add(task)
