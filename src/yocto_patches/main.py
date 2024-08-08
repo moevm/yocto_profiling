@@ -25,7 +25,7 @@ def _validate_path(dir_path: _Optional[str], patches_filename: str) -> tuple[_Pa
 	return patches_dir, patches_file
 
 
-def patching(dir_path: _Optional[str], patches_filename: str, patches: _Optional[list[str]]) -> None:
+def patching(dir_path: _Optional[str], patches_filename: str, patches: _Optional[list[str]]) -> _Optional[list[tuple[str, str, str]]]:
 	patches_dir, patches_file = _validate_path(dir_path, patches_filename)
 	
 	if not patches:
@@ -43,9 +43,7 @@ def patching(dir_path: _Optional[str], patches_filename: str, patches: _Optional
 		patches_to_apply.append((patch, data["path"], data["file"]))
 	
 	return patches_to_apply
-		
-		
-	
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -54,4 +52,9 @@ if __name__ == "__main__":
 	parser.add_argument('--patch', dest="patches", action='append', type=str, default=None)
 
 	args = parser.parse_args()
-	patching(dir_path=args.dir_path, patches_filename=args.patches_filename, patches=args.patches)
+	patches = patching(dir_path=args.dir_path, patches_filename=args.patches_filename, patches=args.patches)
+	
+	if patches is None:
+		print("Nothing to patch!")
+		sys.exit(0)
+	
