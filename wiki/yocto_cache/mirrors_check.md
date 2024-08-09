@@ -66,7 +66,8 @@ sstate может быть повторно использовано вмест�
 
 
 ## Графическая схема
-![image](https://github.com/user-attachments/assets/729514b0-d4e4-4d47-bfd0-76095a5ef629)
+![image](https://github.com/user-attachments/assets/15192797-fbcc-472e-8824-f49f912e739c)
+
 
 
 ## Вопросы к изучению
