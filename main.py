@@ -78,7 +78,7 @@ def start_ranking(args):
         metric = args.metric
 
 
-    data = get_ranked_data_for_all_tasks(parser.info, parser.pid_info, border=border, metric=metric, reverse=reverse)
+    data = get_ranked_data_for_all_tasks(parser.info, border=border, metric=metric, reverse=reverse)
     write_ranked_data(data, './src/statistics_analyzer/output/ranking_output.txt')
 
 
