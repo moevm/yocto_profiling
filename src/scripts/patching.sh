@@ -10,5 +10,6 @@ POKY_DIR=$1
 PATCHES_DIR=$2
 PATCHES_LIST=$3
 
+echo "RUN: python3 $PATCHES_DIR/main.py --poky-path $POKY_DIR --dir-path $PATCHES_DIR -l $PATCHES_LIST"
 python3 $PATCHES_DIR/main.py --poky-path $POKY_DIR --dir-path $PATCHES_DIR -l $PATCHES_LIST
 
