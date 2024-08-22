@@ -6,5 +6,9 @@
 	"poky_dir.patch": {
 		"path": "/",
 		"file": ""
+	},
+	"buildstats_netstats.patch": {
+		"path": "/meta/classes-global/",
+		"file": "buildstats.bbclass"
 	}
 }
