@@ -1,0 +1,115 @@
+import argparse as _argparse
+import sys as _sys
+import json as _json
+import subprocess as _subprocess
+
+from typing import Optional as _Optional
+from pathlib import Path as _Path
+
+
+def validate_path(poky_path: _Optional[str], dir_path: _Optional[str], patches_filename: str) -> tuple[_Path, _Path]:
+	if poky_path is None:
+		raise ValueError("Error: The poky path was not received. Use --poky-path to pass this value.")
+	if dir_path is None:
+		raise ValueError("Error: The path was not received. Use --dir-path to pass this value.")
+	if not ".json" in patches_filename:
+		raise ValueError("Error: Json file was expected.")
+	
+	poky_dir = _Path(poky_path)
+	patches_dir = _Path(dir_path)
+	patches_file = patches_dir / patches_filename
+	
+	if not poky_dir.exists() and poky_dir.is_dir():
+		raise ValueError(f"Error: This directory does not exist, or the path does not point to a directory: {poky_dir}")
+	if not patches_dir.exists() and patches_dir.is_dir():
+		raise ValueError(f"Error: This directory does not exist, or the path does not point to a directory: {dir_path}")
+	if not patches_file.exists():
+		raise ValueError(f"Error: This file does not exist: {str(patches_file)}")
+	return poky_dir, patches_dir, patches_file
+
+
+def applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path) -> None:
+    for patch_tuple in patches:
+        patch, path, file_to = patch_tuple
+        
+        cwd = f"{poky_dir}{path}"
+        cmd = [
+            "patch",
+            "-p1",
+            f"{cwd}{file_to}",
+            "<",
+            f"{patches_dir}/{patch}",
+        ]
+        
+        print(f"RUN: {' '.join(cmd)}")
+        result = _subprocess.run(cmd, cwd=cwd, capture_output=True, encoding='utf-8')
+        
+        if result.returncode:
+            print(f"Applying was failed, exit code {result.returncode}, patch: {patch}")
+            _sys.exit(result.returncode)
+
+
+def verify_applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path) -> None:
+    for patch_tuple in patches:
+        patch, path, _ = patch_tuple
+        
+        cmd = [
+            "git",
+            "apply",
+            "--check",
+            f"{patches_dir}/{patch}"
+        ]
+        cwd = f"{poky_dir}{path}"
+        print(f"RUN: {' '.join(cmd)}")
+        result = _subprocess.run(cmd, cwd=cwd, capture_output=True, encoding='utf-8')
+        
+        if result.returncode:
+            print(f"Verifying was failed, exit code {result.returncode}, patch: {patch}")
+            _sys.exit(result.returncode)
+
+
+def patching(args, patches_file: _Path) -> _Optional[list[tuple[str, str, str]]]:
+	patches_list = args.patches_list
+	patches = patches_list.split('::') if patches_list else args.patches
+	
+	if not patches:
+		return
+	
+	with open(str(patches_file), 'r') as f:
+		patches_data = _json.load(f)
+	assert isinstance(patches_data, dict)
+	
+	patches_to_apply = []
+	for patch in patches:
+		if not patch in patches_data:
+			print(f"WARNING: No such patch was found in available list: {patch}")
+			continue
+		patches_to_apply.append((patch, patches_data[patch]["path"], patches_data[patch]["file"]))
+	
+	return patches_to_apply
+
+
+if __name__ == "__main__":
+	parser = _argparse.ArgumentParser()
+	parser.add_argument('--poky-path', dest="poky_path", type=str, default=None)
+	parser.add_argument('--dir-path', dest="dir_path", type=str, default=None)
+	parser.add_argument('--patches-filename', dest="patches_filename", type=str, default="patches.json")
+	parser.add_argument('-p', '--patch', dest="patches", action='append', type=str, default=None)
+	parser.add_argument('-l', '--patches-list', dest="patches_list", type=str, default=None)
+
+	args = parser.parse_args()
+	
+	poky_dir, patches_dir, patches_file = validate_path(args.poky_path, args.dir_path, args.patches_filename)
+	print("VALIDATING PATHS: successfully passed!\n")
+	patches = patching(args, patches_file)
+	
+	if patches is None:
+		print("Nothing to patch!")
+		sys.exit(0)
+	
+	verify_applying(patches, patches_dir, poky_dir)
+	print("VERIFYING PATCHES: successfully passed!\n")
+	
+	applying(patches, patches_dir, poky_dir)
+	print("APPLYING PATCHES: successfully passed!")
+

@@ -1,0 +1,95 @@
+--- buildstats.bbclass	2024-06-25 16:55:12.228464805 +0300
++++ buildstats.bbclass	2024-06-25 16:44:48.302662284 +0300
+@@ -44,9 +44,16 @@
+                     break
+                 i = i.split(": ")
+                 iostats[i[0]] = i[1]
++    memory_stats = {}
++    with open("/proc/%d/status" % pid, "r") as f:
++        for line in f:
++            if line.startswith("VmPeak") or line.startswith("VmSize") or line.startswith("VmRSS") or line.startswith("VmHWM"):
++                key, value = line.split(":")
++                memory_stats[key.strip()] = value.strip()
++
+     resources = resource.getrusage(resource.RUSAGE_SELF)
+     childres = resource.getrusage(resource.RUSAGE_CHILDREN)
+-    return stats, iostats, resources, childres
++    return stats, iostats, resources, childres, memory_stats
+ 
+ def get_cputime():
+     with open("/proc/stat", "r") as f:
+@@ -91,7 +98,7 @@
+         if elapsedtime:
+             f.write(d.expand("${PF}: %s\n" % e.task))
+             f.write(d.expand("Elapsed time: %0.2f seconds\n" % elapsedtime))
+-            cpu, iostats, resources, childres = get_process_cputime(os.getpid())
++            cpu, iostats, resources, childres, memory_stats = get_process_cputime(os.getpid())
+             if cpu:
+                 f.write("utime: %s\n" % cpu['utime'])
+                 f.write("stime: %s\n" % cpu['stime'])
+@@ -178,10 +185,29 @@
+     # reset the environment
+     os.environ['PATH'] = ospath
+ 
++# New Function to Collect and Log Process Data Periodically
++def collect_process_data(logfile, pid, interval=1):
++    import threading
++    def log_data():
++        while collect_process_data.running:
++            with open(logfile, "a") as f:
++                timestamp = time.time()
++                cpu, iostats, resources, childres, memory_stats = get_process_cputime(pid)
++                f.write(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))}\n")
++                f.write("RAM: " + ", ".join([f"{key}: {value}" for key, value in memory_stats.items()]) + "\n")
++                f.write("IO Stats: " + ", ".join([f"{key}: {value}" for key, value in iostats.items()]) + "\n\n")
++            time.sleep(interval)
++    
++    collect_process_data.running = True
++    threading.Thread(target=log_data).start()
++
++def stop_collecting_process_data():
++    collect_process_data.running = False
++
+ python run_buildstats () {
+     import bb.build
+     import bb.event
+-    import time, subprocess, platform
++    import time, subprocess, platform, os, threading
+ 
+     bn = d.getVar('BUILDNAME')
+     ########################################################################
+@@ -219,6 +245,9 @@
+                     f.write(x + " ")
+             f.write("\n")
+             f.write("Build Started: %0.2f \n" % d.getVar('__timedata_build', False)[0])
++        
++        # Start collecting process data periodically
++        collect_process_data(os.path.join(bsdir, "process_data.log"), os.getpid())
+ 
+     elif isinstance(e, bb.event.BuildCompleted):
+         build_time = os.path.join(bsdir, "build_stats")
+@@ -241,8 +270,12 @@
+         with open(os.path.join(taskdir, e.task), "a") as f:
+             f.write("Event: %s \n" % bb.event.getName(e))
+             f.write("Started: %0.2f \n" % e.time)
+-
++        collect_process_data(f"{os.path.join(taskdir, e.task)}_timestamps", os.getpid())
++        
++        
+     elif isinstance(e, bb.build.TaskSucceeded):
++        # Stop collecting process data
++        stop_collecting_process_data()
+         write_task_data("passed", os.path.join(taskdir, e.task), e, d)
+         if e.task == "do_rootfs":
+             bs = os.path.join(bsdir, "build_stats")
+@@ -268,6 +301,10 @@
+         build_status = os.path.join(bsdir, "build_stats")
+         with open(build_status, "a") as f:
+             f.write(d.expand("Failed at: ${PF} at task: %s \n" % e.task))
++        
++        # Stop collecting process data
++        stop_collecting_process_data()
++        
+         if bb.utils.to_boolean(d.getVar("BB_LOG_HOST_STAT_ON_FAILURE")):
+             write_host_data(os.path.join(bsdir, "host_stats_%s_failure" % e.task), e, d, "failure")
+ }
