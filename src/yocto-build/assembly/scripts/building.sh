@@ -1,9 +1,6 @@
 #! /bin/bash
 
 FRAGMENT_PATH=$YOCTO_INSTALL_PATH/assembly/poky/meta/recipes-kernel/linux
-HASH_TEMPLATE="^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$"
-
-date=$(date +"%d-%m-%Y_%H:%M:%S")
 
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
@@ -80,7 +77,7 @@ function build() {
 	./scripts/update_kernel.sh $FRAGMENT_PATH
 	
 	bitbake-layers show-layers
-	bitbake core-image-minimal | tee >( grep -E -i "$HASH_TEMPLATE" >$YOCTO_INSTALL_PATH/assembly/logs/filtered_logs_$date.txt)
+	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
 	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
 }
