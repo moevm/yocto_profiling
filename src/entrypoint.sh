@@ -69,8 +69,12 @@ done
 EXIT_CODE=0
 case "$p_command" in 
 	"patch")
+		REVERSE=""
 		if [[ ! -z "${args_arr[0]}" ]]; then
-                        $SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[0]}
+			if [[ ! -z "${args_arr[1]}" ]] && [[ "${args_arr[1]}" == "--reverse" ]]; then
+				REVERSE="--reverse"
+			fi
+			$SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[0]} $REVERSE
 		else
 			echo "[WARNING]: No patches were found"
 			help

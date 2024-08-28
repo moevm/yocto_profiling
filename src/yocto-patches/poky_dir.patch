@@ -1,5 +1,5 @@
---- poky/bitbake/lib/bb/cache.py	2024-06-25 12:55:14.927976130 +0300
-+++ poky/bitbake/lib/bb/cache.py	2024-06-25 13:20:16.011004514 +0300
+--- /bitbake/lib/bb/cache.py	2024-06-25 12:55:14.927976130 +0300
++++ /bitbake/lib/bb/cache.py	2024-06-25 13:20:16.011004514 +0300
 @@ -17,6 +17,7 @@
  #
  
@@ -34,8 +34,8 @@
          return infos
  
      def loadCached(self, filename, appends):
---- poky/create_parsing_info.py	1970-01-01 03:00:00.000000000 +0300
-+++ poky/create_parsing_info.py	2024-06-25 13:21:20.616528879 +0300
+--- /create_parsing_info.py	1970-01-01 03:00:00.000000000 +0300
++++ /create_parsing_info.py	2024-06-25 13:21:20.616528879 +0300
 @@ -0,0 +1,37 @@
 +def parse_recipe_times(file_path):
 +    layer_times = {}

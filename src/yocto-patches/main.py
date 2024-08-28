@@ -2,6 +2,7 @@ import argparse as _argparse
 import sys as _sys
 import json as _json
 import subprocess as _subprocess
+from subprocess import CalledProcessError as _CalledProcessError
 
 from typing import Optional as _Optional
 from pathlib import Path as _Path
@@ -28,44 +29,54 @@ def validate_path(poky_path: _Optional[str], dir_path: _Optional[str], patches_f
 	return poky_dir, patches_dir, patches_file
 
 
-def applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path) -> None:
+def applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path, reverse: bool) -> None:
+    flag = "-N"
+    if reverse:
+        flag = "-R"
+
     for patch_tuple in patches:
         patch, path, file_to = patch_tuple
         
         cwd = f"{poky_dir}{path}"
         cmd = [
             "patch",
-            "-p1",
-            f"{cwd}{file_to}",
-            "<",
-            f"{patches_dir}/{patch}",
+            flag,
+            "-p1"
         ]
-        
+        if file_to:
+            cmd.append(file_to)
+        cmd.extend(["-i", f"{patches_dir}/{patch}"])
+        print(f"WORKDIR: {cwd}")
         print(f"RUN: {' '.join(cmd)}")
-        result = _subprocess.run(cmd, cwd=cwd, capture_output=True, encoding='utf-8')
-        
-        if result.returncode:
-            print(f"Applying was failed, exit code {result.returncode}, patch: {patch}")
-            _sys.exit(result.returncode)
+
+        try:
+            result = _subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
+        except _CalledProcessError as e:
+            print(f"\nApplying was failed, patch: {patch}")
+            raise e
 
 
-def verify_applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path) -> None:
+def verify_applying(patches: list[tuple[str, str, str]], patches_dir: _Path, poky_dir: _Path, reverse: bool) -> None:
     for patch_tuple in patches:
         patch, path, _ = patch_tuple
         
+        cwd = f"{poky_dir}{path}"
         cmd = [
             "git",
             "apply",
-            "--check",
-            f"{patches_dir}/{patch}"
+            "--check"
         ]
-        cwd = f"{poky_dir}{path}"
+        if reverse:
+            cmd.append("-R")
+        cmd.append(f"{patches_dir}/{patch}")
+        print(f"WORKDIR: {cwd}")
         print(f"RUN: {' '.join(cmd)}")
-        result = _subprocess.run(cmd, cwd=cwd, capture_output=True, encoding='utf-8')
         
-        if result.returncode:
-            print(f"Verifying was failed, exit code {result.returncode}, patch: {patch}")
-            _sys.exit(result.returncode)
+        try:
+            result = _subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
+        except _CalledProcessError as e:
+            print(f"\nVerifying was failed, patch: {patch}")
+            raise e
 
 
 def patching(args, patches_file: _Path) -> _Optional[list[tuple[str, str, str]]]:
@@ -93,6 +104,7 @@ if __name__ == "__main__":
 	parser = _argparse.ArgumentParser()
 	parser.add_argument('--poky-path', dest="poky_path", type=str, default=None)
 	parser.add_argument('--dir-path', dest="dir_path", type=str, default=None)
+	parser.add_argument('--reverse', dest="reverse", action='store_true')
 	parser.add_argument('--patches-filename', dest="patches_filename", type=str, default="patches.json")
 	parser.add_argument('-p', '--patch', dest="patches", action='append', type=str, default=None)
 	parser.add_argument('-l', '--patches-list', dest="patches_list", type=str, default=None)
@@ -103,13 +115,13 @@ if __name__ == "__main__":
 	print("VALIDATING PATHS: successfully passed!\n")
 	patches = patching(args, patches_file)
 	
-	if patches is None:
+	if not patches:
 		print("Nothing to patch!")
-		sys.exit(0)
+		_sys.exit(0)
 	
-	verify_applying(patches, patches_dir, poky_dir)
+	verify_applying(patches, patches_dir, poky_dir, args.reverse)
 	print("VERIFYING PATCHES: successfully passed!\n")
 	
-	applying(patches, patches_dir, poky_dir)
+	applying(patches, patches_dir, poky_dir, args.reverse)
 	print("APPLYING PATCHES: successfully passed!")
 
