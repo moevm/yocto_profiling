@@ -5,7 +5,6 @@ HASH_TEMPLATE="^Checking sstate mirror object availability: 100% \|[#]*\| Time: 
 
 date=$(date +"%d-%m-%Y_%H:%M:%S")
 
-
 cd $YOCTO_INSTALL_PATH/assembly
 if [ ! -d "./logs" ]; then
 	echo "Create log dir."
