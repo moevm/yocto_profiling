@@ -14,5 +14,9 @@
 	"runqueue.patch": {
 		"path": "/bitbake/lib/bb/",
 		"file": "runqueue.py"
+	},
+	"pid.patch": {
+		"path": "/meta/classes-global/",
+		"file": "buildstats.bbclass"
 	}
 }
