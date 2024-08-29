@@ -1,9 +1,16 @@
 
-
 # GENERAL
 **/logs
 **/*.swp
+**/conf/local.conf
 
 # YOCTO
 **/assembly/build*
 **/assembly/poky
+**/assembly/meta*
+
+**/__pycache__/*
+
+# EXPERIMENT
+**/auto_conf/experiment.conf
+
