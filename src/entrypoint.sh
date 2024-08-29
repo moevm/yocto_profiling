@@ -11,6 +11,7 @@ function help() {
 
         echo -e "\t<build_env> -- builds an image of the virtual environment."
 	echo -e "\t\t<--no-perf> -- disables installation of the perf."
+	echo -e "\t\t<--no-cache> -- disables docker cache using."
 
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
         echo -e "\t<shell> -- opens a terminal in container."
@@ -19,7 +20,10 @@ function help() {
 
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
 	echo -e "\t<start_yocto> -- up the yocto image."
+	
 	echo -e ""
+	echo -e "\t<clean-docker> -- removing existing container and image of yocto."
+	echo -e "\t<clean-build> -- removing poky and build dir."
 
 	echo "Verify that dependencies are installed for the project:"
 	echo -e "\t<check> -- check of all dependencies."
@@ -44,18 +48,41 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+args_count=$(($#-1))
+p_command=$1
+shift 1
+
+for (( i = 0; i < $args_count; i++ ))
+do
+	args_arr[$i]=$1
+	shift 1
+done
+
 
 EXIT_CODE=0
-case "$1" in 
+case "$p_command" in 
 	"build_env")
 		REQS_ARG="perf"
-	        if [[ ! -z "$2" ]]; then
-        	        if [[ "$2" == "--no-perf" ]]; then
-                	        REQS_ARG="requirements"
-                	fi
-        	fi
+		NO_CACHE=""
 
-		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG
+		for (( i = 0; i < $args_count; i++ ))
+		do
+			case "${args_arr[$i]}" in
+				"--no-perf")
+					echo "DISABLE PERF"
+					REQS_ARG="requirements"
+					;;
+				"--no-cache")
+					echo "DISABLE CACHING"
+					NO_CACHE="--no-cache"
+					;;
+				*)
+					echo "UNKNOWN ARG: ${args_arr[$i]}"
+					;;
+			esac
+		done
+		echo "BUILDING ENV"
+		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG $NO_CACHE
 		;;
 	"shell")
 		$SCRIPTS_DIR/shell.sh $DOCKERFILE_DIR
@@ -64,12 +91,12 @@ case "$1" in
 		;;
 	"build_yocto_image")
 		STAGE_ARG="full"
-                if [[ ! -z "$2" ]]; then
-                        if [[ "$2" == "--only-poky" ]]; then
+                if [[ ! -z "${args_arr[0]}" ]]; then
+                        if [[ "${args_arr[0]}" == "--only-poky" ]]; then
                                 STAGE_ARG="clone_poky"
                         fi
                 fi
-
+		
 		$SCRIPTS_DIR/build_yocto_image.sh $DOCKERFILE_DIR $STAGE_ARG
 		
 		EXIT_CODE=$?
@@ -82,7 +109,7 @@ case "$1" in
 	"check")
 		check
 		;;
-	"del")
+	"clean-docker")
                 CONTAINER_NAME=yocto_project
                 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
                 docker stop $CONTAINER_ID
@@ -95,12 +122,17 @@ case "$1" in
                         IMAGE_ID=$(docker inspect --format="{{.Id}}" yocto-image)
                         docker rmi $IMAGE_ID
                 fi
-
-                ./entrypoint.sh build_env --no-perf
+	       	
+                ./entrypoint.sh build_env --no-perf ${args_arr[@]}
                 ;;
-
+	"clean-build")
+		echo "REMOVING POKY"
+		rm -rf $DOCKERFILE_DIR/assembly/poky
+		echo "REMOVING BUILD DIR"
+		rm -rf $DOCKERFILE_DIR/assembly/build
+		;;
 	*)
-		echo -e "Unexpected parameter found <$1>!\n"
+		echo -e "Unexpected parameter found <$p_command>!\n"
         	help
         	exit 1
 		;;
