@@ -1,47 +1,19 @@
-Subject: [PATCH] add_het_chart
----
-Index: scripts/pybootchartgui/pybootchartgui/samples.py
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/scripts/pybootchartgui/pybootchartgui/samples.py b/scripts/pybootchartgui/pybootchartgui/samples.py
---- a/scripts/pybootchartgui/pybootchartgui/samples.py	(revision 7c1de3118fef96fa899ae5365f80ea8ccb1a5876)
-+++ b/scripts/pybootchartgui/pybootchartgui/samples.py	(date 1724308162429)
-@@ -37,6 +37,14 @@
-         return str(self.time) + "\t" + str(self.user) + "\t" + \
-                str(self.sys) + "\t" + str(self.io) + "\t" + str (self.swap)
- 
-+
-+class NetSample:
-+    def __init__(self, time, iface, received_bytes, transmitted_bytes):
-+        self.time = time
-+        self.iface = iface
-+        self.received_bytes = received_bytes
-+        self.transmitted_bytes = transmitted_bytes
-+
- class CPUPressureSample:
-     def __init__(self, time, avg10, avg60, avg300, deltaTotal):
-         self.time = time
-Index: scripts/pybootchartgui/pybootchartgui/draw.py
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
 diff --git a/scripts/pybootchartgui/pybootchartgui/draw.py b/scripts/pybootchartgui/pybootchartgui/draw.py
---- a/scripts/pybootchartgui/pybootchartgui/draw.py	(revision 7c1de3118fef96fa899ae5365f80ea8ccb1a5876)
-+++ b/scripts/pybootchartgui/pybootchartgui/draw.py	(date 1724308102916)
-@@ -69,6 +69,9 @@
+--- a/scripts/pybootchartgui/pybootchartgui/draw.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/draw.py	(date 1725293553378)
+@@ -69,6 +69,11 @@
  IO_COLOR = (0.76, 0.48, 0.48, 0.5)
  # Disk throughput color.
  DISK_TPUT_COLOR = (0.20, 0.71, 0.20, 1.0)
 +
 +BYTES_RECEIVED_COLOR = (0.0, 0.0, 1.0, 1.0)
 +BYTES_TRANSMITTED_COLOR = (1.0, 0.0, 0.0, 1.0)
++BYTES_RECEIVE_DIFF_COLOR = (0.0, 0.0, 1.0, 0.3)
++BYTES_TRANSMIT_DIFF_COLOR = (1.0, 0.0, 0.0, 0.3)
  # CPU load chart color.
  FILE_OPEN_COLOR = (0.20, 0.71, 0.71, 1.0)
  # Mem cached color
-@@ -436,6 +439,35 @@
+@@ -436,6 +441,49 @@
          draw_text (ctx, label, DISK_TPUT_COLOR, pos_x + shift_x, curr_y + shift_y)
  
          curr_y = curr_y + 30 + bar_h
@@ -50,12 +22,18 @@ diff --git a/scripts/pybootchartgui/pybootchartgui/draw.py b/scripts/pybootchart
 +        for iface, samples in trace.net_stats.items():
 +            max_received_sample = max(samples, key=lambda s: s.received_bytes)
 +            max_transmitted_sample = max(samples, key=lambda s: s.transmitted_bytes)
++            max_receive_diff_sample = max(samples, key=lambda s: s.receive_diff)
++            max_transmit_diff_sample = max(samples, key=lambda s: s.transmit_diff)
 +
 +            draw_text(ctx, "Iface: %s" % (iface), TEXT_COLOR, off_x, curr_y+20)
 +            draw_legend_line(ctx, "Bytes received (max %d)" % (max_received_sample.received_bytes),
 +                             BYTES_RECEIVED_COLOR, off_x+150, curr_y+20, leg_s)
 +            draw_legend_line(ctx, "Bytes transmitted (max %d)" % (max_transmitted_sample.transmitted_bytes),
-+                             BYTES_TRANSMITTED_COLOR, off_x+450, curr_y+20, leg_s)
++                             BYTES_TRANSMITTED_COLOR, off_x+400, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes receive diff (max %d)" % (max_receive_diff_sample.receive_diff),
++                             BYTES_RECEIVE_DIFF_COLOR, off_x+650, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes transmit diff (max %d)" % (max_transmit_diff_sample.transmit_diff),
++                             BYTES_TRANSMIT_DIFF_COLOR, off_x+900, curr_y+20, leg_s)
 +
 +
 +            chart_rect = (off_x, curr_y + 30, w, bar_h)
@@ -68,23 +46,48 @@ diff --git a/scripts/pybootchartgui/pybootchartgui/draw.py b/scripts/pybootchart
 +                        [(sample.time, sample.received_bytes) for sample in samples], \
 +                        proc_tree, None)
 +
-+            if clip_visible (clip, chart_rect):
 +                draw_chart (ctx, BYTES_TRANSMITTED_COLOR, False, chart_rect, \
 +                        [(sample.time, sample.transmitted_bytes) for sample in samples], \
++                        proc_tree, None)
++
++            if clip_visible (clip, chart_rect):
++                draw_chart (ctx, BYTES_RECEIVE_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.receive_diff) for sample in samples], \
++                        proc_tree, None)
++
++                draw_chart (ctx, BYTES_TRANSMIT_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.transmit_diff) for sample in samples], \
 +                        proc_tree, None)
 +
 +            curr_y = curr_y + 30 + bar_h
  
      # render CPU pressure chart
      if trace.cpu_pressure:
-Index: scripts/pybootchartgui/pybootchartgui/parsing.py
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
+
+diff --git a/scripts/pybootchartgui/pybootchartgui/samples.py b/scripts/pybootchartgui/pybootchartgui/samples.py
+--- a/scripts/pybootchartgui/pybootchartgui/samples.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/samples.py	(date 1725277509053)
+@@ -37,6 +37,16 @@
+         return str(self.time) + "\t" + str(self.user) + "\t" + \
+                str(self.sys) + "\t" + str(self.io) + "\t" + str (self.swap)
+ 
++
++class NetSample:
++    def __init__(self, time, iface, received_bytes, transmitted_bytes, receive_diff, transmit_diff):
++        self.time = time
++        self.iface = iface
++        self.received_bytes = received_bytes
++        self.transmitted_bytes = transmitted_bytes
++        self.receive_diff = receive_diff
++        self.transmit_diff = transmit_diff
++
+ class CPUPressureSample:
+     def __init__(self, time, avg10, avg60, avg300, deltaTotal):
+         self.time = time
+
 diff --git a/scripts/pybootchartgui/pybootchartgui/parsing.py b/scripts/pybootchartgui/pybootchartgui/parsing.py
---- a/scripts/pybootchartgui/pybootchartgui/parsing.py	(revision 7c1de3118fef96fa899ae5365f80ea8ccb1a5876)
-+++ b/scripts/pybootchartgui/pybootchartgui/parsing.py	(date 1724308188303)
+--- a/scripts/pybootchartgui/pybootchartgui/parsing.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/parsing.py	(date 1725293268183)
 @@ -48,6 +48,7 @@
          self.filename = None
          self.parent_map = None
@@ -104,11 +107,11 @@ diff --git a/scripts/pybootchartgui/pybootchartgui/parsing.py b/scripts/pybootch
 +
 +        for line in lines:
 +            parts = line.split()
-+            iface = parts[0]
++            iface = parts[0][:-1]
 +            if iface not in net_stats:
-+                net_stats[iface] = [NetSample(time, iface, int(parts[1]), int(parts[2]))]
++                net_stats[iface] = [NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))]
 +            else:
-+                net_stats[iface].append(NetSample(time, iface, int(parts[1]), int(parts[2])))
++                net_stats[iface].append(NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4])))
 +    return net_stats
 +
 +
