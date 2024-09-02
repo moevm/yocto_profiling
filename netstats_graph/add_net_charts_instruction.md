@@ -5,3 +5,4 @@
 ```shell
 patch -p1 < add_net_statistics_charts.patch
 ```
+![Пример]([http://url/to/img.png](https://github.com/moevm/os_profiling/blob/add_netstats_chart/netstats_graph/bootchart.png))
