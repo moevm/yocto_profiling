@@ -60,7 +60,7 @@
 +            result_parts.append(
 +                f"{iface}: {net_data[-1][0]} {net_data[-1][1]} {net_data[-1][2]} {net_data[-1][3]}")
 +
-+        result_str = "\n".join(result_parts)
++        result_str = "\n".join(result_parts) + "/n"
 +
 +        return time, result_str.encode('ascii')
 +
