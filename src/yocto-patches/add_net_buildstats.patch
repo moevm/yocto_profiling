@@ -1,5 +1,5 @@
---- a/meta/lib/buildstats.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ b/meta/lib/buildstats.py	(date 1723639048876)
+--- buildstats.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ buildstats.py	(date 1723639048876)
 @@ -16,9 +16,10 @@
          bn = d.getVar('BUILDNAME')
          bsdir = os.path.join(d.getVar('BUILDSTATS_BASE'), bn)
