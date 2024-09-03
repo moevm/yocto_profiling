@@ -1,0 +1,6 @@
+{
+  "add_nvme_support.patch": {
+    "path": "/meta/lib/",
+    "file": "buildstats.py"
+  }
+}
