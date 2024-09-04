@@ -1,0 +1,66 @@
+--- sstate_old.bbclass	2024-09-04 13:03:41.981178000 +0300
++++ sstate.bbclass	2024-09-04 13:21:06.021350702 +0300
+@@ -4,7 +4,7 @@
+ # SPDX-License-Identifier: MIT
+ #
+ 
+-SSTATE_VERSION = "14"
++SSTATE_VERSION = "12"
+ 
+ SSTATE_ZSTD_CLEVEL ??= "8"
+ 
+@@ -953,6 +953,8 @@
+ 
+ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
+     import itertools
++    import requests
++    import json
+ 
+     found = set()
+     missed = set()
+@@ -1057,31 +1059,22 @@
+             sstatefile = d.expand(getsstatefile(tid, siginfo, d))
+             tasklist.append((tid, sstatefile))
+ 
++        
+         if tasklist:
+-            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
+-
+-            ## thread-safe counter
+-            cnt_tasks_done = itertools.count(start = 1)
+-            progress = len(tasklist) >= 100
+-            if progress:
+-                msg = "Checking sstate mirror object availability"
+-                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
++            cache_tasks = []
++            mirrors = mirrors.split('\n')
++            for mirror in mirrors:
++                url = str(mirror.split()[1]).split('sstate-cache')[0]
++                response = requests.get(f"{url}/cache")
++                response = json.loads(response.text)
++                cache_tasks.extend(response['cache'])
++            for arg in tasklist:
++                (tid, sstatefile) = arg
++                srcuri = "./sstate-cache/" + sstatefile
++                if srcuri in cache_tasks:
++                    found.add(tid)
++                    missed.remove(tid)
+ 
+-            # Have to setup the fetcher environment here rather than in each thread as it would race
+-            fetcherenv = bb.fetch2.get_fetcher_environment(d)
+-            with bb.utils.environment(**fetcherenv):
+-                bb.event.enable_threadlock()
+-                import concurrent.futures
+-                from queue import Queue
+-                connection_cache_pool = Queue(nproc)
+-                checkstatus_init()
+-                with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:
+-                    executor.map(checkstatus, tasklist.copy())
+-                checkstatus_end()
+-                bb.event.disable_threadlock()
+-
+-            if progress:
+-                bb.event.fire(bb.event.ProcessFinished(msg), d)
+ 
+     inheritlist = d.getVar("INHERIT")
+     if "toaster" in inheritlist:
