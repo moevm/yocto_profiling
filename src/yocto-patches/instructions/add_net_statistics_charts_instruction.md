@@ -5,4 +5,4 @@
 ```shell
 patch -p1 < add_net_statistics_charts.patch
 ```
-![Пример](https://github.com/moevm/os_profiling/blob/27d6cf6582f82db474fe77a46b3f516fbb3a6933/src/yocto-patches/bootchart.png)
+![Пример](https://github.com/moevm/os_profiling/blob/69e10a228f31069f47c84f63c837f029440c88c4/src/yocto-patches/instructions/images/bootchart.png)
