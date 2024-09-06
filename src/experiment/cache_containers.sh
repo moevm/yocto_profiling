@@ -1,11 +1,12 @@
 #! /bin/bash
 
-DOCKERFILE_DIR=$PWD/yocto-build
+SRC_DIR=$PWD/..
+DOCKERFILE_DIR=$SRC_DIR/yocto-build
 PATH_TO_CACHE=/yocto-build/assembly/build/sstate-cache
 
 
 function build_env(){
-	./entrypoint.sh build_env --no-perf
+	$SRC_DIR/entrypoint.sh build_env --no-perf
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
@@ -15,7 +16,7 @@ function build_env(){
 }
 
 function build_yocto_image(){
-	./entrypoint.sh build_yocto_image
+	$SRC_DIR/entrypoint.sh build_yocto_image
 	
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
