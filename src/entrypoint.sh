@@ -34,6 +34,7 @@ function help() {
 	
 	echo -e ""
         echo -e "\tpatch <list_of_patches> -- Patching the project. List like: <patch1>::<patch2>..."
+	echo -e "\t\t--reverse -- Disable choosen patches. Works only after list of patches: <patch1>::<patch2>... --reverse"
 }
 
 function check(){
