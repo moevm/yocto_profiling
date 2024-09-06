@@ -178,10 +178,7 @@ done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
 
-# Убиваем контейнер. Отлично убивается контейнер.
+# Убиваем контейнер.
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
 ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
-# Убиваем кэш сервера
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill"
-
 
