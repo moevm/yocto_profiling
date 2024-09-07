@@ -1,0 +1,34 @@
+--- runqueue.py	(revision 7c1de3118fef96fa899ae5365f80ea8ccb1a5876)
++++ runqueue.py	(date 1725693131618)
+@@ -232,6 +232,19 @@
+             return limit
+         return False
+ 
++    def exceeds_max_net(self):
++        try:
++            max_limit_receive_diff, max_limit_transmit_diff = 1000000, 100000
++            with open('net_pressure.log', 'r') as net_pressure_fds:
++                receive_diff, transmit_diff = [int(elem) for elem in net_pressure_fds.readline().split()]
++                if receive_diff > max_limit_receive_diff or transmit_diff > max_limit_transmit_diff:
++                    return True
++        # only in the beginning there's no net_pressure.log, at the start pressure is low
++        except FileNotFoundError:
++            return False
++        return False
++
++
+     def next_buildable_task(self):
+         """
+         Return the id of the first task we find that is buildable
+@@ -288,6 +301,11 @@
+                 stamp = self.stamps[tid]
+                 if stamp in self.rq.build_stamps.values():
+                     continue
++                if self.exceeds_max_net():
++                    if taskname == "do_fetch":
++                        continue
++                    if taskname == "do_compile":
++                        return tid
+                 bestprio = prio
+                 best = tid
+ 
