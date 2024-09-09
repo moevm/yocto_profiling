@@ -1,4 +1,5 @@
 import os
+import argparse
 
 def create_index(directory, output_file):
     with open(output_file, 'w') as f:
@@ -8,7 +9,11 @@ def create_index(directory, output_file):
                 f.write(f"{file_path}\n")
 
 if __name__ == "__main__":
-    directory_to_index = "./sstate-cache/"
-    output_index_file = "index.txt"
-    create_index(directory_to_index, output_index_file)
-    print(f"Index file created at {output_index_file}")
+    parser = argparse.ArgumentParser(description="Create an index file of a directory.")
+    parser.add_argument("directory", help="The directory to index.", default="./sstate-cache/", nargs='?')
+    parser.add_argument("output_file", help="The output index file.", default="index.txt", nargs='?')
+
+    args = parser.parse_args()
+
+    create_index(args.directory, args.output_file)
+    print(f"Index file created at {args.output_file}")
