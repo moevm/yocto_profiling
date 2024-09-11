@@ -1,0 +1,13 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index bc7e18175d..e1a167fe71 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -1619,6 +1619,8 @@ class RunQueue:
+                     logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and %d failed.", self.rqexe.stats.completed + self.rqexe.stats.failed, self.rqexe.stats.skipped, self.rqexe.stats.failed)
+                 else:
+                     # Let's avoid the word "failed" if nothing actually did
++                    logger.info("Start building index file of sstate-cache")
++                    subprocess.run(['python3', '/home/oumuamua/yadro/os_profiling/src/yocto-build/assembly/poky/build/index.py'])
+                     logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and all succeeded.", self.rqexe.stats.completed, self.rqexe.stats.skipped)
+ 
+         if self.state is runQueueFailed:
