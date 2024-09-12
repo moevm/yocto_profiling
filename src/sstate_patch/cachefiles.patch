@@ -1,5 +1,3 @@
---- sstate_old.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-09-04 13:21:06.021350702 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -9,42 +7,124 @@
  
  SSTATE_ZSTD_CLEVEL ??= "8"
  
-@@ -953,6 +953,8 @@
+@@ -953,6 +953,9 @@
  
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
 +    import requests
++    from ftplib import FTP
 +    import json
  
      found = set()
      missed = set()
-@@ -1057,31 +1059,22 @@
+@@ -995,7 +998,13 @@
+ 
+     foundLocal = len(found)
+     mirrors = d.getVar("SSTATE_MIRRORS")
++    mirrors_copy = mirrors[:]
+     if mirrors:
++        mirrors_copy = (mirrors_copy or "").replace('\\n',' ').split()
++        if len(mirrors_copy) % 2 != 0:
++            bb.warn('Invalid mirror data %s, should have paired members.' % data)
++        mirrors_missed = [mirrors_copy[i] for i in range(len(mirrors_copy)) if i % 2]
++
+         # Copy the data object and override DL_DIR and SRC_URI
+         localdata = bb.data.createCopy(d)
+ 
+@@ -1056,32 +1065,91 @@
+         for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
++        tasklist_copy = tasklist.copy()
  
 +        
          if tasklist:
 -            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
--
--            ## thread-safe counter
--            cnt_tasks_done = itertools.count(start = 1)
--            progress = len(tasklist) >= 100
--            if progress:
--                msg = "Checking sstate mirror object availability"
--                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
 +            cache_tasks = []
-+            mirrors = mirrors.split('\n')
++            mirrors = (mirrors or "").replace('\\n',' ').split()
++            if len(mirrors) % 2 != 0:
++                bb.warn('Invalid mirror data %s, should have paired members.' % data)
++            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
 +            for mirror in mirrors:
-+                url = str(mirror.split()[1]).split('sstate-cache')[0]
-+                response = requests.get(f"{url}/cache")
-+                response = json.loads(response.text)
-+                cache_tasks.extend(response['cache'])
++                if 'http' in mirror:
++                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0])
++                    response = requests.get(f'{url}/cache_files')
++
++                    # Проверка успешности запроса
++                    if response.status_code == 200:
++                        cache_tasks.extend(response.text.split('\n'))
++                        mirrors_missed.remove(mirror)
++                        
++
++                if 'ftp' in mirror:
++                    try:
++                        ftp = FTP() # Подключение к FTP серверу
++                        ip, port = str(str(mirror.split('//')[1]).split('/')[0]).split(':')
++                        port = int(port)
++                        ftp.connect(ip, port)  
++                        ftp.login()  
++                    
++                        with open('cache_files', 'wb') as local_file:
++                            ftp.retrbinary('RETR cache_files', local_file.write)
++
++                        # Закрытие соединения
++                        #ftp.quit()
++
++
++                        with open('cache_files', 'r') as local_file:
++                            content = local_file.read().split('\n')
++                            cache_tasks.extend(content)
++                        mirrors_missed.remove(mirror)
++                    except:
++                        pass
++
 +            for arg in tasklist:
 +                (tid, sstatefile) = arg
 +                srcuri = "./sstate-cache/" + sstatefile
 +                if srcuri in cache_tasks:
 +                    found.add(tid)
 +                    missed.remove(tid)
++                    tasklist_copy.remove(arg)
++                
++
++            if mirrors_missed:
++                mirrors_new = ''
++                for i in range(len(mirrors_missed)):
++                    index = mirrors_copy.index(mirrors_missed[i])
++                    mirrors_new += mirrors_copy[index - 1] + ' '
++                    mirrors_new += mirrors_copy[index] + ' '
++
++                localdata.setVar('PREMIRRORS', mirrors_new)
++                nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist_copy))
++
++                ## thread-safe counter
++                cnt_tasks_done = itertools.count(start = 1)
++                progress = len(tasklist_copy) >= 100
++                if progress:
++                    msg = "Checking sstate mirror object availability"
++                    bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist_copy)), d)
++
++                # Have to setup the fetcher environment here rather than in each thread as it would race
++                fetcherenv = bb.fetch2.get_fetcher_environment(d)
++                with bb.utils.environment(**fetcherenv):
++                    bb.event.enable_threadlock()
++                    import concurrent.futures
++                    from queue import Queue
++                    connection_cache_pool = Queue(nproc)
++                    checkstatus_init()
++                    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:
++                        executor.map(checkstatus, tasklist_copy.copy())
++                    checkstatus_end()
++                    bb.event.disable_threadlock()
+ 
+-            ## thread-safe counter
+-            cnt_tasks_done = itertools.count(start = 1)
+-            progress = len(tasklist) >= 100
+-            if progress:
+-                msg = "Checking sstate mirror object availability"
+-                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
++                if progress:
++                    bb.event.fire(bb.event.ProcessFinished(msg), d)
  
 -            # Have to setup the fetcher environment here rather than in each thread as it would race
 -            fetcherenv = bb.fetch2.get_fetcher_environment(d)
@@ -58,7 +138,7 @@
 -                    executor.map(checkstatus, tasklist.copy())
 -                checkstatus_end()
 -                bb.event.disable_threadlock()
--
+ 
 -            if progress:
 -                bb.event.fire(bb.event.ProcessFinished(msg), d)
  
