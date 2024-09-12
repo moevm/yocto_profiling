@@ -33,8 +33,9 @@ function help() {
 	echo -e "\tcheck -- Verify that dependencies are installed for the project."
 	
 	echo -e ""
-        echo -e "\tpatch <list_of_patches> -- Patching the project. List like: <patch1>::<patch2>..."
-	echo -e "\t\t--reverse -- Disable choosen patches. Works only after list of patches: <patch1>::<patch2>... --reverse"
+        echo -e "\tpatch <list_of_patches> -- Patching the project."
+	echo -e "\t\t-r, --reverse -- Disable choosen patches."
+	echo -e "\t\t-l, --patches-list -- Print available patches."
 }
 
 function check(){
@@ -56,6 +57,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+
 args_count=$(($#-1))
 p_command=$1
 shift 1
@@ -70,14 +72,10 @@ done
 EXIT_CODE=0
 case "$p_command" in 
 	"patch")
-		REVERSE=""
 		if [[ ! -z "${args_arr[0]}" ]]; then
-			if [[ ! -z "${args_arr[1]}" ]] && [[ "${args_arr[1]}" == "--reverse" ]]; then
-				REVERSE="--reverse"
-			fi
-			$SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[0]} $REVERSE
+			$SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[@]}
 		else
-			echo "[WARNING]: No patches were found"
+			echo "[WARNING]: No instructions were found"
 			help
 		fi
 		;;
