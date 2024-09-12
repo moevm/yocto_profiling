@@ -1,6 +1,6 @@
 import requests
 import concurrent.futures
-
+import time
 
 
 def check_server(server: str) -> bool:
