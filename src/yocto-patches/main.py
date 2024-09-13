@@ -52,7 +52,7 @@ def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: P
         try:
             result = subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
         except subprocess.CalledProcessError as e:
-            print(f"\nApplying was failed, patch: {patch}")
+            print(f"\nApplying was failed, patch: {patch}. Carefully check the list of patches to apply, maybe some of them are trying to change the same file.")
             raise e
 
 

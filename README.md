@@ -140,16 +140,22 @@ git clone https://github.com/moevm/os_profiling.git
         ```
         Все действия далее описаны ниже.
     8.  Для применения патчей реализован команды, примеры использования:
-        
+
         Применить патч buildstats_netstats.patch.
         ```shell
         ./entrypoint.sh patch buildstats_netstats.patch
+        ```
+
+        Можно применить сразу несколько патчей, тогда просто передаём их список.
+        ```shell
+        ./entrypoint.sh patch buildstats_netstats.patch poky_dir.patch
         ```
 
         Откатить патч buildstats_netstats.patch.
         ```shell
         ./entrypoint.sh patch buildstats_netstats.patch -r
         ```
+        Аналогично можно откатить список патчей.
 
         Получить список доступных патчей.
         ```shell
