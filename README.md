@@ -16,20 +16,29 @@ git clone https://github.com/moevm/os_profiling.git
         ./entrypoint.sh
         ```
         После выполнения команды будет выведена информационная справка по использованию скрипта, то есть возможные аргументы и т.д. 
-        ```shell
+        ```text
         This script is needed for interaction with the image of Yocto Project.
         List of available parameters:
-	        <build_env> -- builds an image of the virtual environment.
-		        <--no-perf> -- disables installation of the perf.
-	        *ONLY AFTER STAGE*: build_env
-	        <shell> -- opens a terminal in container.
-	        <build_yocto_image> -- build the yocto image in container.
-		        <--only-poky> -- only clones poky instead of a full build.
-	        *ONLY AFTER STAGE*: build_yocto_image
-	        <start_yocto> -- up the yocto image.
+	        build_env -- Builds an image of the virtual environment.
+		        --no-perf -- Disables installation of the perf.
+		        --no-cache -- Disables docker cache using.
 
-        Verify that dependencies are installed for the project:
-            	<check> -- check of all dependencies.
+	        *ONLY AFTER STAGE*: build_env
+	        shell -- Opens a terminal in container.
+	        build_yocto_image -- Build the yocto image in container.
+		        --only-poky -- Only clones poky instead of a full build.
+
+	        *ONLY AFTER STAGE*: build_yocto_image
+	        start_yocto -- Up the yocto image.
+
+	        clean-docker -- Removing existing container and image of yocto.
+	        clean-build -- Removing poky and build dir.
+
+	        check -- Verify that dependencies are installed for the project.
+
+	        patch <list_of_patches> -- Patching the project.
+		        -r, --reverse -- Disable choosen patches.
+		        -l, --patches-list -- Print available patches.
         ```
        
     2. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
@@ -130,6 +139,22 @@ git clone https://github.com/moevm/os_profiling.git
         qemux86-64 login: 
         ```
         Все действия далее описаны ниже.
+    8.  Для применения патчей реализован команды, примеры использования:
+        
+        Применить патч buildstats_netstats.patch.
+        ```shell
+        ./entrypoint.sh patch buildstats_netstats.patch
+        ```
+
+        Откатить патч buildstats_netstats.patch.
+        ```shell
+        ./entrypoint.sh patch buildstats_netstats.patch -r
+        ```
+
+        Получить список доступных патчей.
+        ```shell
+        ./entrypoint.sh patch -l
+        ```
 
 - ### **Работа с Yocto**
     Для авторизации в системе необходимо указать `login`, его значение `root`.
