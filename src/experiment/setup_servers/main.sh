@@ -2,7 +2,7 @@
 
 # USING: ./main.sh ./auto_conf/experiment.conf
 
-SCRIPT_DIR=$pwd
+SCRIPT_DIR=$(pwd)
 EXPERIMENT_DIR=$SCRIPT_DIR/..
 BASE_DIR=$SCRIPT_DIR/../../..
 SRC_DIR=$BASE_DIR/src
@@ -68,7 +68,7 @@ fi
 if ssh $cache_usr@$cache_ip "[ ! -d $cache_desktop_path/test ]"; then
     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
 else
-    echo "Delete and make cleen cache test"
+    echo "Delete and make clean cache test for cache server"
     ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
     ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
 fi
@@ -76,17 +76,15 @@ fi
 if ssh $hash_usr@$hash_ip "[ ! -d $hash_desktop_path/test ]"; then
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 else
-    echo "Delete and make cleen hash test"
+    echo "Delete and make clean hash test for hash server"
     ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
     ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
 fi
 
-
 ssh $cache_usr@$cache_ip "pip3 list"
 ssh $cache_usr@$cache_ip "python3 --version && which python3"
 
-
-echo "Start hash server."
+echo -e "\nStart hash server."
 rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$hash_desktop_path/test/ >> /dev/null
 ssh $hash_usr@$hash_ip "docker stop $(docker ps -q --filter ancestor=hash)" >> /dev/null
 ssh $hash_usr@$hash_ip "docker rm $(docker ps -q -a --filter ancestor=hash)" >> /dev/null
@@ -95,7 +93,7 @@ ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./star
 echo "Hash server started at $hash_ip:$hash_port"
 
 
-echo -e "PREPARE HOST FOR BUILD:"
+echo -e "\nPREPARE HOST FOR BUILD:"
 cd $SRC_DIR
 
 echo -e "BUILDING ENV ON HOST: START."
