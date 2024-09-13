@@ -1,10 +1,10 @@
 
 Список доступных патчей:
-- [buildstats_timestamps.patch](#buildstats_timestamps.patch)
-- [buildstats_netstats.patch](#buildstats_netstats.patch)
-- [pid.patch](#pid.patch)
-- [runqueue.patch](#runqueue.patch)
-- [poky_dir.patch](#poky_dir.patch)
+- [buildstats_timestamps.patch](#buildstats_timestampspatch)
+- [buildstats_netstats.patch](#buildstats_netstatspatch)
+- [pid.patch](#pidpatch)
+- [runqueue.patch](#runqueuepatch)
+- [poky_dir.patch](#poky_dirpatch)
 
 
 ## buildstats_timestamps.patch
