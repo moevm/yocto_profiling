@@ -17,7 +17,7 @@ def find_cache(path):
 
 
 def create_output_file(files):
-    with open('cache_files', 'a') as output:
+    with open('index.txt', 'a') as output:
         print(files)
         for file in files:
             output.write(f'{file}\n')
