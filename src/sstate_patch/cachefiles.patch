@@ -1,3 +1,5 @@
+--- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
++++ sstate.bbclass	2024-09-17 10:53:22.886469282 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -48,7 +50,7 @@
 +            for mirror in mirrors:
 +                if 'http' in mirror:
 +                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0])
-+                    response = requests.get(f'{url}/cache_files')
++                    response = requests.get(f'{url}/index.txt')
 +
 +                    # Проверка успешности запроса
 +                    if response.status_code == 200:
@@ -64,8 +66,8 @@
 +                        ftp.connect(ip, port)  
 +                        ftp.login()  
 +                    
-+                        with open('cache_files', 'wb') as local_file:
-+                            ftp.retrbinary('RETR cache_files', local_file.write)
++                        with open('index.txt', 'wb') as local_file:
++                            ftp.retrbinary('RETR index.txt', local_file.write)
 +
 +                        # Закрытие соединения
 +                        #ftp.quit()
