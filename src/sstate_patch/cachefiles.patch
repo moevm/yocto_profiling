@@ -1,5 +1,5 @@
 --- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-09-17 10:53:22.886469282 +0300
++++ sstate.bbclass	2024-09-17 10:58:42.384036072 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -73,7 +73,7 @@
 +                        #ftp.quit()
 +
 +
-+                        with open('cache_files', 'r') as local_file:
++                        with open('index.txt', 'r') as local_file:
 +                            content = local_file.read().split('\n')
 +                            cache_tasks.extend(content)
 +                        mirrors_missed.remove(mirror)
