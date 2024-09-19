@@ -1,6 +1,6 @@
 ### Instruction -- Step-by-Step Guide for Conducting the Experiment
 1) Настраиваем ssh, как показано в [инструкции](/wiki/yocto_cache/ssh_connection.md)
-2) Заполняем файл [конфигуарции](src/setup_servers/auto_conf/experiment.conf) по пути `.../src/experiment/setup_servers/auto_conf/experiment.conf`
+2) Заполняем файл [конфигуарции](src/setup_servers/auto_conf/example_experiment.conf) по пути `.../src/experiment/setup_servers/auto_conf/experiment.conf`
 -  a) `cache_ip` `hash_ip` -- ip адреса ваших кэш и хэш серверов соответсвенно (это те, которые вы настроили на шаге 1)
 -  b) `cache_usr` `hash_usr` -- имена пользователей ваших кэш и хэш серверов (это те, которые вы настроили на шаге 1)
 -  с) `hash_port` -- порт, на котором будет размещен хэш сервер
@@ -18,4 +18,3 @@
 Все, что нужно для его работы находится в `.../src/experiment/hash_server_setuper`, в этой же папке есть README.md. Работает без нареканий и багов.
 #### Кэш сервер
 Точкая входа в работу с кэш сервером - `.../src/experiment/cache_containers.sh`.
-
