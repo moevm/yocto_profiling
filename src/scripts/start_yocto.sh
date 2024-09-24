@@ -12,7 +12,7 @@ fi
 
 cd $1
 
-STAGE_VAR="stage_run" docker compose up -d
+STAGE_VAR="sleep" docker compose up -d
 docker container exec -it yocto_project ./assembly/scripts/up_yocto.sh
 
 docker compose stop
