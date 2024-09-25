@@ -1,5 +1,5 @@
 --- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-09-17 10:58:42.384036072 +0300
++++ sstate.bbclass	2024-09-25 16:39:27.349150629 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -19,12 +19,11 @@
  
      found = set()
      missed = set()
-@@ -995,7 +998,13 @@
- 
+@@ -996,6 +999,12 @@
      foundLocal = len(found)
      mirrors = d.getVar("SSTATE_MIRRORS")
-+    mirrors_copy = mirrors[:]
      if mirrors:
++        mirrors_copy = mirrors[:]
 +        mirrors_copy = (mirrors_copy or "").replace('\\n',' ').split()
 +        if len(mirrors_copy) % 2 != 0:
 +            bb.warn('Invalid mirror data %s, should have paired members.' % data)
@@ -49,7 +48,7 @@
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
 +            for mirror in mirrors:
 +                if 'http' in mirror:
-+                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0])
++                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
 +                    response = requests.get(f'{url}/index.txt')
 +
 +                    # Проверка успешности запроса
@@ -67,7 +66,7 @@
 +                        ftp.login()  
 +                    
 +                        with open('index.txt', 'wb') as local_file:
-+                            ftp.retrbinary('RETR index.txt', local_file.write)
++                            ftp.retrbinary('RETR /sstate-cache/index.txt', local_file.write)
 +
 +                        # Закрытие соединения
 +                        #ftp.quit()
@@ -82,7 +81,7 @@
 +
 +            for arg in tasklist:
 +                (tid, sstatefile) = arg
-+                srcuri = "./sstate-cache/" + sstatefile
++                srcuri = sstatefile
 +                if srcuri in cache_tasks:
 +                    found.add(tid)
 +                    missed.remove(tid)
