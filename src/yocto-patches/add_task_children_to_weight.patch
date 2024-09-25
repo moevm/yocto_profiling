@@ -1,0 +1,51 @@
+--- runqueue.py	(revision 7c1de3118fef96fa899ae5365f80ea8ccb1a5876)
++++ runqueue.py	(date 1727188840592)
+@@ -591,6 +591,15 @@
+ 
+         return msgs
+ 
++    def get_task_children(self):
++        task_children = {}
++        with open('task-children.txt') as f:
++            for line in f:
++                task_name, children = line.split()
++                task_children[task_name] = int(children)
++        return task_children
++
++
+     def calculate_task_weights(self, endpoints):
+         """
+         Calculate a number representing the "weight" of each task. Heavier weighted tasks
+@@ -605,6 +614,32 @@
+         deps_left = {}
+         task_done = {}
+ 
++        task_children = self.get_task_children()
++
++        for tid in self.runtaskentries:
++            full_task_name = tid.split('/')[-1]
++            task_name = full_task_name.split(':')[0].split('.bb')[0].split('_')[0] + '.' + full_task_name.split(':')[1]
++
++            if task_name in task_children:
++                weight[tid] = task_children[task_name] * 10 / 200
++            else:
++                part1, _, part2 = task_name.rpartition('.')
++                native_name = f"{part1}-native.{part2}"
++                x86_name = f"{part1}-x86_64.{part2}"
++                gcc_name = f"{part1}-14.1.0.{part2}"
++
++                if native_name in task_children:
++                    weight[tid] = task_children[native_name] * 10 / 200
++                elif x86_name in task_children:
++                    weight[tid] = task_children[x86_name] * 10 / 200
++                elif gcc_name in task_children:
++                    weight[tid] = task_children[gcc_name] * 10 / 200
++                else:
++                    weight[tid] = 10 / 200
++
++            task_done[tid] = False
++            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
++
+         for tid in self.runtaskentries:
+             task_done[tid] = False
+             weight[tid] = 1
