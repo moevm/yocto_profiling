@@ -1,5 +1,5 @@
 --- buildstats.bbclass	2024-07-25 11:58:06.916030099 +0300
-+++ buildstats_new.bbclass	2024-07-25 12:03:23.927723914 +0300
++++ buildstats.bbclass	2024-07-25 12:03:23.927723914 +0300
 @@ -31,6 +31,7 @@
          'cstime' : fields[16],  
      }
