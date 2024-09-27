@@ -1,32 +1,41 @@
 #! /bin/bash
 
 SCRIPTS_DIR=$PWD/scripts
+PATCHES_DIR=$PWD/yocto-patches
 CHECKS_DIR=$SCRIPTS_DIR/checks
 
 DOCKERFILE_DIR=$PWD/yocto-build
+POKY_DIR=$DOCKERFILE_DIR/assembly/poky
 
 function help() {
         echo "This script is needed for interaction with the image of Yocto Project."
         echo "List of available parameters:"
 
-        echo -e "\t<build_env> -- builds an image of the virtual environment."
-	echo -e "\t\t<--no-perf> -- disables installation of the perf."
-	echo -e "\t\t<--no-cache> -- disables docker cache using."
+        echo -e "\tbuild_env -- Builds an image of the virtual environment."
+	echo -e "\t\t--no-perf -- Disables installation of the perf."
+	echo -e "\t\t--no-cache -- Disables docker cache using."
 
+	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
-        echo -e "\t<shell> -- opens a terminal in container."
-        echo -e "\t<build_yocto_image> -- build the yocto image in container."
-	echo -e "\t\t<--only-poky> -- only clones poky instead of a full build."
+        echo -e "\tshell -- Opens a terminal in container."
+        echo -e "\tbuild_yocto_image -- Build the yocto image in container."
+	echo -e "\t\t--only-poky -- Only clones poky instead of a full build."
 
+	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
-	echo -e "\t<start_yocto> -- up the yocto image."
+	echo -e "\tstart_yocto -- Up the yocto image."
 	
 	echo -e ""
-	echo -e "\t<clean-docker> -- removing existing container and image of yocto."
-	echo -e "\t<clean-build> -- removing poky and build dir."
+	echo -e "\tclean-docker -- Removing existing container and image of yocto."
+	echo -e "\tclean-build -- Removing poky and build dir."
 
-	echo "Verify that dependencies are installed for the project:"
-	echo -e "\t<check> -- check of all dependencies."
+	echo -e ""
+	echo -e "\tcheck -- Verify that dependencies are installed for the project."
+	
+	echo -e ""
+        echo -e "\tpatch <list_of_patches> -- Patching the project."
+	echo -e "\t\t-r, --reverse -- Disable choosen patches."
+	echo -e "\t\t-l, --patches-list -- Print available patches."
 }
 
 function check(){
@@ -48,6 +57,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+
 args_count=$(($#-1))
 p_command=$1
 shift 1
@@ -61,6 +71,14 @@ done
 
 EXIT_CODE=0
 case "$p_command" in 
+	"patch")
+		if [[ ! -z "${args_arr[0]}" ]]; then
+			$SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[@]}
+		else
+			echo "[WARNING]: No instructions were found"
+			help
+		fi
+		;;
 	"build_env")
 		REQS_ARG="perf"
 		NO_CACHE=""
@@ -77,7 +95,7 @@ case "$p_command" in
 					NO_CACHE="--no-cache"
 					;;
 				*)
-					echo "UNKNOWN ARG: ${args_arr[$i]}"
+					echo "[WARNING]: Unknown arg: ${args_arr[$i]}"
 					;;
 			esac
 		done
@@ -132,7 +150,7 @@ case "$p_command" in
 		rm -rf $DOCKERFILE_DIR/assembly/build
 		;;
 	*)
-		echo -e "Unexpected parameter found <$p_command>!\n"
+		echo -e "[ERROR]: Unexpected parameter found <$p_command>!\n"
         	help
         	exit 1
 		;;
