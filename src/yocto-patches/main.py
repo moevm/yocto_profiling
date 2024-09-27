@@ -8,7 +8,7 @@ from typing import Optional
 from pathlib import Path
 
 
-def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_filename: str) -> tuple[Path, Path]:
+def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_filename: str) -> "tuple[Path, Path]":
 	if poky_path is None:
 		raise ValueError("[Error] The poky path was not received. Use --poky-path to pass this value.")
 	if dir_path is None:
@@ -29,7 +29,7 @@ def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_fil
 	return poky_dir, patches_dir, patches_file
 
 
-def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
+def applying(patches: "list[tuple[str, str, str]]", patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
     flag = "-N"
     if reverse:
         flag = "-R"
@@ -56,7 +56,7 @@ def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: P
             raise e
 
 
-def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
+def verify_applying(patches: "list[tuple[str, str, str]]", patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
     for patch_tuple in patches:
         patch, path, _ = patch_tuple
         
@@ -79,7 +79,7 @@ def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky
             raise e
 
 
-def get_patches(args, patches_file: Path) -> Optional[list[tuple[str, str, str]]]:
+def get_patches(args, patches_file: Path) -> "Optional[list[tuple[str, str, str]]]":
     with open(str(patches_file), 'r') as f:
         patches_data = json.load(f)
     assert isinstance(patches_data, dict)

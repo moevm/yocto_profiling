@@ -1,0 +1,201 @@
+diff --git a/meta/lib/buildstats.py b/meta/lib/buildstats.py
+--- a/meta/lib/buildstats.py
++++ b/meta/lib/buildstats.py
+@@ -16,9 +16,10 @@ class SystemStats:
+         bn = d.getVar('BUILDNAME')
+         bsdir = os.path.join(d.getVar('BUILDSTATS_BASE'), bn)
+         bb.utils.mkdirhier(bsdir)
+-        file_handlers =  [('diskstats', self._reduce_diskstats),
+-                            ('meminfo', self._reduce_meminfo),
+-                            ('stat', self._reduce_stat)]
++        file_handlers = [('diskstats', self._reduce_diskstats),
++                         ('meminfo', self._reduce_meminfo),
++                         ('stat', self._reduce_stat),
++                         ('net/dev', self._reduce_net)]
+ 
+         # Some hosts like openSUSE have readable /proc/pressure files
+         # but throw errors when these files are opened. Catch these error
+@@ -47,7 +48,10 @@ class SystemStats:
+                 # not strictly necessary, but using it makes the class
+                 # more robust should two processes ever write
+                 # concurrently.
+-                destfile = os.path.join(bsdir, '%sproc_%s.log' % ('reduced_' if handler else '', filename))
++                if filename == 'net/dev':
++                    destfile = os.path.join(bsdir, 'reduced_proc_net.log')
++                else:
++                    destfile = os.path.join(bsdir, '%sproc_%s.log' % ('reduced_' if handler else '', filename))
+                 self.proc_files.append((filename, open(destfile, 'ab'), handler))
+         self.monitor_disk = open(os.path.join(bsdir, 'monitor_disk.log'), 'ab')
+         # Last time that we sampled /proc data resp. recorded disk monitoring data.
+@@ -72,6 +76,7 @@ class SystemStats:
+         self.stat_ltimes = None
+         # Last time we sampled /proc/pressure. All resources stored in a single dict with the key as filename
+         self.last_pressure = {"pressure/cpu": None, "pressure/io": None, "pressure/memory": None}
++        self.net_stats = {}
+ 
+     def close(self):
+         self.monitor_disk.close()
+@@ -93,6 +98,36 @@ class SystemStats:
+                     b' '.join([values[x] for x in
+                                (b'MemTotal', b'MemFree', b'Buffers', b'Cached', b'SwapTotal', b'SwapFree')]) + b'\n')
+ 
++    def _reduce_net(self, time, data, filename):
++        data = data.split(b'\n')
++        max_receive_diff, max_transmit_diff = 0, 0
++        for line in data[2:]:
++            if b":" not in line:
++                continue
++            parts = line.split()
++            iface = (parts[0].strip(b':')).decode('ascii')
++            receive_bytes = int(parts[1])
++            transmit_bytes = int(parts[9])
++            if iface in self.net_stats:
++                receive_diff = receive_bytes - self.net_stats[iface][-1][0]
++                transmit_diff = transmit_bytes - self.net_stats[iface][-1][1]
++                max_receive_diff, max_transmit_diff = max(receive_diff, max_receive_diff), max(transmit_diff, max_transmit_diff)
++                self.net_stats[iface].append((receive_bytes, transmit_bytes, receive_diff, transmit_diff))
++            else:
++                receive_diff, transmit_diff = 0, 0
++                self.net_stats[iface] = [(receive_bytes, transmit_bytes, receive_diff, transmit_diff)]
++
++        result_parts = []
++        for iface, net_data in self.net_stats.items():
++            result_parts.append(
++                f"{iface}: {net_data[-1][0]} {net_data[-1][1]} {net_data[-1][2]} {net_data[-1][3]}")
++        with open('net_pressure.log', 'w') as f:
++            f.write(f"{max_receive_diff} {max_transmit_diff}")
++
++        result_str = "\n".join(result_parts) + "\n"
++
++        return time, result_str.encode('ascii')
++
+     def _diskstats_is_relevant_line(self, linetokens):
+         if len(linetokens) != 14:
+             return False
+diff --git a/scripts/pybootchartgui/pybootchartgui/draw.py b/scripts/pybootchartgui/pybootchartgui/draw.py
+--- a/scripts/pybootchartgui/pybootchartgui/draw.py
++++ b/scripts/pybootchartgui/pybootchartgui/draw.py
+@@ -69,6 +69,11 @@ CPU_COLOR = (0.40, 0.55, 0.70, 1.0)
+ IO_COLOR = (0.76, 0.48, 0.48, 0.5)
+ # Disk throughput color.
+ DISK_TPUT_COLOR = (0.20, 0.71, 0.20, 1.0)
++
++BYTES_RECEIVED_COLOR = (0.0, 0.0, 1.0, 1.0)
++BYTES_TRANSMITTED_COLOR = (1.0, 0.0, 0.0, 1.0)
++BYTES_RECEIVE_DIFF_COLOR = (0.0, 0.0, 1.0, 0.3)
++BYTES_TRANSMIT_DIFF_COLOR = (1.0, 0.0, 0.0, 0.3)
+ # CPU load chart color.
+ FILE_OPEN_COLOR = (0.20, 0.71, 0.71, 1.0)
+ # Mem cached color
+@@ -437,6 +442,49 @@ def render_charts(ctx, options, clip, trace, curr_y, w, h, sec_w):
+ 
+         curr_y = curr_y + 30 + bar_h
+ 
++    if trace.net_stats:
++        for iface, samples in trace.net_stats.items():
++            max_received_sample = max(samples, key=lambda s: s.received_bytes)
++            max_transmitted_sample = max(samples, key=lambda s: s.transmitted_bytes)
++            max_receive_diff_sample = max(samples, key=lambda s: s.receive_diff)
++            max_transmit_diff_sample = max(samples, key=lambda s: s.transmit_diff)
++
++            draw_text(ctx, "Iface: %s" % (iface), TEXT_COLOR, off_x, curr_y+20)
++            draw_legend_line(ctx, "Bytes received (max %d)" % (max_received_sample.received_bytes),
++                             BYTES_RECEIVED_COLOR, off_x+150, curr_y+20, leg_s)
++            draw_legend_line(ctx, "Bytes transmitted (max %d)" % (max_transmitted_sample.transmitted_bytes),
++                             BYTES_TRANSMITTED_COLOR, off_x+400, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes receive diff (max %d)" % (max_receive_diff_sample.receive_diff),
++                             BYTES_RECEIVE_DIFF_COLOR, off_x+650, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes transmit diff (max %d)" % (max_transmit_diff_sample.transmit_diff),
++                             BYTES_TRANSMIT_DIFF_COLOR, off_x+900, curr_y+20, leg_s)
++
++
++            chart_rect = (off_x, curr_y + 30, w, bar_h)
++            if clip_visible(clip, chart_rect):
++                draw_box_ticks(ctx, chart_rect, sec_w)
++                draw_annotations(ctx, proc_tree, trace.times, chart_rect)
++
++            if clip_visible (clip, chart_rect):
++                draw_chart (ctx, BYTES_RECEIVED_COLOR, False, chart_rect, \
++                        [(sample.time, sample.received_bytes) for sample in samples], \
++                        proc_tree, None)
++
++                draw_chart (ctx, BYTES_TRANSMITTED_COLOR, False, chart_rect, \
++                        [(sample.time, sample.transmitted_bytes) for sample in samples], \
++                        proc_tree, None)
++
++            if clip_visible (clip, chart_rect):
++                draw_chart (ctx, BYTES_RECEIVE_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.receive_diff) for sample in samples], \
++                        proc_tree, None)
++
++                draw_chart (ctx, BYTES_TRANSMIT_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.transmit_diff) for sample in samples], \
++                        proc_tree, None)
++
++            curr_y = curr_y + 30 + bar_h
++
+     # render CPU pressure chart
+     if trace.cpu_pressure:
+         max_sample_avg = max (trace.cpu_pressure, key = lambda s: s.avg10)
+diff --git a/scripts/pybootchartgui/pybootchartgui/parsing.py b/scripts/pybootchartgui/pybootchartgui/parsing.py
+--- a/scripts/pybootchartgui/pybootchartgui/parsing.py
++++ b/scripts/pybootchartgui/pybootchartgui/parsing.py
+@@ -48,6 +48,7 @@ class Trace:
+         self.filename = None
+         self.parent_map = None
+         self.mem_stats = []
++        self.net_stats = []
+         self.monitor_disk = None
+         self.cpu_pressure = []
+         self.io_pressure = []
+@@ -557,6 +558,21 @@ def _parse_monitor_disk_log(file):
+ 
+     return disk_stats
+ 
++
++def _parse_reduced_net_log(file):
++    net_stats = {}
++    for time, lines in _parse_timed_blocks(file):
++
++        for line in lines:
++            parts = line.split()
++            iface = parts[0][:-1]
++            if iface not in net_stats:
++                net_stats[iface] = [NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))]
++            else:
++                net_stats[iface].append(NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4])))
++    return net_stats
++
++
+ def _parse_pressure_logs(file, filename):
+     """
+     Parse file for "some" pressure with 'avg10', 'avg60' 'avg300' and delta total values
+@@ -767,6 +783,8 @@ def _do_parse(writer, state, filename, file):
+         state.cmdline = _parse_cmdline_log(writer, file)
+     elif name == "monitor_disk.log":
+         state.monitor_disk = _parse_monitor_disk_log(file)
++    elif name == "reduced_proc_net.log":
++        state.net_stats = _parse_reduced_net_log(file)
+     #pressure logs are in a subdirectory
+     elif name == "cpu.log":
+         state.cpu_pressure = _parse_pressure_logs(file, name)
+diff --git a/scripts/pybootchartgui/pybootchartgui/samples.py b/scripts/pybootchartgui/pybootchartgui/samples.py
+--- a/scripts/pybootchartgui/pybootchartgui/samples.py
++++ b/scripts/pybootchartgui/pybootchartgui/samples.py
+@@ -37,6 +37,16 @@ class CPUSample:
+         return str(self.time) + "\t" + str(self.user) + "\t" + \
+                str(self.sys) + "\t" + str(self.io) + "\t" + str (self.swap)
+ 
++
++class NetSample:
++    def __init__(self, time, iface, received_bytes, transmitted_bytes, receive_diff, transmit_diff):
++        self.time = time
++        self.iface = iface
++        self.received_bytes = received_bytes
++        self.transmitted_bytes = transmitted_bytes
++        self.receive_diff = receive_diff
++        self.transmit_diff = transmit_diff
++
+ class CPUPressureSample:
+     def __init__(self, time, avg10, avg60, avg300, deltaTotal):
+         self.time = time
