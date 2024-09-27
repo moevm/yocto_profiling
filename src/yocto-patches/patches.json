@@ -1,4 +1,8 @@
 {
+        "add_net_buildstats.patch": {
+                "path": "/meta/lib/",
+                "file": "buildstats.py"
+        },
         "add_net_statistics_charts.patch": {
                 "path": "/",
                 "file": ""
