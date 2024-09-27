@@ -56,27 +56,30 @@ def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: P
             raise e
 
 
-def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
+def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
     for patch_tuple in patches:
+        print()
         patch, path, _ = patch_tuple
         
         cwd = f"{poky_dir}{path}"
         cmd = [
             "git",
             "apply",
-            "--check"
+            "--check",
+            "--verbose"
         ]
         if reverse:
             cmd.append("-R")
         cmd.append(f"{patches_dir}/{patch}")
-        print(f"WORKDIR: {cwd}")
-        print(f"RUN: {' '.join(cmd)}")
+        
+        if verbose:
+            print(f"WORKDIR: {cwd}")
+            print(f"RUN: {' '.join(cmd)}")
         
         try:
             result = subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
         except subprocess.CalledProcessError as e:
-            print(f"\nVerifying was failed, patch: {patch}")
-            raise e
+            sys.exit(f"\nVerifying was failed, patch: {patch}")
 
 
 def get_patches(args, patches_file: Path) -> Optional[list[tuple[str, str, str]]]:
@@ -89,7 +92,7 @@ def get_patches(args, patches_file: Path) -> Optional[list[tuple[str, str, str]]
         return
 
     patches = args.patches
-    print(f"Received patches: {patches}")
+    print(f"Received patches: {patches} ")
     if not patches:
         print("Nothing to patch!")
         return
@@ -112,6 +115,7 @@ if __name__ == "__main__":
 	parser.add_argument('-p', '--patch', dest="patches", nargs='*', help="Patches to be applied")
 	parser.add_argument('-l', '--patches-list', dest="patches_list", action="store_true", help="Print list of available patches")
 	parser.add_argument('-r', '--reverse', dest="reverse", action="store_true", help="Reverse received patches if they are already applied")
+	parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Verbose mode")
 	args, unknown = parser.parse_known_args()
 	args.patches.extend(unknown)
 
@@ -122,7 +126,7 @@ if __name__ == "__main__":
 	if not patches:
 		sys.exit(0)
 	
-	verify_applying(patches, patches_dir, poky_dir, args.reverse)
+	verify_applying(patches, patches_dir, poky_dir, args.reverse, args.verbose)
 	print("VERIFYING PATCHES: successfully passed!\n")
 	
 	applying(patches, patches_dir, poky_dir, args.reverse)
