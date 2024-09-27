@@ -1,8 +1,8 @@
 {
-  "add_nvme_support.patch": {
-    "path": "/meta/lib/",
-    "file": "buildstats.py"
-  },
+        "add_nvme_support.patch": {
+                "path": "/meta/lib/",
+                "file": "buildstats.py"
+        },
 	"buildstats_timestamps.patch": {
 		"path": "/meta/classes-global/",
 		"file": "buildstats.bbclass"
