@@ -1,6 +1,34 @@
 {
-  "add_net_buildstats.patch": {
-    "path": "/meta/lib/",
-    "file": "buildstats.py"
-  }
+        "add_net_buildstats.patch": {
+                "path": "/meta/lib/",
+                "file": "buildstats.py"
+        },
+        "add_net_statistics_charts.patch": {
+                "path": "/",
+                "file": ""
+        },
+        "add_nvme_support.patch": {
+                "path": "/meta/lib/",
+                "file": "buildstats.py"
+        },
+        "buildstats_timestamps.patch": {
+                "path": "/meta/classes-global/",
+                "file": "buildstats.bbclass"
+        },
+        "buildstats_netstats.patch": {
+                "path": "/meta/classes-global/",
+                "file": "buildstats.bbclass"
+        },
+        "pid.patch": {
+                "path": "/meta/classes-global/",
+                "file": "buildstats.bbclass"
+        },
+        "runqueue.patch": {
+                "path": "/bitbake/lib/bb/",
+                "file": "runqueue.py"
+        },
+        "poky_dir.patch": {
+                "path": "/",
+                "file": ""
+        }
 }
