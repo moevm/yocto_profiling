@@ -12,3 +12,4 @@
 * [WORKDIR](./WORKDIR.md) - получение переменной WORKDIR для рецепта
 * [build_download_info](./build_download_info.md) - сравнение времени сборки со скачиванием исходников и без него
 * [add_layers](./add_layers.md) - описание добавления слоев
+* [tasks_priority](./tasks_priority.md) - как и где устанавливается приоритет задач, эксперимент по изменению приоритетов задач do_compile и do_configure

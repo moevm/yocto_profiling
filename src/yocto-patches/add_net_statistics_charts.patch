@@ -1,0 +1,129 @@
+diff --git a/scripts/pybootchartgui/pybootchartgui/draw.py b/scripts/pybootchartgui/pybootchartgui/draw.py
+--- a/scripts/pybootchartgui/pybootchartgui/draw.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/draw.py	(date 1725293553378)
+@@ -69,6 +69,11 @@
+ IO_COLOR = (0.76, 0.48, 0.48, 0.5)
+ # Disk throughput color.
+ DISK_TPUT_COLOR = (0.20, 0.71, 0.20, 1.0)
++
++BYTES_RECEIVED_COLOR = (0.0, 0.0, 1.0, 1.0)
++BYTES_TRANSMITTED_COLOR = (1.0, 0.0, 0.0, 1.0)
++BYTES_RECEIVE_DIFF_COLOR = (0.0, 0.0, 1.0, 0.3)
++BYTES_TRANSMIT_DIFF_COLOR = (1.0, 0.0, 0.0, 0.3)
+ # CPU load chart color.
+ FILE_OPEN_COLOR = (0.20, 0.71, 0.71, 1.0)
+ # Mem cached color
+@@ -436,6 +441,49 @@
+         draw_text (ctx, label, DISK_TPUT_COLOR, pos_x + shift_x, curr_y + shift_y)
+ 
+         curr_y = curr_y + 30 + bar_h
++
++    if trace.net_stats:
++        for iface, samples in trace.net_stats.items():
++            max_received_sample = max(samples, key=lambda s: s.received_bytes)
++            max_transmitted_sample = max(samples, key=lambda s: s.transmitted_bytes)
++            max_receive_diff_sample = max(samples, key=lambda s: s.receive_diff)
++            max_transmit_diff_sample = max(samples, key=lambda s: s.transmit_diff)
++
++            draw_text(ctx, "Iface: %s" % (iface), TEXT_COLOR, off_x, curr_y+20)
++            draw_legend_line(ctx, "Bytes received (max %d)" % (max_received_sample.received_bytes),
++                             BYTES_RECEIVED_COLOR, off_x+150, curr_y+20, leg_s)
++            draw_legend_line(ctx, "Bytes transmitted (max %d)" % (max_transmitted_sample.transmitted_bytes),
++                             BYTES_TRANSMITTED_COLOR, off_x+400, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes receive diff (max %d)" % (max_receive_diff_sample.receive_diff),
++                             BYTES_RECEIVE_DIFF_COLOR, off_x+650, curr_y+20, leg_s)
++            draw_legend_box(ctx, "Bytes transmit diff (max %d)" % (max_transmit_diff_sample.transmit_diff),
++                             BYTES_TRANSMIT_DIFF_COLOR, off_x+900, curr_y+20, leg_s)
++
++
++            chart_rect = (off_x, curr_y + 30, w, bar_h)
++            if clip_visible(clip, chart_rect):
++                draw_box_ticks(ctx, chart_rect, sec_w)
++                draw_annotations(ctx, proc_tree, trace.times, chart_rect)
++
++            if clip_visible (clip, chart_rect):
++                draw_chart (ctx, BYTES_RECEIVED_COLOR, False, chart_rect, \
++                        [(sample.time, sample.received_bytes) for sample in samples], \
++                        proc_tree, None)
++
++                draw_chart (ctx, BYTES_TRANSMITTED_COLOR, False, chart_rect, \
++                        [(sample.time, sample.transmitted_bytes) for sample in samples], \
++                        proc_tree, None)
++
++            if clip_visible (clip, chart_rect):
++                draw_chart (ctx, BYTES_RECEIVE_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.receive_diff) for sample in samples], \
++                        proc_tree, None)
++
++                draw_chart (ctx, BYTES_TRANSMIT_DIFF_COLOR, True, chart_rect, \
++                        [(sample.time, sample.transmit_diff) for sample in samples], \
++                        proc_tree, None)
++
++            curr_y = curr_y + 30 + bar_h
+ 
+     # render CPU pressure chart
+     if trace.cpu_pressure:
+
+diff --git a/scripts/pybootchartgui/pybootchartgui/samples.py b/scripts/pybootchartgui/pybootchartgui/samples.py
+--- a/scripts/pybootchartgui/pybootchartgui/samples.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/samples.py	(date 1725277509053)
+@@ -37,6 +37,16 @@
+         return str(self.time) + "\t" + str(self.user) + "\t" + \
+                str(self.sys) + "\t" + str(self.io) + "\t" + str (self.swap)
+ 
++
++class NetSample:
++    def __init__(self, time, iface, received_bytes, transmitted_bytes, receive_diff, transmit_diff):
++        self.time = time
++        self.iface = iface
++        self.received_bytes = received_bytes
++        self.transmitted_bytes = transmitted_bytes
++        self.receive_diff = receive_diff
++        self.transmit_diff = transmit_diff
++
+ class CPUPressureSample:
+     def __init__(self, time, avg10, avg60, avg300, deltaTotal):
+         self.time = time
+
+diff --git a/scripts/pybootchartgui/pybootchartgui/parsing.py b/scripts/pybootchartgui/pybootchartgui/parsing.py
+--- a/scripts/pybootchartgui/pybootchartgui/parsing.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
++++ b/scripts/pybootchartgui/pybootchartgui/parsing.py	(date 1725293268183)
+@@ -48,6 +48,7 @@
+         self.filename = None
+         self.parent_map = None
+         self.mem_stats = []
++        self.net_stats = []
+         self.monitor_disk = None
+         self.cpu_pressure = []
+         self.io_pressure = []
+@@ -557,6 +558,21 @@
+ 
+     return disk_stats
+ 
++
++def _parse_reduced_net_log(file):
++    net_stats = {}
++    for time, lines in _parse_timed_blocks(file):
++
++        for line in lines:
++            parts = line.split()
++            iface = parts[0][:-1]
++            if iface not in net_stats:
++                net_stats[iface] = [NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))]
++            else:
++                net_stats[iface].append(NetSample(time, iface, int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4])))
++    return net_stats
++
++
+ def _parse_pressure_logs(file, filename):
+     """
+     Parse file for "some" pressure with 'avg10', 'avg60' 'avg300' and delta total values
+@@ -767,6 +783,8 @@
+         state.cmdline = _parse_cmdline_log(writer, file)
+     elif name == "monitor_disk.log":
+         state.monitor_disk = _parse_monitor_disk_log(file)
++    elif name == "reduced_proc_net.log":
++        state.net_stats = _parse_reduced_net_log(file)
+     #pressure logs are in a subdirectory
+     elif name == "cpu.log":
+         state.cpu_pressure = _parse_pressure_logs(file, name)
