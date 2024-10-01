@@ -19,7 +19,14 @@ function help() {
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
   echo -e "\tshell -- Opens a terminal in container."
   echo -e "\tbuild_yocto_image -- Build the yocto image in container."
+	echo -e "\t\t--no-layers -- Build yocto image without custom config and layers."
 	echo -e "\t\t--only-poky -- Only clones poky instead of a full build."
+
+  echo -e ""
+	echo -e "\t*REQUIRED CLONED POKY*"
+  echo -e "\tpatch <list_of_patches> -- Patching the project."
+	echo -e "\t\t-r, --reverse -- Disable choosen patches."
+	echo -e "\t\t-l, --patches-list -- Print available patches."
 
 	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
@@ -32,10 +39,7 @@ function help() {
 	echo -e ""
 	echo -e "\tcheck -- Verify that dependencies are installed for the project."
 	
-	echo -e ""
-  echo -e "\tpatch <list_of_patches> -- Patching the project."
-	echo -e "\t\t-r, --reverse -- Disable choosen patches."
-	echo -e "\t\t-l, --patches-list -- Print available patches."
+
 }
 
 function check(){
