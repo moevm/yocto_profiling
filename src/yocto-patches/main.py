@@ -3,7 +3,6 @@ import sys
 import json
 import subprocess
 
-from subprocess import CalledProcessError
 from typing import Optional
 from pathlib import Path
 
@@ -26,10 +25,12 @@ def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_fil
 		raise ValueError(f"[Error] This directory does not exist, or the path does not point to a directory: {dir_path}")
 	if not patches_file.exists():
 		raise ValueError(f"[Error] This file does not exist: {str(patches_file)}")
+		
+	print("[Info] Validating paths: successfully passed!\n")
 	return poky_dir, patches_dir, patches_file
 
 
-def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
+def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
     flag = "-N"
     if reverse:
         flag = "-R"
@@ -46,54 +47,69 @@ def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: P
         if file_to:
             cmd.append(file_to)
         cmd.extend(["-i", f"{patches_dir}/{patch}"])
-        print(f"WORKDIR: {cwd}")
-        print(f"RUN: {' '.join(cmd)}")
+        
+        if verbose:
+            print(f"WORKDIR: {cwd}")
+            print(f"RUN: {' '.join(cmd)}")
 
         try:
             result = subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
         except subprocess.CalledProcessError as e:
-            print(f"\nApplying was failed, patch: {patch}. Carefully check the list of patches to apply, maybe some of them are trying to change the same file.")
+            print(f"[Error] Applying was failed, patch: {patch}. Carefully check the list of patches to apply, maybe some of them are trying to change the same file.")
             raise e
+    
+    print("[Info] Applying patches: successfully passed!\n")
+    return
 
 
-def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool) -> None:
+def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
+    if reverse:
+        print("\n[Info] Reverse mode was enabled -> verify applying was disabled.\n")
+        return
+
     for patch_tuple in patches:
+        print()
         patch, path, _ = patch_tuple
         
         cwd = f"{poky_dir}{path}"
         cmd = [
             "git",
             "apply",
-            "--check"
+            "--check",
+            "--verbose"
         ]
         if reverse:
             cmd.append("-R")
         cmd.append(f"{patches_dir}/{patch}")
-        print(f"WORKDIR: {cwd}")
-        print(f"RUN: {' '.join(cmd)}")
+        
+        if verbose:
+            print(f"WORKDIR: {cwd}")
+            print(f"RUN: {' '.join(cmd)}")
         
         try:
             result = subprocess.run(cmd, cwd=cwd, check=True, encoding='utf-8')
         except subprocess.CalledProcessError as e:
-            print(f"\nVerifying was failed, patch: {patch}")
-            raise e
+            sys.exit(f"[Error] Verifying was failed, patch: {patch}")
+        
+    print("[Info] Verifying patches: successfully passed!\n")
+    return
 
 
-def get_patches(args, patches_file: Path) -> Optional[list[tuple[str, str, str]]]:
+def get_patches(args: argparse.Namespace, patches_file: Path) -> Optional[list[tuple[str, str, str]]]:
     with open(str(patches_file), 'r') as f:
         patches_data = json.load(f)
     assert isinstance(patches_data, dict)
 	
     if args.patches_list:
-        print("Available patches:\n\t" + '\n\t'.join(list(patches_data.keys())))
+        print("[Info] Available patches:\n\t" + '\n\t'.join(list(patches_data.keys())))
         return
 
     patches = args.patches
-    print(f"Received patches: {patches}")
     if not patches:
-        print("Nothing to patch!")
+        print("[Info] Nothing to patch!")
         return
 	
+    print(f"[Info] Received patches: {patches}")
     patches_to_apply = []
     for patch in patches:
         if not patch in patches_data:
@@ -104,27 +120,32 @@ def get_patches(args, patches_file: Path) -> Optional[list[tuple[str, str, str]]
     return patches_to_apply
 
 
+def create_parser() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--poky-path', dest="poky_path", type=str, default=None)
+    parser.add_argument('--dir-path', dest="dir_path", type=str, default=None)
+    parser.add_argument('--patches-filename', dest="patches_filename", type=str, default="patches.json")
+    parser.add_argument('-p', '--patch', dest="patches", nargs='*', help="Patches to be applied")
+    parser.add_argument('-l', '--patches-list', dest="patches_list", action="store_true", help="Print list of available patches")
+    parser.add_argument('-r', '--reverse', dest="reverse", action="store_true", help="Reverse received patches if they are already applied")
+    parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Verbose mode")
+
+    return parser
+
+
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--poky-path', dest="poky_path", type=str, default=None)
-	parser.add_argument('--dir-path', dest="dir_path", type=str, default=None)
-	parser.add_argument('--patches-filename', dest="patches_filename", type=str, default="patches.json")
-	parser.add_argument('-p', '--patch', dest="patches", nargs='*', help="Patches to be applied")
-	parser.add_argument('-l', '--patches-list', dest="patches_list", action="store_true", help="Print list of available patches")
-	parser.add_argument('-r', '--reverse', dest="reverse", action="store_true", help="Reverse received patches if they are already applied")
+	parser = create_parser()
+	
 	args, unknown = parser.parse_known_args()
 	args.patches.extend(unknown)
 
 	poky_dir, patches_dir, patches_file = validate_path(args.poky_path, args.dir_path, args.patches_filename)
-	print("VALIDATING PATHS: successfully passed!\n")
 	patches = get_patches(args, patches_file)
 	
 	if not patches:
 		sys.exit(0)
 	
-	verify_applying(patches, patches_dir, poky_dir, args.reverse)
-	print("VERIFYING PATCHES: successfully passed!\n")
+	verify_applying(patches, patches_dir, poky_dir, args.reverse, args.verbose)    
+	applying(patches, patches_dir, poky_dir, args.reverse, args.verbose)
 	
-	applying(patches, patches_dir, poky_dir, args.reverse)
-	print("APPLYING PATCHES: successfully passed!")
 
