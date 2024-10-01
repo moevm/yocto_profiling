@@ -8,17 +8,17 @@ DOCKERFILE_DIR=$PWD/yocto-build
 POKY_DIR=$DOCKERFILE_DIR/assembly/poky
 
 function help() {
-        echo "This script is needed for interaction with the image of Yocto Project."
-        echo "List of available parameters:"
+  echo "This script is needed for interaction with the image of Yocto Project."
+  echo "List of available parameters:"
 
-        echo -e "\tbuild_env -- Builds an image of the virtual environment."
+  echo -e "\tbuild_env -- Builds an image of the virtual environment."
 	echo -e "\t\t--no-perf -- Disables installation of the perf."
 	echo -e "\t\t--no-cache -- Disables docker cache using."
 
 	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
-        echo -e "\tshell -- Opens a terminal in container."
-        echo -e "\tbuild_yocto_image -- Build the yocto image in container."
+  echo -e "\tshell -- Opens a terminal in container."
+  echo -e "\tbuild_yocto_image -- Build the yocto image in container."
 	echo -e "\t\t--only-poky -- Only clones poky instead of a full build."
 
 	echo -e ""
@@ -33,7 +33,7 @@ function help() {
 	echo -e "\tcheck -- Verify that dependencies are installed for the project."
 	
 	echo -e ""
-        echo -e "\tpatch <list_of_patches> -- Patching the project."
+  echo -e "\tpatch <list_of_patches> -- Patching the project."
 	echo -e "\t\t-r, --reverse -- Disable choosen patches."
 	echo -e "\t\t-l, --patches-list -- Print available patches."
 }
@@ -111,7 +111,10 @@ case "$p_command" in
 		STAGE_ARG="full"
                 if [[ ! -z "${args_arr[0]}" ]]; then
                         if [[ "${args_arr[0]}" == "--only-poky" ]]; then
-                                STAGE_ARG="clone_poky"
+                                STAGE_ARG="only-poky"
+                        fi
+                        if [[ "${args_arr[0]}" == "--no-layers" ]]; then
+                                STAGE_ARG="no-layers"
                         fi
                 fi
 		

@@ -41,7 +41,7 @@ function check_poky() {
   fi
   echo "Yocto cloning finish successfully."
 
-  if [[ "$STAGE_VAR" == "clone_poky" ]]; then
+  if [[ "$STAGE_VAR" == "only-poky" ]]; then
     exit $YOCTO_CLONING_CODE
   fi
 
@@ -86,11 +86,13 @@ function decorate_logs() {
 }
 
 function build() {
-	$SCRIPTS_DIR/add_layers.sh
-
 	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
-	
+
+  if [[ "$STAGE_VAR" != "no-layers" ]]; then
+	  $SCRIPTS_DIR/add_layers.sh $POKY_DIR
+	  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+  fi
+
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
