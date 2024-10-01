@@ -73,7 +73,7 @@ EXIT_CODE=0
 case "$p_command" in 
 	"patch")
 		if [[ ! -z "${args_arr[0]}" ]]; then
-			$SCRIPTS_DIR/patching.sh $POKY_DIR $PATCHES_DIR ${args_arr[@]}
+			$SCRIPTS_DIR/patching.sh $DOCKERFILE_DIR ${args_arr[@]}
 		else
 			echo "[WARNING]: No instructions were found"
 			help
