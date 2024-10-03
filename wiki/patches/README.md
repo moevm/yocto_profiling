@@ -9,3 +9,5 @@
   add_net_statistics_charts.patch
 * [add_nvme_support_instruction](./add_nvme_support_instruction.md) - инструкция для патча
   add_nvme_support.patch
+* [add_task_children_to_weight_instruction](./add_task_children_to_weight_instruction.md) - инструкция для патча
+  add_task_children_to_weight_instruction.patch
