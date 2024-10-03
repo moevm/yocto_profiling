@@ -57,18 +57,18 @@ def remove_comments(filename):
                 output_file.write(line)
     os.rename(temp_filename, filename)
 
-def remove_comments_and_write_settings(filename, settings):
+def write_settings(filename, settings):
     temp_filename = filename + ".tmp"
 
     with open(filename, "r") as input_file, open(temp_filename, "w") as output_file:
-        lines = input_file.readlines()  
-        for i, line in enumerate(lines):  
-            if not line.startswith("#") and len(line) > 1:
-                output_file.write(line)
-            # узкое место - здесь мы выбираем на какое место в файле вставить настройки кэш и хэш серверов. Пока хардкод...
-            # TODO: анализ local.conf с целью поиска строки CONF_VERSION = "2" -- нужно вставлять до этого
-            if i == len(lines) - 8:  
-                output_file.write(settings + "\n")  
+        lines = input_file.readlines()
+        for line in lines:
+            if line == "# SETTINGS":
+                output_file.write(settings + "\n")
+                continue
+
+            output_file.write(line)
+
     os.rename(temp_filename, filename)
 
 if __name__ == '__main__':
@@ -87,4 +87,4 @@ if __name__ == '__main__':
 
     settings = compose_settings_string(base_url=base_url, start=cache_start_port, num=cache_num_port, hash_ip_port=hash_ip_port)
     print(settings)
-    remove_comments_and_write_settings("./conf/local.conf", settings)
+    write_settings("./conf/local.conf", settings)

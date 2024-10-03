@@ -169,13 +169,12 @@ do
 	cd $SCRIPT_DIR/auto_conf && python3 set_num_ports.py --cache_num_port $i
 	echo -e "\n\nset cache_num_port = $i"
 	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START.\n"
+
+    cp -f $BASE_DIR/build/conf/local_temp.conf $SCRIPT_DIR/auto_conf/conf/local.conf
+    cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
+    cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
 	for j in 1 2
 	do
-		# pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
-		cp -f $BASE_DIR/build/save_orirginal_config/local.conf $SCRIPT_DIR/auto_conf/conf/local.conf
-		cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
-		cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
-        	
 		filename="test_${i}_${j}"
 		cd $SRC_DIR && ./entrypoint.sh build_yocto_image >> $EXPERIMENT_DIR/"$filename"
 
@@ -193,6 +192,8 @@ do
 	sleep 25
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
+
+cp -f $BASE_DIR/build/save_orirginal_config/local.conf $BASE_DIR/build/conf/local.conf
 
 
 # Убиваем контейнер.
