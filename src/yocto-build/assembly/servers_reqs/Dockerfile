@@ -2,7 +2,10 @@ FROM alpine:3.18
 
 ENV PORT=
 
-RUN apk add --no-cache python3 py3-pip nano
+RUN apk --no-cache update && \
+    apk add --no-cache python3 py3-pip 
+
+RUN apk add --no-cache nano
 
 WORKDIR /app
 COPY get_ip.py /app/

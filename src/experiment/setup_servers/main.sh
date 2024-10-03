@@ -2,13 +2,14 @@
 
 # USING: ./main.sh ./auto_conf/experiment.conf
 
-SCRIPT_DIR=$(pwd)
+SCRIPT_DIR=$(dirname "$(realpath $0)")
+
 EXPERIMENT_DIR=$SCRIPT_DIR/..
 BASE_DIR=$SCRIPT_DIR/../../..
 SRC_DIR=$BASE_DIR/src
 
 # Импортируем функцию парсинга config файла
-. ./auto_conf/read_config.sh
+. $SCRIPT_DIR/auto_conf/read_config.sh
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 config_file"
@@ -67,16 +68,16 @@ fi
 echo -e "\n"
 
 # Cоздаем папку test на рабочем столе, если ее не было, иначе удаляем и создаем
-echo "Create clean test directory:"
-echo "Cache server: start"
-ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
-ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
-echo "Cache server: done"
+# echo "Create clean test directory:"
+# echo "Cache server: start"
+# ssh $cache_usr@$cache_ip "rm -rf $cache_desktop_path/test"
+# ssh $cache_usr@$cache_ip "mkdir -p $cache_desktop_path/test"
+# echo "Cache server: done"
 
-echo "Hash server: start"
+echo "Hash server create dir: start"
 ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
 ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
-echo "Hash server: done"
+echo "Hash server create dir: done"
 echo -e "\n"
 
 
@@ -101,44 +102,44 @@ echo "Start hash server:"
 rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$hash_desktop_path/test/ > /dev/null
 ssh $hash_usr@$hash_ip "docker stop $(docker ps -q --filter ancestor=hash)" 2> /dev/null
 ssh $hash_usr@$hash_ip "docker rm $(docker ps -q -a --filter ancestor=hash)" 2> /dev/null
-ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  > /dev/null
-ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"  > /dev/null
+ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  2> /dev/null
+ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"  2> /dev/null
 echo "Hash server started at $hash_ip:$hash_port"
 echo -e "\n"
 
 
-echo "Prepare cache servers:"
+# echo "Prepare cache servers:"
 cd $BASE_DIR
 
 # 1. Копирование необходимых частей проекта:
-echo "Copying \"src\" and \"build\" dirs: start"
-rsync -aP ./src $cache_usr@$cache_ip:$cache_desktop_path/test/ > /dev/null
-rsync -aP ./build $cache_usr@$cache_ip:$cache_desktop_path/test/ > /dev/null
-echo -e "Copying: done\n"
+# echo "Copying \"src\" and \"build\" dirs: start"
+# rsync -aP ./src --exclude ./src/yocto-build/assembly/poky --exclude ./src/yocto-build/assembly/build $cache_usr@$cache_ip:$cache_desktop_path/test/ 2> /dev/null
+# rsync -aP ./build $cache_usr@$cache_ip:$cache_desktop_path/test/ 2> /dev/null
+# echo -e "Copying: done\n"
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 # 2. Создание виртуального окружения и установка зависимостей.
-echo "Installing requirements: start"
-ssh $cache_usr@$cache_ip "python3 -m venv venv"
-ssh $cache_usr@$cache_ip "source venv/bin/activate"
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/servers_reqs && pip3 install -r requirements.txt" > /dev/null
-echo -e "Installing requirements: done\n"
+# echo "Installing requirements: start"
+# ssh $cache_usr@$cache_ip "python3 -m venv venv"
+# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/.. && source venv/bin/activate"
+# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/servers_reqs && pip3 install -r requirements.txt" > /dev/null
+# echo -e "Installing requirements: done\n"
 
 # 3. Сборка образа системы для Yocto
-echo "Buildint ENV: start"
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_env --no-perf" > /dev/null
-echo -e "Buildint ENV: done\n"
+# echo "Buildint ENV: start"
+# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_env --no-perf" > /dev/null
+# echo -e "Buildint ENV: done\n"
 
 # 4. Клонирование poky
-echo "Cloning POKY: start"
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image --only-poky" > /dev/null
-echo -e "Cloning POKY: done\n"
+# echo "Cloning POKY: start"
+# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image --only-poky" > /dev/null
+# echo -e "Cloning POKY: done\n"
 
 # 5. Сборка Yocto
-echo "Building YOCTO: start"
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image"
-echo "Building YOCTO: done"
-echo -e "\n"
+# echo "Building YOCTO: start"
+# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build_yocto_image"
+# echo "Building YOCTO: done"
+# echo -e "\n"
 
 
 echo "Prepare host for build:"
@@ -155,44 +156,41 @@ echo -e "\n"
 
 
 # LOOP
-# В папке /build должен лежать конфиг сборки. Сейчас он учитывает доп слои. Нужно иметь его оригинал, для этого создаём временную папку save_orirginal_config, куда положим оригинальный конфиг
-mkdir /build/save_orirginal_config
-cp -f $SCRIPT_DIR/auto_conf/build/conf/local.conf /build/save_orirginal_config/local.conf
+# В папке ./build должен лежать конфиг сборки. Сейчас он учитывает доп слои. Нужно иметь его оригинал, для этого создаём временную папку save_orirginal_config, куда положим оригинальный конфиг
+mkdir -p $BASE_DIR/build/save_orirginal_config
+cp -f $BASE_DIR/build/conf/local.conf $BASE_DIR/build/save_orirginal_config/local.conf
 
 cd $SCRIPT_DIR
 for (( i=2; i<$max_servers; i+=$step ))
 do
 	# 6. Сборка и подъём кэш серверов
-	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i"
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i" > /dev/null
 
-	cd /auto_conf && python3 set_num_ports.py --cache_num_port $i && cd -
-	echo "set cache_num_port = $i"
-	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START."
+	cd $SCRIPT_DIR/auto_conf && python3 set_num_ports.py --cache_num_port $i
+	echo -e "\n\nset cache_num_port = $i"
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: START.\n"
 	for j in 1 2
 	do
 		# pushd ../yocto-build/assembly/poky && . oe-init-build-env build && popd
-		cp -f $BASE_DIR/build/save_orirginal_config/local.conf /auto_conf/conf/
-        cd /auto_conf && python3 auto_compose_local_conf.py && cd -
-        cp -f /auto_conf/conf/local.conf $BASE_DIR/build/conf/
+		cp -f $BASE_DIR/build/save_orirginal_config/local.conf $SCRIPT_DIR/auto_conf/conf/local.conf
+		cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
+		cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
         	
 		filename="test_${i}_${j}"
-        cd $SRC_DIR && ./entrypoint.sh build_yocto_image >> $EXPERIMENT_DIR/"$filename" && cd -
+		cd $SRC_DIR && ./entrypoint.sh build_yocto_image >> $EXPERIMENT_DIR/"$filename"
 
-        echo "Remove build folder"
-        cd $SRC_DIR/yocto-build/assembly && rm -rf ./build && cd -
+		echo -e "Remove build folder\n"
+		cd $SRC_DIR/yocto-build/assembly && rm -rf ./build
         	
-		sleep 5
-        echo -e "\n"
+		sleep 15
 	done
-	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE."
+	echo -e "BUILDING YOCTO ON HOST WITH $i SERVERS: DONE.\n"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill"
 	
-	# sleep на всякий случай
-	sleep 10
-    echo -e "\n"
+	sleep 25
 done
 echo -e "BUILDING AND UPPING CACHE CONTAINERS: DONE."
 
