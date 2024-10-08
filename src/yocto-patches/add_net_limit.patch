@@ -1,9 +1,9 @@
 --- runqueue.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ runqueue.py	(date 1727899877827)
++++ runqueue.py	(date 1728232264903)
 @@ -162,6 +162,13 @@
          self.rev_prio_map = None
          self.is_pressure_usable()
-
+ 
 +        self.max_limit_receive_diff = None
 +        self.max_limit_transmit_diff = None
 +        self.max_net_pressure = None
@@ -14,7 +14,7 @@
      def is_pressure_usable(self):
          """
          If monitoring pressure, return True if pressure files can be open and read. For example
-@@ -231,6 +238,24 @@
+@@ -231,6 +238,25 @@
              self.loadfactor_limit = limit
              return limit
          return False
@@ -33,13 +33,14 @@
 +        return False
 +
 +    def set_max_net_pressure(self):
-+        with open('current_max_pressure.log', 'r') as f:
-+            max_receive_diff, max_transmit_diff = [int(elem) for elem in f.readline().split()]
-+            self.max_net_pressure = (max_receive_diff, max_transmit_diff)
-
++        if os.path.isfile('current_max_net_pressure.log'):
++            with open('current_max_net_pressure.log', 'r') as f:
++                max_receive_diff, max_transmit_diff = [int(elem) for elem in f.readline().split()]
++                self.max_net_pressure = (max_receive_diff, max_transmit_diff)
+ 
      def next_buildable_task(self):
          """
-@@ -288,9 +313,17 @@
+@@ -288,9 +314,15 @@
                  stamp = self.stamps[tid]
                  if stamp in self.rq.build_stamps.values():
                      continue
@@ -51,81 +52,6 @@
                  bestprio = prio
                  best = tid
 -
-+        if not self.max_net_pressure and best.endswith("do_fetch"):
-+            self.count_do_fetch += 1
-+            if self.count_do_fetch == self.max_count_do_fetch:
-+                self.set_max_net_pressure()
++        if not self.max_net_pressure:
++            self.set_max_net_pressure()
          return best
-
-     def next(self):
-@@ -591,6 +624,53 @@
-
-         return msgs
-
-+    def get_task_children(self):
-+        try:
-+            f = open('task-children.txt')
-+        except OSError:
-+            return None
-+        else:
-+            task_children = {}
-+            with f:
-+                for line in f:
-+                    task_name, children = line.split()
-+                    task_children[task_name] = int(children)
-+            return task_children
-+
-+    def change_weight(self, task_children):
-+        weight = {}
-+        deps_left = {}
-+        task_done = {}
-+        for tid in self.runtaskentries:
-+            if not task_children:
-+                weight[tid] = 1
-+            else:
-+                full_task_name = tid.split('/')[-1]
-+
-+                match = re.match(r'([^:]+):([^.]+)', full_task_name)
-+                task_name = match.group(1).split('_')[0] + '.' + match.group(2) if match else ""
-+
-+                if task_name in task_children:
-+                    weight[tid] = task_children[task_name] * 10 / 200
-+                else:
-+                    part1, _, part2 = task_name.rpartition('.')
-+                    native_name = f"{part1}-native.{part2}"
-+                    x86_name = f"{part1}-x86_64.{part2}"
-+                    gcc_name = f"{part1}-14.1.0.{part2}"
-+
-+                    if native_name in task_children:
-+                        weight[tid] = task_children[native_name] * 10 / 200
-+                    elif x86_name in task_children:
-+                        weight[tid] = task_children[x86_name] * 10 / 200
-+                    elif gcc_name in task_children:
-+                        weight[tid] = task_children[gcc_name] * 10 / 200
-+                    else:
-+                        weight[tid] = 10 / 200
-+
-+            task_done[tid] = False
-+            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
-+        return weight, task_done, deps_left
-+
-     def calculate_task_weights(self, endpoints):
-         """
-         Calculate a number representing the "weight" of each task. Heavier weighted tasks
-@@ -601,14 +681,9 @@
-         """
-
-         numTasks = len(self.runtaskentries)
--        weight = {}
--        deps_left = {}
--        task_done = {}
-
--        for tid in self.runtaskentries:
--            task_done[tid] = False
--            weight[tid] = 1
--            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
-+        task_children = self.get_task_children()
-+        weight, task_done, deps_left = self.change_weight(task_children)
-
-         for tid in endpoints:
-             weight[tid] = 10
