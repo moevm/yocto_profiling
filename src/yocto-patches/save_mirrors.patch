@@ -1,0 +1,15 @@
+--- __init__.py	2024-09-17 11:35:34.475104000 +0300
++++ __init__.py	2024-10-10 18:12:56.120123139 +0300
+@@ -1158,10 +1158,11 @@
+     ld = d.createCopy()
+ 
+     uris, uds = build_mirroruris(origud, mirrors, ld)
+-
+     for index, uri in enumerate(uris):
+         ret = try_mirror_url(fetch, origud, uds[index], ld, check)
+         if ret:
++            with open('./uris_data', 'a') as urisdata:
++                urisdata.write(f'uri: {uri}\n')
+             return ret
+     return None
+ 
