@@ -62,12 +62,20 @@ def write_settings(filename, settings):
 
     with open(filename, "r") as input_file, open(temp_filename, "w") as output_file:
         lines = input_file.readlines()
-        for line in lines:
-            if line == "# SETTINGS":
+        lines_count = len(lines)
+
+        last_i: int
+        for i, line in enumerate(lines): 
+            if "# SETTINGS" in line:
                 output_file.write(settings + "\n")
-                continue
+                last_i = i
+                break
 
             output_file.write(line)
+
+        if last_i < lines_count:
+            for i in range(last_i + 1, lines_count):
+                output_file.write(lines[i])
 
     os.rename(temp_filename, filename)
 
