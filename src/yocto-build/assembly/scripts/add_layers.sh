@@ -27,12 +27,16 @@ function clone_layers() {
   for repo in $LAYERS
   do
     cd $POKY_DIR
-
     IFS=' ' read -r -a info <<< "${repo}"
-    git clone ${info[0]}
+    URL=${info[0]}
+    COMMIT=${info[1]}
 
-    cd $POKY_DIR/$(basename $url)
-    git checkout ${info[1]} -b scarthgap
+    if [ -d ./$(basename $URL) ]; then
+	continue
+    fi
+
+    git clone $URL && cd ./$(basename $URL)
+    git checkout $COMMIT -b scarthgap
   done
 
   cd $POKY_DIR
