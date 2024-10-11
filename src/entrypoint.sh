@@ -8,26 +8,26 @@ DOCKERFILE_DIR=$PWD/yocto-build
 POKY_DIR=$DOCKERFILE_DIR/assembly/poky
 
 function help() {
-  echo "This script is needed for interaction with the image of Yocto Project."
-  echo "List of available parameters:"
-
-  echo -e "\tbuild_env -- Builds an image of the virtual environment."
+	echo "This script is needed for interaction with the image of Yocto Project."
+	echo "List of available parameters:"
+	
+	echo -e "\tbuild_env -- Builds an image of the virtual environment."
 	echo -e "\t\t--no-perf -- Disables installation of the perf."
 	echo -e "\t\t--no-cache -- Disables docker cache using."
-
+	
 	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_env"
-  echo -e "\tshell -- Opens a terminal in container."
-  echo -e "\tbuild_yocto_image -- Build the yocto image in container."
+	echo -e "\tshell -- Opens a terminal in container."
+	echo -e "\tbuild_yocto_image -- Build the yocto image in container."
 	echo -e "\t\t--no-layers -- Build yocto image without custom config and layers."
 	echo -e "\t\t--only-poky -- Only clones poky instead of a full build."
 
-  echo -e ""
+	echo -e ""
 	echo -e "\t*REQUIRED CLONED POKY*"
-  echo -e "\tpatch <list_of_patches> -- Patching the project."
+	echo -e "\tpatch <list_of_patches> -- Patching the project."
 	echo -e "\t\t-r, --reverse -- Disable choosen patches."
 	echo -e "\t\t-l, --patches-list -- Print available patches."
-
+	
 	echo -e ""
 	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
 	echo -e "\tstart_yocto -- Up the yocto image."
@@ -35,7 +35,7 @@ function help() {
 	echo -e ""
 	echo -e "\tclean-docker -- Removing existing container and image of yocto."
 	echo -e "\tclean-build -- Removing poky and build dir."
-
+	
 	echo -e ""
 	echo -e "\tcheck -- Verify that dependencies are installed for the project."
 	
