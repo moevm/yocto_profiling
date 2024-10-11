@@ -8,7 +8,7 @@ FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
 HASH_TEMPLATE="^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$"
 date=$(date +"%d-%m-%Y_%H:%M:%S")
 
-BRANCH_NAME=my-upstream_5.0.1
+BRANCH_NAME="my-upstream_5.0.1"
 YOCTO_REPOSITORY=git://git.yoctoproject.org/poky
 
 YOCTO_EXIT_CODE=0
@@ -86,13 +86,17 @@ function decorate_logs() {
 }
 
 function build() {
+	if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
+		rm $ASSEMBLY_DIR/build/conf/bblayers.conf
+	fi
+
 	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
 
   if [[ "$STAGE_VAR" != "no-layers" ]]; then
 	  $SCRIPTS_DIR/add_layers.sh $POKY_DIR
 	  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
   fi
-
+	
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH

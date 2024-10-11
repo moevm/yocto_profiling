@@ -23,33 +23,33 @@ LAYERS=(
 
 
 function clone_layers() {
+  saved_IFS=$IFS
+  IFS=$'\n'
 
-  for repo in $LAYERS
+  for repo in ${LAYERS[@]}
   do
     cd $POKY_DIR
-    IFS=' ' read -r -a info <<< "${repo}"
+    IFS=$' ' read -ra info <<< "$repo"
     URL=${info[0]}
     COMMIT=${info[1]}
 
     if [ -d ./$(basename $URL) ]; then
-	continue
+      echo -e "$(basename $URL) already exists"	
+      continue
     fi
 
     git clone $URL && cd ./$(basename $URL)
     git checkout $COMMIT -b scarthgap
   done
-
+  
   cd $POKY_DIR
-  git checkout -b scarthgap origin/scarthgap
+  
+  IFS=$saved_IFS
 }
 
 clone_layers
 
-original_sysrepo="$(grep LAYERSERIES_COMPAT ./poky/meta-sysrepo/conf/layer.conf | sed 's/.$//')"
-new_value=' scarthgap'
-sed -i "s/$original_sysrepo/$original_sysrepo$new_value/" ./poky/meta-sysrepo/conf/layer.conf
-
-echo "BITBAKE ADD LAYERS: PATH: $(pwd)"
+cd $POKY_DIR/..
 bitbake-layers add-layer ./poky/meta-openembedded/meta-webserver/ \
                          ./poky/meta-openembedded/meta-oe/ \
                          ./poky/meta-openembedded/meta-python/ \
@@ -69,5 +69,10 @@ bitbake-layers add-layer ./poky/meta-openembedded/meta-webserver/ \
                          ./poky/meta-qt5/ \
                          ./poky/meta-xilinx/meta-xilinx-core/ \
                          ./poky/meta-xilinx/meta-xilinx-standalone/ \
-                         ./poky/meta-xilinx-tools/ \
-                         ./poky/meta-sysrepo/
+                         ./poky/meta-xilinx-tools/
+
+original_sysrepo="$(grep LAYERSERIES_COMPAT ./poky/meta-sysrepo/conf/layer.conf | sed 's/.$//')"
+new_value=' scarthgap'
+sed -i "s/$original_sysrepo/$original_sysrepo$new_value/" ./poky/meta-sysrepo/conf/layer.conf
+
+bitbake-layers add-layer ./poky/meta-sysrepo/
