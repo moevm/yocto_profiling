@@ -4,18 +4,20 @@ import os
 from config_parser import read_from_config
 
 
-def generate_strings(out:str, base_url:str, start_port:int, start_string:str, target_str:str, num:int):
-    out += start_string + '\n'
+def generate_strings(base_url:str, start_port:int, target_str:str, num:int) -> str:
+    start_ss = '\nSSTATE_MIRRORS ?= " \\\n'
+
     for i in range(start_port, start_port + num):
         mirror_url = base_url.replace("n", str(i))
         tmp = f'file://.* {mirror_url}/{target_str}/PATH;downloadfilename=PATH'
-        out += tmp
+        start_ss += tmp
         if i < start_port + num - 1:
-            out += ' \\ \n'
+            start_ss += ' \\\n'
         else:
-            out += '"\n\n'
+            start_ss += '"'
 
-    return out
+    return start_ss
+
 
 def compose_settings_string(base_url, start, num, hash_ip_port):
 
@@ -36,14 +38,13 @@ def compose_settings_string(base_url, start, num, hash_ip_port):
     if hash_ip_port is None:
         raise ValueError(f"Error with the hash parameters file!")
         
-
-    start_ss = r'SSTATE_MIRRORS ?= "\ '
     ret = ''
-    ret = generate_strings(out=ret, base_url=base_url, start_port=start, start_string=start_ss, target_str='sstate-cache', num=num)
 
-    ret += 'BB_HASHSERVE = "auto" \n'  
-    ret += f'BB_HASHSERVE_UPSTREAM = "{hash_ip_port}" \n'   
-    ret += 'BB_SIGNATURE_HANDLER = "OEEquivHash" \n'   
+    ret += 'BB_HASHSERVE = "auto"\n'  
+    ret += f'BB_HASHSERVE_UPSTREAM = "{hash_ip_port}"\n'   
+    ret += 'BB_SIGNATURE_HANDLER = "OEEquivHash"\n'   
+
+    ret += generate_strings(base_url=base_url, start_port=start, target_str='sstate-cache', num=num)
 
     return ret
 
