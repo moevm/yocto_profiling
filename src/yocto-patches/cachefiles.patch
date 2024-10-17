@@ -1,5 +1,5 @@
 --- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-10-17 15:19:30.798920110 +0300
++++ sstate.bbclass	2024-10-17 15:55:03.316618228 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -135,7 +135,7 @@
 +                        file_mirror_map.update({srcuri: m}) #таким образом будет только одно зеркало, можно сделать чтобы здесь был список из всех зеркал, на которых есть этот файл
 +                        tasklist_copy.remove(arg)
 +
-+            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) не действует
++            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
 +
 +            with open('./file_mirror_map', 'w') as mapping_file:
 +                json.dump(file_mirror_map, mapping_file, indent=4)
@@ -197,16 +197,3 @@
  
      inheritlist = d.getVar("INHERIT")
      if "toaster" in inheritlist:
-@@ -1089,9 +1179,9 @@
-         for tid in missed:
-             sstatefile = d.expand(getsstatefile(tid, False, d))
-             evdata['missed'].append((bb.runqueue.fn_from_tid(tid), bb.runqueue.taskname_from_tid(tid), gethash(tid), sstatefile ) )
--        for tid in found:
--            sstatefile = d.expand(getsstatefile(tid, False, d))
--            evdata['found'].append((bb.runqueue.fn_from_tid(tid), bb.runqueue.taskname_from_tid(tid), gethash(tid), sstatefile ) )
-+        for item in found:
-+            sstatefile = d.expand(getsstatefile(item[0], False, d))
-+            evdata['found'].append((bb.runqueue.fn_from_tid(item[0]), bb.runqueue.taskname_from_tid(item[0]), gethash(item[0]), sstatefile ) )
-         bb.event.fire(bb.event.MetadataEvent("MissedSstate", evdata), d)
- 
-     if summary:
