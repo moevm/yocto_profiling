@@ -11,8 +11,4 @@ fi
 cd $1
 shift 1
 
-STAGE_VAR="sleep" docker compose up -d
-docker container exec -it yocto_project ./assembly/scripts/patching.sh $@
-
-docker compose stop
-
+docker compose run --rm --entrypoint ./assembly/scripts/patching.sh yocto_project $@
