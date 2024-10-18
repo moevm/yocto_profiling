@@ -1,5 +1,6 @@
 
 # GENERAL
+**/.idea
 **/logs
 **/*.swp
 **/conf/local.conf
