@@ -18,15 +18,19 @@ services:
         - LANG=en_US.UTF-8
         - LC_ALL=en_US.UTF-8
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
+    environment:
+        - ASSEMBLY_DIR=/home/yocto_user/project/assembly
+        - POKY_DIR=/home/yocto_user/project/assembly/poky
+        - PATCHES_DIR=/home/yocto_user/project/yocto-patches
+        - STAGE_VAR
+        - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
     cap_add:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
     privileged: true
-    environment:
-      - STAGE_VAR
-      - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
     volumes:
+      - ../yocto-patches:/home/yocto_user/project/yocto-patches
       - ./assembly:/home/yocto_user/project/assembly
       - ../../build/conf:/home/yocto_user/project/conf
       - /sys/kernel/debug:/sys/kernel/debug
