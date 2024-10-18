@@ -3,11 +3,11 @@ import sys
 import json
 import subprocess
 
-from typing import Optional
+from typing import Optional, Tuple, List
 from pathlib import Path
 
 
-def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_filename: str) -> tuple[Path, Path]:
+def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_filename: str) -> Tuple[Path, Path]:
 	if poky_path is None:
 		raise ValueError("[Error] The poky path was not received. Use --poky-path to pass this value.")
 	if dir_path is None:
@@ -30,7 +30,7 @@ def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_fil
 	return poky_dir, patches_dir, patches_file
 
 
-def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
+def applying(patches: List[Tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
     flag = "-N"
     if reverse:
         flag = "-R"
@@ -62,7 +62,7 @@ def applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: P
     return
 
 
-def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
+def verify_applying(patches: List[Tuple[str, str, str]], patches_dir: Path, poky_dir: Path, reverse: bool, verbose: bool) -> None:
     if reverse:
         print("\n[Info] Reverse mode was enabled -> verify applying was disabled.\n")
         return
@@ -95,7 +95,7 @@ def verify_applying(patches: list[tuple[str, str, str]], patches_dir: Path, poky
     return
 
 
-def get_patches(args: argparse.Namespace, patches_file: Path) -> Optional[list[tuple[str, str, str]]]:
+def get_patches(args: argparse.Namespace, patches_file: Path) -> Optional[List[Tuple[str, str, str]]]:
     with open(str(patches_file), 'r') as f:
         patches_data = json.load(f)
     assert isinstance(patches_data, dict)
@@ -148,4 +148,3 @@ if __name__ == "__main__":
 	verify_applying(patches, patches_dir, poky_dir, args.reverse, args.verbose)    
 	applying(patches, patches_dir, poky_dir, args.reverse, args.verbose)
 	
-

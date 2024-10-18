@@ -13,7 +13,7 @@ cd $1
 
 
 
-if [[ "$2" == "clone_poky" ]]; then
+if [[ "$2" == "only-poky" ]] || [[ "$2" == "no-layers" ]]; then
 	STAGE_VAR="$2" docker compose up
 elif [[ "$2" == "full" ]]; then
 	docker compose up
