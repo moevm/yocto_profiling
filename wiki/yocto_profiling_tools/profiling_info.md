@@ -113,7 +113,7 @@
       ```
     - Как можно анализировать: можно выявлять пики, определять наиболее загруженные моменты, визуализировать для наглядности данные.
 
-* Время парсинга рецептов из различных слоев: [parsing_statistics](../../build/parsing_statistics/collect_parsing_statistics.md)
+* Время парсинга рецептов из различных слоев:
     - Пример результата ([файл](logs/layer_parsing_time.log)):
       ```
       meta: 113.22 seconds
@@ -121,8 +121,8 @@
       ```
     - Как можно анализировать: можно выявлять слои, которые требуют наибольшего времени на парсинг, и слои с минимальным временем парсинга.
 
-* Время парсинга каждого рецепта: [parsing_statistics](../../build/parsing_statistics/collect_parsing_statistics.md)
-    - Пример результата ([файл](log_files/recipe_parsing_time.log)):
+* Время парсинга каждого рецепта:
+    - Пример результата ([файл](logs/recipe_parsing_time.log)):
       ```
       /home/elizaveta/poky/meta/recipes-core/initrdscripts/initramfs-live-boot_1.0.bb: 0.15 seconds
       /home/elizaveta/poky/meta/recipes-devtools/opkg/opkg-keyrings_1.0.bb: 0.15 seconds
