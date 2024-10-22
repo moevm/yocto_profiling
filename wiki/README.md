@@ -6,4 +6,4 @@
 * [`yocto_profiling_tools`](./yocto_profiling_tools) -- Описание и применение утилит профилирования в Yocto
 * [`patches`](./patches) -- Описание и инструкции к патчам
 * [`ssh`](./ssh_connection.md) -- инструкции по работе с ssh
-* [`timeline_analyze`](./timeline_analyze.md) -- Анализ временного ряда выполнения задач
+* [`timeline_analyze`](./timeline_analyze) -- Анализ временного ряда выполнения задач
