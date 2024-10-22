@@ -63,7 +63,7 @@
      ...
     ```
 
-* Различные утилиты для профилирования: [profiling_tools](../yocto_profiling_tools/profilling_tools.md)
+* Различные утилиты для профилирования: [profiling_tools](./profilling_tools.md)
   - perf: собирает информацию о производительности системы.
   - perf stat: собирает статистику производительности.
   - perf mem: собирает информацию о доступе к памяти.
@@ -71,7 +71,7 @@
   - lsof: показывает открытые файлы и сокеты.
   - Strace: трассирует системные вызовы.
 
-* Профилирование процессов с помощью [psutil](../yocto_profiling_tools/psutil_lsof.md):
+* Профилирование процессов с помощью [psutil](./psutil_lsof.md):
   - `psutil.Process.open_files()`: возвращает список открытых файлов для указанного процесса.
   - `psutil.Process.connections()`: возвращает список всех сетевых соединений для указанного процесса.
   - `process.memory_maps()`: получение информации об отображенных в память файлах для указанного процесса.
@@ -80,14 +80,14 @@
 
 * Статистика сборки ([buildstats](../yocto_build/yocto_buildstats.md)):
   - Собирает:
-    - Информацию о хост-системе [build_stats.txt](log_files/build_stats.txt).
-    - Среднюю загрузку процессора [cpu.log](log_files/cpu.log).
-    - Статистику диска [monitor_disk.log](log_files/monitor_disk.log).
-    - Статистику IO [io.log](log_files/io.log).
-    - Информацию об использовании памяти [memory.log](log_files/memory.log).
+    - Информацию о хост-системе [build_stats.txt](logs/build_stats.txt).
+    - Среднюю загрузку процессора [cpu.log](logs/cpu.log).
+    - Статистику диска [monitor_disk.log](logs/monitor_disk.log).
+    - Статистику IO [io.log](logs/io.log).
+    - Информацию об использовании памяти [memory.log](logs/memory.log).
     - Данные о начале, конце выполнения и статусе задач (do_configure, do_install, do_compile и др.).
-  Пример файла содержащего статистику одной задачи - [do_fetch](log_files/do_fetch.txt)
-  Пример файла содержащего временные ряды для одной задачи - [do_fetch_timestamps](log_files/do_fetch_timestamps.txt)
+  Пример файла содержащего статистику одной задачи - [do_fetch](logs/do_fetch.txt)
+  Пример файла содержащего временные ряды для одной задачи - [do_fetch_timestamps](logs/do_fetch_timestamps.txt)
     
     - Как можно анализировать: можно рассчитать среднюю нагрузку на диск, IO, память, CPU, а также выявить наиболее ресурсоемкие задачи.
 
@@ -98,8 +98,8 @@
 
 * Построение и анализ графа зависимостей: [launch](../yocto_profiling_tools/launch.md)
   - Собирает:
-    - Сортировку вершин графа - [пример файла](log_files/tasks-order.txt).
-    - Нахождение оффсета между концом выполнения дочерней вершины и началом выполнения родительской вершины и сортировка вершин графа по этому оффсету - [пример файла](log_files/task-order-sorted-offset.txt).
+    - Сортировку вершин графа - [пример файла](logs/tasks-order.txt).
+    - Нахождение оффсета между концом выполнения дочерней вершины и началом выполнения родительской вершины и сортировка вершин графа по этому оффсету - [пример файла](logs/task-order-sorted-offset.txt).
     - Нахождение "корня".
     - Проверку на древовидную структуру.
     - Визуализацию слоев графа.
@@ -114,7 +114,7 @@
     - Как можно анализировать: можно выявлять пики, определять наиболее загруженные моменты, визуализировать для наглядности данные.
 
 * Время парсинга рецептов из различных слоев: [parsing_statistics](../../build/parsing_statistics/collect_parsing_statistics.md)
-    - Пример результата ([файл](log_files/layer_parsing_time.log)):
+    - Пример результата ([файл](logs/layer_parsing_time.log)):
       ```
       meta: 113.22 seconds
       meta-poky: 0.03 seconds
