@@ -135,11 +135,10 @@ do
 
     cp -f $BASE_DIR/build/conf/experiment.conf $SCRIPT_DIR/auto_conf/conf/local.conf
     cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
-    cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
 	echo -e "[CACHE SERVERS $i]" >> $EXPERIMENT_DIR/"times"
 	for j in 1 2
 	do
-		
+		cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
 		filename="test_${i}_${j}"
 		start=`date +%s`
 		cd $SRC_DIR && ./entrypoint.sh build_yocto_image --no-layers > $EXPERIMENT_DIR/"$filename"
