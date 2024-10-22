@@ -89,13 +89,19 @@ function build() {
 	fi
 
 	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
-	
+	if [ ! -f $YOCTO_INSTALL_PATH/conf/local.conf ]; then
+                cp $YOCTO_INSTALL_PATH/conf/default.conf $YOCTO_INSTALL_PATH/conf/local.conf
+        fi
+
+
   if [[ "$STAGE_VAR" != "no-layers" ]]; then
 	  $SCRIPTS_DIR/add_layers.sh $POKY_DIR
 	  cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
   fi
-	
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+
+  	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/conf/current.conf
+  	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+	rm $YOCTO_INSTALL_PATH/conf/local.conf
 
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
@@ -104,7 +110,7 @@ function build() {
 	bitbake-layers show-layers
 	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
-
+	
 	if [ $YOCTO_EXIT_CODE -ne 0 ]; then
 	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
     exit $YOCTO_EXIT_CODE

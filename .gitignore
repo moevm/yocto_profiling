@@ -3,7 +3,10 @@
 **/.idea
 **/__pycache__/*
 **/*.swp
+
+# CONFIGS
 **/build/conf/local.conf
+**/build/conf/current.conf
 
 # YOCTO
 **/assembly/build*

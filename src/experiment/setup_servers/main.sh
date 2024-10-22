@@ -136,7 +136,7 @@ do
     cp -f $BASE_DIR/build/conf/experiment.conf $SCRIPT_DIR/auto_conf/conf/local.conf
     cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
     cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
-	echo -e "CACHE SERVERS $i" >> $EXPERIMENT_DIR/"times"
+	echo -e "[CACHE SERVERS $i]" >> $EXPERIMENT_DIR/"times"
 	for j in 1 2
 	do
 		
@@ -147,11 +147,11 @@ do
 
 		runtime=$((end-start))
 		echo -e "REPEAT $j TIME: $runtime" >> $EXPERIMENT_DIR/"times"
+		cat $EXPERIMENT_DIR/"$filename" | grep "Parsing recipes: 100% || Time:" >> $EXPERIMENT_DIR/"times"
+		cat $EXPERIMENT_DIR/"$filename" | grep "Checking sstate mirror object availability: 100% || Time:" >> $EXPERIMENT_DIR/"times"
 
 		echo -e "Remove build folder\n"
 		cd $SRC_DIR/yocto-build/assembly && rm -rf ./build
-        
-		# GREP LOGS
 
 		sleep 15
 	done
