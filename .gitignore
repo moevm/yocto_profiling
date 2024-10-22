@@ -1,7 +1,6 @@
 .idea
 
 # GENERAL
-**/logs
 **/*.swp
 
 # YOCTO
