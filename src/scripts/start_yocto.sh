@@ -6,9 +6,8 @@ IMAGE_CHECK=yocto-image-check.sh
 
 $CHECKS_DIR/$IMAGE_CHECK
 if [[ $? -eq 1 ]]; then
-        exit 1
+	exit 1
 fi
-
 
 cd $1
 
@@ -19,4 +18,3 @@ docker compose stop
 
 # Shutdown system = `Ctrl + A`, press `X`
 # Alternatively = `Ctrl + A`, press `C`, type `quit`
-

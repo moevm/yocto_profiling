@@ -1,32 +1,20 @@
 #!/bin/bash
 
-# USING: ./main.sh ./auto_conf/experiment.conf
-
 SCRIPT_DIR=$(dirname "$(realpath $0)")
 
 EXPERIMENT_DIR=$SCRIPT_DIR/..
 BASE_DIR=$SCRIPT_DIR/../../..
 SRC_DIR=$BASE_DIR/src
 
-# В папке ./build должен лежать конфиг сборки. Сейчас он учитывает доп слои. Нужно иметь его оригинал, для этого создаём временную папку save_orirginal_config, куда положим оригинальный конфиг
-mkdir -p $BASE_DIR/build/save_orirginal_config
-cp -f $BASE_DIR/build/conf/local.conf $BASE_DIR/build/save_orirginal_config/local.conf
+rm -rf $EXPERIMENT_DIR/test*
+rm -rf $EXPERIMENT_DIR/times
 
 # Импортируем функцию парсинга config файла
 . $SCRIPT_DIR/auto_conf/read_config.sh
 
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 config_file"
-    exit 1
-fi
-
-if [ ! -f "$1" ]; then
-    echo "Error: File $1 not found."
-    exit 1
-fi
-
-# Парсим config файл 
-process_config $1
+# Парсим config файл
+DEFAULT_CONFIG_FILE=$SCRIPT_DIR/auto_conf/experiment.conf
+process_config $DEFAULT_CONFIG_FILE
 
 echo "USING $1"
 echo "cache_ip = $cache_ip"
@@ -101,8 +89,8 @@ function setup_and_start_hash_server() {
 	rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$hash_desktop_path/test/ > /dev/null
 	# ssh $hash_usr@$hash_ip "docker stop $(docker ps -q --filter ancestor=hash)" 2> /dev/null
 	# ssh $hash_usr@$hash_ip "docker rm $(docker ps -q -a --filter ancestor=hash)" 2> /dev/null
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  2> /dev/null
 
 	echo -e "\n"
@@ -128,7 +116,7 @@ check_cache_server_deps
 setup_and_start_hash_server
 
 CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill"
+ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 
 prepare_host
 
@@ -145,26 +133,34 @@ do
 	cd $SCRIPT_DIR/auto_conf && python3 set_num_ports.py --cache_num_port $i
 	echo -e "Building Yocto on host with $i servers: START.\n"
 
-    cp -f $BASE_DIR/build/conf/local_temp.conf $SCRIPT_DIR/auto_conf/conf/local.conf
+    cp -f $BASE_DIR/build/conf/experiment.conf $SCRIPT_DIR/auto_conf/conf/local.conf
     cd $SCRIPT_DIR/auto_conf && python3 auto_compose_local_conf.py
     cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $BASE_DIR/build/conf/local.conf
+	echo -e "CACHE SERVERS $i" >> $EXPERIMENT_DIR/"times"
 	for j in 1 2
 	do
+		
 		filename="test_${i}_${j}"
-		cd $SRC_DIR && ./entrypoint.sh build_yocto_image --no-layers >> $EXPERIMENT_DIR/"$filename"
+		start=`date +%s`
+		cd $SRC_DIR && ./entrypoint.sh build_yocto_image --no-layers > $EXPERIMENT_DIR/"$filename"
+		end=`date +%s`
+
+		runtime=$((end-start))
+		echo -e "REPEAT $j TIME: $runtime" >> $EXPERIMENT_DIR/"times"
 
 		echo -e "Remove build folder\n"
 		cd $SRC_DIR/yocto-build/assembly && rm -rf ./build
-        	
+        
+		# GREP LOGS
+
 		sleep 15
 	done
+	echo -e "" >> $EXPERIMENT_DIR/"times"
 	echo -e "Building Yocto on host: DONE.\n"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm"
-	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill"
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 	
 	sleep 25
 done
 
-# возвращаем конфиг на место
-cp -f $BASE_DIR/build/save_orirginal_config/local.conf $BASE_DIR/build/conf/local.conf
