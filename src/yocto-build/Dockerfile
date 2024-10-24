@@ -88,6 +88,5 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
 
-COPY ./build/conf ./conf 
 
 ENTRYPOINT ["./assembly/scripts/setup.sh"]

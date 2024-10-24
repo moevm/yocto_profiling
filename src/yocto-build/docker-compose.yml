@@ -3,6 +3,8 @@ services:
   yocto_project:
     container_name: yocto_project
     image: yocto-image
+    # stdin_open: true
+    tty: true
     build:
       context: ../../
       dockerfile: ./src/yocto-build/Dockerfile
@@ -30,4 +32,5 @@ services:
     volumes:
       - ../yocto-patches:/home/yocto_user/project/yocto-patches
       - ./assembly:/home/yocto_user/project/assembly
+      - ../../build/conf:/home/yocto_user/project/conf
       - /sys/kernel/debug:/sys/kernel/debug

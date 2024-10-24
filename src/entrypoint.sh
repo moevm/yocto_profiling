@@ -1,10 +1,13 @@
 #! /bin/bash
 
-SCRIPTS_DIR=$PWD/scripts
-PATCHES_DIR=$PWD/yocto-patches
+SRC_DIR=$(dirname "$(realpath $0)")
+CONF_PATH=$SRC_DIR/../build/conf
+
+SCRIPTS_DIR=$SRC_DIR/scripts
+PATCHES_DIR=$SRC_DIR/yocto-patches
 CHECKS_DIR=$SCRIPTS_DIR/checks
 
-DOCKERFILE_DIR=$PWD/yocto-build
+DOCKERFILE_DIR=$SRC_DIR/yocto-build
 POKY_DIR=$DOCKERFILE_DIR/assembly/poky
 
 function help() {
@@ -38,8 +41,6 @@ function help() {
 	
 	echo -e ""
 	echo -e "\tcheck -- Verify that dependencies are installed for the project."
-	
-
 }
 
 function check(){
