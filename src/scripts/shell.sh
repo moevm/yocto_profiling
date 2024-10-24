@@ -12,7 +12,6 @@ fi
 cd $1
 
 STAGE_VAR="sleep" docker compose up -d
-
 docker container exec -it yocto_project /bin/bash
 
 docker compose stop
