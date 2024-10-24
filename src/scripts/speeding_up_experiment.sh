@@ -4,6 +4,7 @@ set -e
 
 SCRIPT_DIR=$(dirname "$(realpath $0)")
 SRC_DIR=$SCRIPT_DIR/..
+PROJECT_DIR=$SRC_DIR/..
 BUILDSTATS_DIR=$SRC_DIR/yocto-build/assembly/build/tmp/buildstats
 SAVE_DIR=$SRC_DIR/buildstats_saves
 SAVING_TIME_FILE=$SAVE_DIR/time.txt
@@ -35,7 +36,9 @@ function make_task_children_file() {
   cp yocto-build/assembly/queue yocto-build/assembly/build
   cp yocto-build/assembly/skip yocto-build/assembly/build
 
-  python3 ../main.py -g graph -b 0 -p ../src/yocto-build/assembly/ -d ../src/yocto-build/assembly/build/task-depends.dot
+  cd $PROJECT_DIR
+  python3 main.py -g graph -b 0 -p ./src/yocto-build/assembly/ -d ./src/yocto-build/assembly/build/task-depends.dot
+  cd $SRC_DIR
 }
 
 function prepare_build() {
