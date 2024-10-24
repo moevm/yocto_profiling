@@ -45,6 +45,7 @@ function prepare_build() {
   ./entrypoint.sh clean-docker
   ./entrypoint.sh clean-build
   ./entrypoint.sh build_env --no-perf
+  cp dep_graph/text-files/task-children.txt yocto-build/assembly
 }
 
 function create_saving_dir() {
@@ -72,8 +73,6 @@ function main() {
     ./entrypoint.sh clean-build
     ./entrypoint.sh build_yocto_image --only-poky
     ./entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
-
-    cp dep_graph/text-files/task-children.txt yocto-build/assembly
 
 
     start_time=$(date +%s)
