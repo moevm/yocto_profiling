@@ -1,5 +1,5 @@
 --- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-10-17 15:55:03.316618228 +0300
++++ sstate.bbclass	2024-10-24 15:22:18.438615946 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -9,7 +9,6 @@
  
  SSTATE_ZSTD_CLEVEL ??= "8"
  
-
 @@ -731,6 +731,7 @@
  
  def pstaging_fetch(sstatefetch, d):
@@ -18,14 +17,16 @@
  
      # Only try and fetch if the user has configured a mirror
      mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -740,6 +741,17 @@
+@@ -740,6 +741,19 @@
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
 +    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует 
-+    
-+    with open('./file_mirror_map', 'r') as mapping_file:
-+        file_mirror_map = json.load(mapping_file)
++    try:
++        with open('./file_mirror_map', 'r') as mapping_file:
++            file_mirror_map = json.load(mapping_file)
++    except FileNotFoundError:
++        file_mirror_map = None
 +
 +    if file_mirror_map:
 +        relevant_mirror = file_mirror_map[sstatefetch]
@@ -36,7 +37,7 @@
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -766,7 +778,7 @@
+@@ -766,7 +780,7 @@
          localdata.setVar('SRC_URI', srcuri)
          try:
              fetcher = bb.fetch2.Fetch([srcuri], localdata, cache=False)
@@ -45,12 +46,12 @@
              fetcher.download()
  
          except bb.fetch2.BBFetchException:
-@@ -950,13 +962,19 @@
+@@ -950,13 +964,20 @@
  }
  
  BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
 +#FILE_MIRROR_MAP = "" не действует
-@@ -953,6 +953,9 @@
+ 
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
 +    import requests
@@ -60,13 +61,12 @@
      found = set()
      missed = set()
 +    file_mirror_map = {}
+ 
 +    
      def gethash(task):
          return sq_data['unihash'][task]
  
-@@ -996,6 +1014,12 @@
-
-@@ -996,6 +999,12 @@
+@@ -996,6 +1017,12 @@
      foundLocal = len(found)
      mirrors = d.getVar("SSTATE_MIRRORS")
      if mirrors:
@@ -79,6 +79,7 @@
          # Copy the data object and override DL_DIR and SRC_URI
          localdata = bb.data.createCopy(d)
  
+@@ -1056,32 +1083,98 @@
          for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
@@ -92,6 +93,7 @@
 +            if len(mirrors) % 2 != 0:
 +                bb.warn('Invalid mirror data %s, should have paired members.' % data)
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
++
 +            for mirror in mirrors:
 +                if 'http' in mirror:
 +                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
@@ -197,3 +199,10 @@
  
      inheritlist = d.getVar("INHERIT")
      if "toaster" in inheritlist:
+@@ -1109,6 +1202,9 @@
+ 
+     if hasattr(bb.parse.siggen, "checkhashes"):
+         bb.parse.siggen.checkhashes(sq_data, missed, found, d)
+ 
+     return found
+ setscene_depvalid[vardepsexclude] = "SSTATE_EXCLUDEDEPS_SYSROOT _SSTATE_EXCLUDEDEPS_SYSROOT"
