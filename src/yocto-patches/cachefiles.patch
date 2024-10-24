@@ -199,7 +199,6 @@
  
      inheritlist = d.getVar("INHERIT")
      if "toaster" in inheritlist:
-@@ -1109,6 +1202,9 @@
  
      if hasattr(bb.parse.siggen, "checkhashes"):
          bb.parse.siggen.checkhashes(sq_data, missed, found, d)
