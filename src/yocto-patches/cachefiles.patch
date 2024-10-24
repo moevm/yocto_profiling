@@ -9,6 +9,7 @@
  
  SSTATE_ZSTD_CLEVEL ??= "8"
  
+
 @@ -731,6 +731,7 @@
  
  def pstaging_fetch(sstatefetch, d):
@@ -49,7 +50,7 @@
  
  BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
 +#FILE_MIRROR_MAP = "" не действует
- 
+@@ -953,6 +953,9 @@
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
 +    import requests
@@ -59,12 +60,13 @@
      found = set()
      missed = set()
 +    file_mirror_map = {}
- 
 +    
      def gethash(task):
          return sq_data['unihash'][task]
  
 @@ -996,6 +1014,12 @@
+
+@@ -996,6 +999,12 @@
      foundLocal = len(found)
      mirrors = d.getVar("SSTATE_MIRRORS")
      if mirrors:
@@ -77,7 +79,6 @@
          # Copy the data object and override DL_DIR and SRC_URI
          localdata = bb.data.createCopy(d)
  
-@@ -1056,32 +1080,98 @@
          for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
@@ -91,7 +92,6 @@
 +            if len(mirrors) % 2 != 0:
 +                bb.warn('Invalid mirror data %s, should have paired members.' % data)
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
-+
 +            for mirror in mirrors:
 +                if 'http' in mirror:
 +                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'

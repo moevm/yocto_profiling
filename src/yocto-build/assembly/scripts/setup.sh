@@ -8,7 +8,7 @@ case "$STAGE_VAR" in
         	sleep infinity
 		;;
 	*)
-		echo "Trying to build yocto-project."
+		echo "yocto-project scripts was executed"
 		./building.sh
 		;;
 esac

@@ -9,9 +9,10 @@ ARG CORE
 ARG CODENAME
 
 ARG YOCTO_INSTALL_PATH
+ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
+
 ARG LC_ALL
 ARG LANG
-ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
 ENV LC_ALL=$LC_ALL
 ENV LANG=$LANG
 
@@ -87,6 +88,5 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
 
-COPY ./build/conf ./conf 
 
 ENTRYPOINT ["./assembly/scripts/setup.sh"]
