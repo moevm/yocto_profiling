@@ -1,39 +1,57 @@
 #! /bin/bash
 
-FRAGMENT_PATH=$YOCTO_INSTALL_PATH/assembly/poky/meta/recipes-kernel/linux
-HASH_TEMPLATE="^Checking sstate mirror object availability: 100% \|[#]*\| Time: [0-9]+:[0-5][0-9]:[0-5][0-9]$"
-
-date=$(date +"%d-%m-%Y_%H:%M:%S")
-
-cd $YOCTO_INSTALL_PATH/assembly
-if [ ! -d "./logs" ]; then
-	echo "Create log dir."
-	mkdir logs
-fi
-
-if [ ! -d "./poky" ]; then
-	echo "Clone Poky."
-	git clone git://git.yoctoproject.org/poky
-fi
-
-branch_name=my-upstream_5.0.1
-commit_hash=$YOCTO_COMMIT_HASH
-
-cd $YOCTO_INSTALL_PATH/assembly/poky 
-current_branch=$(git branch --show-current)
-if [ "$current_branch" != "$branch_name" ]; then
-	echo "Switch the branch."
-	git checkout $commit_hash -b $branch_name
-fi
+ASSEMBLY_DIR=$YOCTO_INSTALL_PATH/assembly
+POKY_DIR=$ASSEMBLY_DIR/poky
+SCRIPTS_DIR=$ASSEMBLY_DIR/scripts
+FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
 
 
-cd $YOCTO_INSTALL_PATH/assembly
+BRANCH_NAME="my-upstream_5.0.1"
+YOCTO_REPOSITORY=git://git.yoctoproject.org/poky
+
+YOCTO_EXIT_CODE=0
+YOCTO_CLONING_CODE=0
 
 
-if [[ "$STAGE_VAR" == "clone_poky" ]]; then
-    echo "Only cloning because of breaking flag!"
-    exit 0
-fi
+function check_dirs() {
+  cd $ASSEMBLY_DIR
+
+  if [ ! -d "./logs" ]; then
+    echo "Create log dir."
+    mkdir logs
+  fi
+
+  check_poky
+}
+
+function check_poky() {
+
+  if [ ! -d "./poky" ]; then
+    echo "Clone Poky."
+    git clone $YOCTO_REPOSITORY
+
+    YOCTO_CLONING_CODE=$?
+  fi
+
+  if [ $YOCTO_CLONING_CODE -ne 0 ]; then
+	  echo "Yocto cloning ends with code: $YOCTO_CLONING_CODE"
+    exit $YOCTO_CLONING_CODE
+  fi
+  echo "Yocto cloning finish successfully."
+
+  if [[ "$STAGE_VAR" == "only-poky" ]]; then
+    exit $YOCTO_CLONING_CODE
+  fi
+
+  cd $POKY_DIR
+
+  CURRENT_BRANCH=$(git branch --show-current)
+  if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
+    echo "Switch the branch."
+    git checkout $YOCTO_COMMIT_HASH -b $BRANCH_NAME
+  fi
+
+}
 
 function start_logging() {
 	# start utils for logging
@@ -49,42 +67,56 @@ function finish_logging() {
 	echo "Completed building yocto!" >> $1
 }
 
-
 function decorate_logs() {
-	log_file=$YOCTO_INSTALL_PATH/assembly/logs/building_logs.txt
+	LOG_FILE=$ASSEMBLY_DIR/logs/building_logs.txt
 
 	if [ $# -eq 0 ]; then
 		echo "You can use wrapper function. It takes any function with args and logs output to <./logs/building_logs.txt>"
 		return 1
 	fi
 
-	func_to_log="$1"
-	cp /dev/null $log_file
+	FUNC_TO_LOG="$1"
+	cp /dev/null $LOG_FILE
 
-	# logging
-	start_logging $log_file
-	$func_to_log $@ 2>&1
-	finish_logging $log_file
+	start_logging $LOG_FILE
+	$FUNC_TO_LOG $@ 2>&1
+	finish_logging $LOG_FILE
 }
-
 
 function build() {
-	./scripts/add_layers.sh
-	source $YOCTO_INSTALL_PATH/assembly/poky/oe-init-build-env $YOCTO_INSTALL_PATH/assembly/build/ >/dev/null
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/assembly/build/conf/local.conf 
+	if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
+		rm $ASSEMBLY_DIR/build/conf/bblayers.conf
+	fi
+
+	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
+	if [ ! -f $YOCTO_INSTALL_PATH/conf/local.conf ]; then
+                cp $YOCTO_INSTALL_PATH/conf/default.conf $YOCTO_INSTALL_PATH/conf/local.conf
+	fi
 	
+	if [[ "$STAGE_VAR" != "no-layers" ]]; then
+		$SCRIPTS_DIR/add_layers.sh $POKY_DIR
+		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
+	fi
+
+  	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/conf/current.conf
+  	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+	rm $YOCTO_INSTALL_PATH/conf/local.conf
+
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
-	
-	cd $YOCTO_INSTALL_PATH/assembly
-	./scripts/update_kernel.sh $FRAGMENT_PATH
+	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
 	
 	bitbake-layers show-layers
-	bitbake core-image-minimal | tee >( grep -E -i "$HASH_TEMPLATE" >$YOCTO_INSTALL_PATH/assembly/logs/filtered_logs_$date.txt)
+	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
-	echo "yocto building ends with code: $YOCTO_EXIT_CODE"
+	
+	if [ $YOCTO_EXIT_CODE -ne 0 ]; then
+	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
+    exit $YOCTO_EXIT_CODE
+  fi
+
+  echo "Yocto cloning finish successfully."
 }
 
+check_dirs
 decorate_logs build
-
-exit $YOCTO_EXIT_CODE

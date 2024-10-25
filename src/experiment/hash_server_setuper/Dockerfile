@@ -1,29 +1,29 @@
-FROM ubuntu:20.04 AS requirements
+FROM ubuntu:20.04
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get -y install \
-        gawk \
-        wget \
-        git-core \
-        diffstat \
-        unzip \
-        texinfo \
+	gawk \
+	wget \
+	git-core \
+	diffstat \
+	unzip \
+	texinfo \
 	gcc-multilib \
-        build-essential \
-        chrpath \
-        socat \
+	build-essential \
+	chrpath \
+	socat \
 	cpio \
 	python3 \
-        python3-pip \
-        python3-pexpect \
-        xz-utils \
+	python3-pip \
+	python3-pexpect \
+	xz-utils \
 	debianutils \
 	iputils-ping \
-        python3-git \
-        python3-jinja2 \
+	python3-git \
+	python3-jinja2 \
 	libegl1-mesa \
-        libsdl1.2-dev \
-        python3-subunit \ 
+	libsdl1.2-dev \
+	python3-subunit \ 
 	mesa-common-dev \ 
 	zstd \ 
 	liblz4-tool \ 

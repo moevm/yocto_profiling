@@ -1,15 +1,14 @@
 #! /bin/bash
 
-# INPUT
-if (( $# < 3 )); then
-        echo "Unexpected parameters count! Expected: POKY_DIR, PATCHES_DIR, list of patches ... and optional --reverse and --patches-list params."
-        exit 0
+CHECKS_DIR=$(dirname "$0")/checks
+IMAGE_CHECK=yocto-image-check.sh
+
+$CHECKS_DIR/$IMAGE_CHECK
+if [[ $? -eq 1 ]]; then
+        exit 1
 fi
 
-POKY_DIR=$1
-PATCHES_DIR=$2
-shift 2
+cd $1
+shift 1
 
-echo -e "RUN: python3 $PATCHES_DIR/main.py --poky-path $POKY_DIR --dir-path $PATCHES_DIR --patch $@\n"
-python3 $PATCHES_DIR/main.py --poky-path $POKY_DIR --dir-path $PATCHES_DIR --patch $@
-
+docker compose run --rm --entrypoint ./assembly/scripts/patching.sh yocto_project $@
