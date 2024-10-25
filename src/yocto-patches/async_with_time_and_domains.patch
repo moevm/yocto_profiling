@@ -1,5 +1,5 @@
 diff --git a/bitbake/lib/bb/cookerdata.py b/bitbake/lib/bb/cookerdata.py
-index 0649e40995..614129b874 100644
+index 0649e40995..32b7406994 100644
 --- a/bitbake/lib/bb/cookerdata.py
 +++ b/bitbake/lib/bb/cookerdata.py
 @@ -300,6 +300,69 @@ class CookerDataBuilder(object):
@@ -25,7 +25,6 @@ index 0649e40995..614129b874 100644
 +                    return 990
 +                else:
 +                    return 8888 # TODO:  выбрать какое-то дефолтное значение
-+
 +
 +            async def is_port_open(address, port, timeout=5):
 +                try:
@@ -54,15 +53,16 @@ index 0649e40995..614129b874 100644
 +                        tasks.append(is_port_open(address, port))
 +
 +                results = await asyncio.gather(*tasks)
++                
++                if False in results:
++                    for i, result in enumerate(results):
++                        if result:
++                            filtered_result.append(mirrors_list[i])
 +
-+                for i, result in enumerate(results):
-+                    if result:
-+                        filtered_result.append(mirrors_list[i])
-+
-+                log_string = f'Several SSTATE_MIRRORS are not available, using: {str(filtered_result)}!'
-+                logger.warning(log_string)                
-+                output_string = ' '.join(filtered_result)
-+                data.setVar('SSTATE_MIRRORS', output_string)
++                    log_string = f'Several SSTATE_MIRRORS are not available, using: {str(filtered_result)}!'
++                    logger.warning(log_string)                
++                    output_string = ' '.join(filtered_result)
++                    data.setVar('SSTATE_MIRRORS', output_string)
 +
 +
 +            asyncio.run(async_mirrors_filter(mirrors_list, self.data))
