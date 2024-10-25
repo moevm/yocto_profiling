@@ -6,7 +6,7 @@ DOCKERFILE_DIR=$BASE_DIR/yocto-build
 
 echo -e "STAGE: start container"
 cd $DOCKERFILE_DIR
-STAGE_VAR="stage_run" docker compose up -d
+STAGE_VAR="sleep" docker compose up -d
 
 echo -e "STAGE: start yocto"
 docker container exec -d yocto_project ./up_yocto.sh

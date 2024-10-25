@@ -11,15 +11,7 @@
                 "path": "/meta/lib/",
                 "file": "buildstats.py"
         },
-        "buildstats_timestamps.patch": {
-                "path": "/meta/classes-global/",
-                "file": "buildstats.bbclass"
-        },
-        "buildstats_netstats.patch": {
-                "path": "/meta/classes-global/",
-                "file": "buildstats.bbclass"
-        },
-        "pid.patch": {
+        "buildstats_netstat_and_timestamps.patch": {
                 "path": "/meta/classes-global/",
                 "file": "buildstats.bbclass"
         },
@@ -34,5 +26,9 @@
         "async_with_time_and_domains.patch": {
                 "path": "/bitbake/lib/bb/",
                 "file": "cookerdata.py"
+        },
+        "cachefiles.patch": {
+                "path": "/meta/classes-global/",
+                "file": "sstate.bbclass"
         }
 }

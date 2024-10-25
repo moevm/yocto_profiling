@@ -1,11 +1,13 @@
 #! /bin/bash
 
-DOCKERFILE_DIR=$PWD/yocto-build
+SCRIPT_DIR=$(dirname "$(realpath $0)")
+SRC_DIR=$SCRIPT_DIR/..
+DOCKERFILE_DIR=$SRC_DIR/yocto-build
 PATH_TO_CACHE=/yocto-build/assembly/build/sstate-cache
 
 
 function build_env(){
-	./entrypoint.sh build_env --no-perf
+	$SRC_DIR/entrypoint.sh build_env --no-perf
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
@@ -15,7 +17,7 @@ function build_env(){
 }
 
 function build_yocto_image(){
-	./entrypoint.sh build_yocto_image
+	$SRC_DIR/entrypoint.sh build_yocto_image
 	
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
@@ -35,13 +37,13 @@ function start_servers(){
 }
 
 function pipeline(){
-        echo -e "\n\nSTAGE 1: build env\n\n"
-        build_env
+        # echo -e "\n\nSTAGE 1: build env\n\n"
+        # build_env
 
-        echo -e "\n\nSTAGE 2: build yocto\n\n"
-        build_yocto_image
+        # echo -e "\n\nSTAGE 2: build yocto\n\n"
+        # build_yocto_image
 
-        echo -e "\n\nSTAGE 3: start sstate-cache servers\n\n"
+        echo -e "\n\nStart sstate-cache servers: \n\n"
         start_servers $1 $2
 }
 
@@ -61,9 +63,8 @@ fi
 
 case "$1" in
 	"start")
-		echo -e "RUNNING FULL PIPELINE!"
 		PORT=9000
-       		COUNT_OF_SERVERS=4
+		COUNT_OF_SERVERS=4
 		
 		if [ ! -z "$2" ]; then
 			result=$(echo $2 | grep -E '^[[:digit:]]+$')
