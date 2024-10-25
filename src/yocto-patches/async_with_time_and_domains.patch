@@ -6,10 +6,10 @@ index 0649e40995..32b7406994 100644
  
          bb.codeparser.update_module_dependencies(self.data)
  
-+        try: 
++        try:
 +            import asyncio
 +            from urllib.parse import urlparse
-+            
++
 +            mirrors = self.data.getVar('SSTATE_MIRRORS')
 +            parts = mirrors.split()
 +            mirrors_list = [' '.join(parts[i:i+2]) for i in range(0, len(parts), 2)]
@@ -40,7 +40,7 @@ index 0649e40995..32b7406994 100644
 +                address = parsed_url.hostname
 +                port = parsed_url.port if parsed_url.port else get_default_port(parsed_url.scheme)
 +                return address, port
-+            
++
 +
 +            async def async_mirrors_filter(mirrors_list, data):
 +                filtered_result = []
@@ -53,14 +53,14 @@ index 0649e40995..32b7406994 100644
 +                        tasks.append(is_port_open(address, port))
 +
 +                results = await asyncio.gather(*tasks)
-+                
++
 +                if False in results:
 +                    for i, result in enumerate(results):
 +                        if result:
 +                            filtered_result.append(mirrors_list[i])
 +
 +                    log_string = f'Several SSTATE_MIRRORS are not available, using: {str(filtered_result)}!'
-+                    logger.warning(log_string)                
++                    logger.warning(log_string)
 +                    output_string = ' '.join(filtered_result)
 +                    data.setVar('SSTATE_MIRRORS', output_string)
 +
