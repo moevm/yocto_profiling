@@ -1,0 +1,17 @@
+diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
+index 96655ff24f..6842a1cb71 100644
+--- a/meta/classes-global/sstate.bbclass
++++ b/meta/classes-global/sstate.bbclass
+@@ -1086,6 +1086,12 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+ 
+             if progress:
+                 bb.event.fire(bb.event.ProcessFinished(msg), d)
++                pid = os.getpid()
++                def parse_etime(etime):
++                    return int(etime)
++                proc_info = os.popen(f'ps -o etimes= -p {pid}').read().strip()
++                elapsed_time = 'Time from the start to end of checking sstate availability == ' + str(parse_etime(proc_info))
++                bb.warn(elapsed_time)
+ 
+     inheritlist = d.getVar("INHERIT")
+     if "toaster" in inheritlist:
