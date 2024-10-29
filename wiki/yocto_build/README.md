@@ -12,6 +12,7 @@
 * [directories_sizes](./directories_sizes.md) - описание содержимого дискового пространства в папке build
 * [WORKDIR](./WORKDIR.md) - получение переменной WORKDIR для рецепта
 * [tasks_priority](./tasks_priority.md) - как и где устанавливается приоритет задач, эксперимент по изменению приоритетов задач do_compile и do_configure
+* [speed_up_building](./speed_up_building.md) - ускорение сборки с помощью установки лимита нагрузки на сеть и использования информации о детях задач из графа зависимостей.
 
 ## Собираемая статистика в Yocto
 * [logging_build](./loging_building.md) - инструкция по логированию в Yocto (как сохранить лог)
