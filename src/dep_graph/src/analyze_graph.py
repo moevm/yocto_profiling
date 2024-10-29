@@ -6,13 +6,12 @@ def analyze_graph(dotfilename, info, create_txt=False):
     G = nx.DiGraph(nx.nx_pydot.read_dot(dotfilename))
     sorted_tasks = sort_start_time(info)
     sorted_nodes = []
-    for node in G.nodes: #для каждой вершины найти соответствующий ей индекс в sorted_tasks
+    for node in G.nodes:  #для каждой вершины найти соответствующий ей индекс в sorted_tasks
         index, start, end = match(node, sorted_tasks)
         sorted_nodes.append((index, node, start, end))
 
     sorted_nodes = sorted(sorted_nodes, key=lambda x:x[0])
 
-    task_children = {}
     results = []
     for node in G.nodes:
         for child in G.neighbors(node):
@@ -26,10 +25,6 @@ def analyze_graph(dotfilename, info, create_txt=False):
             else:
                 offset = -1
             results.append((f'node: {node}, Started: {result1[2]}, child: {child}, Ended: {result2[3]}',  offset))
-            if node in task_children:
-                task_children[node] += 1
-            else:
-                task_children[node] = 1
 
     results = sorted(results, key=lambda x: x[1], reverse=True)
 
@@ -38,6 +33,16 @@ def analyze_graph(dotfilename, info, create_txt=False):
         with open('./src/dep_graph/text-files/task-order-sorted-offset.txt', 'w') as file:
             file.writelines(f"{item[0]}, offset: {item[1]}\n" for item in results)
 
+    return results
+
+
+def graph_task_children(dotfilename):
+    G = nx.DiGraph(nx.nx_pydot.read_dot(dotfilename))
+
+    task_children = {}
+    for node in G.nodes:
+        for child in G.neighbors(node):
+            task_children[node] = task_children.get(node, 0) + 1
+
     with open('./src/dep_graph/text-files/task-children.txt', 'w') as file:
         file.writelines(f"{key} {value}\n" for key, value in task_children.items())
-    return results

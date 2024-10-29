@@ -23,21 +23,12 @@ function make_task_children_file() {
   ./entrypoint.sh clean-docker
   ./entrypoint.sh build_env --no-perf
   ./entrypoint.sh build_yocto_image --only-poky
-  ./entrypoint.sh patch runqueue.patch
-  ./entrypoint.sh build_yocto_image
 
   cd yocto-build
-  docker compose up -d
-  docker exec -it yocto_project sh -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
-  docker compose stop
-
-  cd $SRC_DIR
-
-  cp yocto-build/assembly/queue yocto-build/assembly/build
-  cp yocto-build/assembly/skip yocto-build/assembly/build
+  docker compose run --rm --entrypoint /bin/sh yocto_project -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
 
   cd $PROJECT_DIR
-  python3 main.py -g graph -b 0 -p ./src/yocto-build/assembly/ -d ./src/yocto-build/assembly/build/task-depends.dot
+  python3 main.py -g task_children -d ./src/yocto-build/assembly/build/task-depends.dot
   cd $SRC_DIR
 }
 
