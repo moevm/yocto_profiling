@@ -1,5 +1,5 @@
 --- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-09-25 16:39:27.349150629 +0300
++++ sstate.bbclass	2024-10-24 15:22:18.438615946 +0300
 @@ -4,7 +4,7 @@
  # SPDX-License-Identifier: MIT
  #
@@ -9,7 +9,48 @@
  
  SSTATE_ZSTD_CLEVEL ??= "8"
  
-@@ -953,6 +953,9 @@
+@@ -731,6 +731,7 @@
+ 
+ def pstaging_fetch(sstatefetch, d):
+     import bb.fetch2
++    import json
+ 
+     # Only try and fetch if the user has configured a mirror
+     mirrors = d.getVar('SSTATE_MIRRORS')
+@@ -740,6 +741,19 @@
+     # Copy the data object and override DL_DIR and SRC_URI
+     localdata = bb.data.createCopy(d)
+ 
++    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует 
++    try:
++        with open('./file_mirror_map', 'r') as mapping_file:
++            file_mirror_map = json.load(mapping_file)
++    except FileNotFoundError:
++        file_mirror_map = None
++
++    if file_mirror_map:
++        relevant_mirror = file_mirror_map[sstatefetch]
++        if relevant_mirror:
++            mirrors = 'file://.* ' + relevant_mirror
++
++
+     dldir = localdata.expand("${SSTATE_DIR}")
+     bb.utils.mkdirhier(dldir)
+ 
+@@ -766,7 +780,7 @@
+         localdata.setVar('SRC_URI', srcuri)
+         try:
+             fetcher = bb.fetch2.Fetch([srcuri], localdata, cache=False)
+-            fetcher.checkstatus()
++            #fetcher.checkstatus()
+             fetcher.download()
+ 
+         except bb.fetch2.BBFetchException:
+@@ -950,13 +964,20 @@
+ }
+ 
+ BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
++#FILE_MIRROR_MAP = "" не действует
  
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
@@ -19,7 +60,13 @@
  
      found = set()
      missed = set()
-@@ -996,6 +999,12 @@
++    file_mirror_map = {}
+ 
++    
+     def gethash(task):
+         return sq_data['unihash'][task]
+ 
+@@ -996,6 +1017,12 @@
      foundLocal = len(found)
      mirrors = d.getVar("SSTATE_MIRRORS")
      if mirrors:
@@ -32,7 +79,7 @@
          # Copy the data object and override DL_DIR and SRC_URI
          localdata = bb.data.createCopy(d)
  
-@@ -1056,32 +1065,91 @@
+@@ -1056,32 +1083,98 @@
          for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
@@ -41,11 +88,12 @@
 +        
          if tasklist:
 -            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
-+            cache_tasks = []
++            cache_tasks = {}
 +            mirrors = (mirrors or "").replace('\\n',' ').split()
 +            if len(mirrors) % 2 != 0:
 +                bb.warn('Invalid mirror data %s, should have paired members.' % data)
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
++
 +            for mirror in mirrors:
 +                if 'http' in mirror:
 +                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
@@ -53,7 +101,7 @@
 +
 +                    # Проверка успешности запроса
 +                    if response.status_code == 200:
-+                        cache_tasks.extend(response.text.split('\n'))
++                        cache_tasks.update({mirror: response.text.split('\n')})
 +                        mirrors_missed.remove(mirror)
 +                        
 +
@@ -74,7 +122,7 @@
 +
 +                        with open('index.txt', 'r') as local_file:
 +                            content = local_file.read().split('\n')
-+                            cache_tasks.extend(content)
++                            cache_tasks.update({mirror: content})
 +                        mirrors_missed.remove(mirror)
 +                    except:
 +                        pass
@@ -82,11 +130,17 @@
 +            for arg in tasklist:
 +                (tid, sstatefile) = arg
 +                srcuri = sstatefile
-+                if srcuri in cache_tasks:
-+                    found.add(tid)
-+                    missed.remove(tid)
-+                    tasklist_copy.remove(arg)
-+                
++                for m, files in cache_tasks.items():
++                    if srcuri in files:
++                        found.add(tid)
++                        missed.remove(tid)
++                        file_mirror_map.update({srcuri: m}) #таким образом будет только одно зеркало, можно сделать чтобы здесь был список из всех зеркал, на которых есть этот файл
++                        tasklist_copy.remove(arg)
++
++            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
++
++            with open('./file_mirror_map', 'w') as mapping_file:
++                json.dump(file_mirror_map, mapping_file, indent=4)
 +
 +            if mirrors_missed:
 +                mirrors_new = ''
@@ -145,3 +199,9 @@
  
      inheritlist = d.getVar("INHERIT")
      if "toaster" in inheritlist:
+ 
+     if hasattr(bb.parse.siggen, "checkhashes"):
+         bb.parse.siggen.checkhashes(sq_data, missed, found, d)
+ 
+     return found
+ setscene_depvalid[vardepsexclude] = "SSTATE_EXCLUDEDEPS_SYSROOT _SSTATE_EXCLUDEDEPS_SYSROOT"
