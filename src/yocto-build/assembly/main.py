@@ -69,7 +69,7 @@ def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
 
 
 def create_volume_note(cache_dir: str) -> str:
-    return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/"
+    return f"{SSTATE_DIR_PATH}/{cache_dir}/:/app/sstate-cache/{cache_dir}/:ro"
 
 
 def create_volumes() -> Tuple[List[str], str]:
@@ -104,7 +104,6 @@ def container_creator(*, image: str, name: str, port: int, volume: Union[List[st
                 "PORT": PORT_INSIDE_CONTAINER
                 },
             volumes=volume,
-            read_only=True
         )
     except docker.errors.APIError as e:
         raise Exception(f"Error while creating containers, retry or delete already exists containers. {e}")
