@@ -46,7 +46,7 @@
              fetcher.download()
  
          except bb.fetch2.BBFetchException:
-@@ -950,13 +964,20 @@
+@@ -950,13 +964,19 @@
  }
  
  BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
