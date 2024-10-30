@@ -5,8 +5,7 @@
 **/*.swp
 
 # CONFIGS
-**/build/conf/local.conf
-**/build/conf/current.conf
+**/src/conf/local.conf
 
 # YOCTO
 **/assembly/build*

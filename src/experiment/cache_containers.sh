@@ -7,7 +7,7 @@ PATH_TO_CACHE=/yocto-build/assembly/build/sstate-cache
 
 
 function build_env(){
-	$SRC_DIR/entrypoint.sh build_env --no-perf
+	$SRC_DIR/entrypoint.sh build-env --no-perf
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
@@ -17,8 +17,8 @@ function build_env(){
 }
 
 function build_yocto_image(){
-	$SRC_DIR/entrypoint.sh build_yocto_image
-	
+	$SRC_DIR/entrypoint.sh build-yocto
+
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
 		echo -e "\nError during building yocto image."
@@ -27,7 +27,7 @@ function build_yocto_image(){
 }
 
 function start_servers(){
-	python3 $DOCKERFILE_DIR/assembly/main.py start --path $PATH_TO_CACHE -p $1 -c $2
+	python3 $DOCKERFILE_DIR/assembly/cache_servers.py start --path $PATH_TO_CACHE -p $1 -c $2
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
@@ -85,7 +85,7 @@ case "$1" in
 		;;
 	"kill")
 		echo -e "STOP AND REMOVE CACHE CONTAINERS!"
-		python3 $DOCKERFILE_DIR/assembly/main.py kill --path $PATH_TO_CACHE
+		python3 $DOCKERFILE_DIR/assembly/cache_servers.py kill --path $PATH_TO_CACHE
 		;;
 	*)
 		help

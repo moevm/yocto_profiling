@@ -18,3 +18,26 @@
 Все, что нужно для его работы находится в `.../src/experiment/hash_server_setuper`, в этой же папке есть README.md. Работает без нареканий и багов.
 #### Кэш сервер
 Точкая входа в работу с кэш сервером - `.../src/experiment/cache_containers.sh`.
+
+
+### Функционал скрипта `./cache_containers.sh`:
+
+1. получение информации о использовании, например:
+
+```shell
+./cache_containers.sh
+```
+
+2. запуск pipeline, который включает в себя: сборку системы для yocto, сборку образа yocto, создание и запуск контейнеров с sstate-cache
+
+```shell
+./cache_containers.sh start <port> <count_of_servers>
+```
+
+Поля `<port>` и `<count_of_servers>` являются необязательными, их значения по дефолту 9000 и 4 соответственно.
+
+3. остановка и удаление контейнеров с sstate-cache
+
+```shell
+./cache_containers.sh kill
+```
