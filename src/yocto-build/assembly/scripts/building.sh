@@ -39,16 +39,16 @@ function check_poky() {
   fi
   echo "Yocto cloning finish successfully."
 
-  if [[ "$STAGE_VAR" == "only-poky" ]]; then
-    exit $YOCTO_CLONING_CODE
-  fi
-
   cd $POKY_DIR
 
   CURRENT_BRANCH=$(git branch --show-current)
   if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
     echo "Switch the branch."
     git checkout $YOCTO_COMMIT_HASH -b $BRANCH_NAME
+  fi
+
+  if [[ "$STAGE_VAR" == "only-poky" ]]; then
+    exit $YOCTO_CLONING_CODE
   fi
 
 }
