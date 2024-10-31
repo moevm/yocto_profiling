@@ -114,13 +114,13 @@
 |          53 |   1130.6 |               697.4 |                433.2 |
 
 ### Графики
-![]()
+![](wiki/experiments/experiment_results/avg_build_time.png)
 
-![]()
+![](wiki/experiments/experiment_results/avg_build_time_no_sstate.png)
 
-![]()
+![](wiki/experiments/experiment_results/avg_sstate_time.png)
 
-![](./wiki/experiments/experiments_results/all.png)
+![](wiki/experiments/experiment_results/all.png)
 
 ### Результаты
 Cхема результата:
