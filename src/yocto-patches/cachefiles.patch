@@ -1,15 +1,6 @@
---- sstate.bbclass	2024-09-04 13:03:41.981178000 +0300
-+++ sstate.bbclass	2024-10-24 15:22:18.438615946 +0300
-@@ -4,7 +4,7 @@
- # SPDX-License-Identifier: MIT
- #
- 
--SSTATE_VERSION = "14"
-+SSTATE_VERSION = "12"
- 
- SSTATE_ZSTD_CLEVEL ??= "8"
- 
-@@ -731,6 +731,7 @@
+--- sstate.bbclass	2024-10-31 15:45:09.950119000 +0300
++++ sstate.bbclass	2024-10-31 16:51:17.003103648 +0300
+@@ -732,6 +732,7 @@
  
  def pstaging_fetch(sstatefetch, d):
      import bb.fetch2
@@ -17,7 +8,7 @@
  
      # Only try and fetch if the user has configured a mirror
      mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -740,6 +741,19 @@
+@@ -741,6 +742,18 @@
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
@@ -33,11 +24,10 @@
 +        if relevant_mirror:
 +            mirrors = 'file://.* ' + relevant_mirror
 +
-+
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -766,7 +780,7 @@
+@@ -767,7 +780,7 @@
          localdata.setVar('SRC_URI', srcuri)
          try:
              fetcher = bb.fetch2.Fetch([srcuri], localdata, cache=False)
@@ -46,11 +36,7 @@
              fetcher.download()
  
          except bb.fetch2.BBFetchException:
-@@ -950,13 +964,19 @@
- }
- 
- BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
-+#FILE_MIRROR_MAP = "" не действует
+@@ -957,9 +970,13 @@
  
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
@@ -62,11 +48,9 @@
      missed = set()
 +    file_mirror_map = {}
  
-+    
      def gethash(task):
          return sq_data['unihash'][task]
- 
-@@ -996,6 +1017,12 @@
+@@ -1000,6 +1017,12 @@
      foundLocal = len(found)
      mirrors = d.getVar("SSTATE_MIRRORS")
      if mirrors:
@@ -79,15 +63,35 @@
          # Copy the data object and override DL_DIR and SRC_URI
          localdata = bb.data.createCopy(d)
  
-@@ -1056,32 +1083,98 @@
+@@ -1060,32 +1083,96 @@
          for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
 +        tasklist_copy = tasklist.copy()
  
-+        
-         if tasklist:
+-        if tasklist:
 -            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
+ 
+-            ## thread-safe counter
+-            cnt_tasks_done = itertools.count(start = 1)
+-            progress = len(tasklist) >= 100
+-            if progress:
+-                msg = "Checking sstate mirror object availability"
+-                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
+-
+-            # Have to setup the fetcher environment here rather than in each thread as it would race
+-            fetcherenv = bb.fetch2.get_fetcher_environment(d)
+-            with bb.utils.environment(**fetcherenv):
+-                bb.event.enable_threadlock()
+-                import concurrent.futures
+-                from queue import Queue
+-                connection_cache_pool = Queue(nproc)
+-                checkstatus_init()
+-                with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:
+-                    executor.map(checkstatus, tasklist.copy())
+-                checkstatus_end()
+-                bb.event.disable_threadlock()
++        if tasklist:
 +            cache_tasks = {}
 +            mirrors = (mirrors or "").replace('\\n',' ').split()
 +            if len(mirrors) % 2 != 0:
@@ -172,36 +176,10 @@
 +                    checkstatus_end()
 +                    bb.event.disable_threadlock()
  
--            ## thread-safe counter
--            cnt_tasks_done = itertools.count(start = 1)
--            progress = len(tasklist) >= 100
 -            if progress:
--                msg = "Checking sstate mirror object availability"
--                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
+-                bb.event.fire(bb.event.ProcessFinished(msg), d)
 +                if progress:
 +                    bb.event.fire(bb.event.ProcessFinished(msg), d)
  
--            # Have to setup the fetcher environment here rather than in each thread as it would race
--            fetcherenv = bb.fetch2.get_fetcher_environment(d)
--            with bb.utils.environment(**fetcherenv):
--                bb.event.enable_threadlock()
--                import concurrent.futures
--                from queue import Queue
--                connection_cache_pool = Queue(nproc)
--                checkstatus_init()
--                with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:
--                    executor.map(checkstatus, tasklist.copy())
--                checkstatus_end()
--                bb.event.disable_threadlock()
- 
--            if progress:
--                bb.event.fire(bb.event.ProcessFinished(msg), d)
- 
      inheritlist = d.getVar("INHERIT")
      if "toaster" in inheritlist:
- 
-     if hasattr(bb.parse.siggen, "checkhashes"):
-         bb.parse.siggen.checkhashes(sq_data, missed, found, d)
- 
-     return found
- setscene_depvalid[vardepsexclude] = "SSTATE_EXCLUDEDEPS_SYSROOT _SSTATE_EXCLUDEDEPS_SYSROOT"
