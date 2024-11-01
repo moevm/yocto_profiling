@@ -174,3 +174,7 @@ git clone https://github.com/moevm/os_profiling.git
     
     Для того, чтобы настроить и использовать нужные утилиты объявлены функции `function start_logging()` и `function finish_logging()`. Функции позволяют задавать необходимую реализацию логирования. Также в функции перёдаётся аргумент (`$1`) -- файл для логирования по умолчанию (`./assembly/logs/building_logs.txt`).
     
+# **Experiments**
+
+- [Experiment with cache servers](wiki/experiments/experiment_results/README.md)
+
