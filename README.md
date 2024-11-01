@@ -17,28 +17,28 @@ git clone https://github.com/moevm/os_profiling.git
         ```
         После выполнения команды будет выведена информационная справка по использованию скрипта, то есть возможные аргументы и т.д. 
         ```text
-        This script is needed for interaction with the image of Yocto Project.
-        List of available parameters:
-	        build_env -- Builds an image of the virtual environment.
-		        --no-perf -- Disables installation of the perf.
-		        --no-cache -- Disables docker cache using.
+        Usage: entrypoint [ env | build-env ]
+                    --no-perf -- disables installation of the perf
+                    --no-cache -- disables docker cache using
 
-	        *ONLY AFTER STAGE*: build_env
-	        shell -- Opens a terminal in container.
-	        build_yocto_image -- Build the yocto image in container.
-		        --only-poky -- Only clones poky instead of a full build.
+                  *required stage build-env*
+                  [ sh | shell ]
+                  [ by | build-yocto ]
+                      --only-poky -- only clones poky repo
+                      --no-layers -- build yocto image without layers and dependencies
+                      --conf-file <path> -- config file to use (works only for --no-layers)
 
-	        *ONLY AFTER STAGE*: build_yocto_image
-	        start_yocto -- Up the yocto image.
+                  *required cloned poky*
+                  [ p | patch ] <list_of_patches>
+                      -r, --reverse -- disable choosen patches
+                      -l, --patches-list -- print available patches
 
-	        clean-docker -- Removing existing container and image of yocto.
-	        clean-build -- Removing poky and build dir.
+                  *required built yocto*
+                  [ sy | start-yocto ]
 
-	        check -- Verify that dependencies are installed for the project.
-
-	        patch <list_of_patches> -- Patching the project.
-		        -r, --reverse -- Disable choosen patches.
-		        -l, --patches-list -- Print available patches.
+                  [ cd | clean-docker ]
+                  [ cb | clean-build ]
+                  [ check ]
         ```
        
     2. Чтобы проверить установку всех необходимых зависимостей локально требуется выполнить команду:
@@ -55,7 +55,7 @@ git clone https://github.com/moevm/os_profiling.git
         
     3. Чтобы создать образ среды для проекта требуется выполнить команду:
         ```
-        ./entrypoint.sh build_env
+        ./entrypoint.sh env
         ```
         После выполнения команды начнётся сборка образа с помощью docker. 
         При необходимости можно отключить утилиту `perf`, для этого к предыдущей команде необходимо добавить флаг `--no-perf`. Как это примерно должно выглядеть:
@@ -89,47 +89,47 @@ git clone https://github.com/moevm/os_profiling.git
     
     5.  Чтобы собрать образ Yocto требуется выполнить команду:
         ```
-        ./entrypoint.sh build_yocto_image
+        ./entrypoint.sh by
         ```
         После выполнения команды начнётся сборка образа `Yocto` внутри контейнера, когда произойдет автоматическое закрытие контейнера (с кодом 0) -- всё будет установлено. При необходимости можно только склонировать `poky`, для этого к предыдущей команде необходимо добавить флаг `--only-poky`.
         
         Пример удачной сборки:
         ```
         [+] Running 1/1
-        Attaching to yocto_project
+        Attaching to yocto-container
         ...
-        yocto_project  | You can also run generated qemu images with a command like 'runqemu qemux86-64'.
-        yocto_project  | 
-        yocto_project  | Other commonly useful commands are:
-        yocto_project  |  - 'devtool' and 'recipetool' handle common recipe tasks
-        yocto_project  |  - 'bitbake-layers' handles common layer tasks
-        yocto_project  |  - 'oe-pkgdata-util' handles common target package tasks
-        yocto_project  | 
-        yocto_project  | Build Configuration:
-        yocto_project  | BB_VERSION           = "2.7.3"
-        yocto_project  | BUILD_SYS            = "x86_64-linux"
-        yocto_project  | NATIVELSBSTRING      = "universal"
-        yocto_project  | TARGET_SYS           = "x86_64-poky-linux"
-        yocto_project  | MACHINE              = "qemux86-64"
-        yocto_project  | DISTRO               = "poky"
-        yocto_project  | DISTRO_VERSION       = "4.3+snapshot-1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a"
-        yocto_project  | TUNE_FEATURES        = "m64 core2"
-        yocto_project  | TARGET_FPU           = ""
-        yocto_project  | meta                 
-        yocto_project  | meta-poky            
-        yocto_project  | meta-yocto-bsp       = "my-upstream:1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a"
-        yocto_project  | 
-        yocto_project  | Initialising tasks...
-        yocto_project  | done.
-        yocto_project  | NOTE: Executing Tasks
+        yocto-container  | You can also run generated qemu images with a command like 'runqemu qemux86-64'.
+        yocto-container  | 
+        yocto-container  | Other commonly useful commands are:
+        yocto-container  |  - 'devtool' and 'recipetool' handle common recipe tasks
+        yocto-container  |  - 'bitbake-layers' handles common layer tasks
+        yocto-container  |  - 'oe-pkgdata-util' handles common target package tasks
+        yocto-container  | 
+        yocto-container  | Build Configuration:
+        yocto-container  | BB_VERSION           = "2.7.3"
+        yocto-container  | BUILD_SYS            = "x86_64-linux"
+        yocto-container  | NATIVELSBSTRING      = "universal"
+        yocto-container  | TARGET_SYS           = "x86_64-poky-linux"
+        yocto-container  | MACHINE              = "qemux86-64"
+        yocto-container  | DISTRO               = "poky"
+        yocto-container  | DISTRO_VERSION       = "4.3+snapshot-1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a"
+        yocto-container  | TUNE_FEATURES        = "m64 core2"
+        yocto-container  | TARGET_FPU           = ""
+        yocto-container  | meta                 
+        yocto-container  | meta-poky            
+        yocto-container  | meta-yocto-bsp       = "my-upstream:1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a"
+        yocto-container  | 
+        yocto-container  | Initialising tasks...
+        yocto-container  | done.
+        yocto-container  | NOTE: Executing Tasks
         ...
-        yocto_project  | NOTE: Tasks Summary: Attempted 4099 tasks of which 4099 didn't need to be rerun and all succeeded.
-        yocto_project exited with code 0
+        yocto-container  | NOTE: Tasks Summary: Attempted 4099 tasks of which 4099 didn't need to be rerun and all succeeded.
+        yocto-container exited with code 0
         ```
     
     7.  Чтобы запустить образ Yocto требуется выполнить команду:
         ```
-        ./entrypoint.sh start_yocto
+        ./entrypoint.sh sy
         ```
         После выполнения будет открыта авторизация в системе `Yocto`, которая будет выглядеть так:
         ```

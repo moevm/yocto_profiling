@@ -1,7 +1,7 @@
 
 services:
-  yocto_project:
-    container_name: yocto-project
+  yocto-container:
+    container_name: yocto-container
     image: yocto-image
     # stdin_open: true
     tty: true

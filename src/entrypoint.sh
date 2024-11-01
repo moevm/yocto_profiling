@@ -98,7 +98,7 @@ function build_yocto_stage() {
         break
         ;;
       --no-layers )
-        echo "Enable no-layers mode (default config build)"
+        echo "Enable no-layers mode"
         STAGE_ARG="no-layers"
         shift 1
         ;;
@@ -107,13 +107,16 @@ function build_yocto_stage() {
         echo "Using conf $CONFIG_FILE"
         shift 2
         ;;
+      --)
+        break
+        ;;
       *)
         echo "Unexpected option for command \`build-yocto\`: $1"
         exit 2
         ;;
     esac
   done
-  cp CONFIG_FILE $CONFIGS_DIR/local.conf
+  cp $CONFIG_FILE $CONFIGS_DIR/local.conf
 
   $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $STAGE_ARG $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
   EXIT_CODE=$?
@@ -153,7 +156,7 @@ case "$COMMAND" in
     EXIT_CODE=$?
     ;;
   by | build-yocto )
-    build_yocto_stage $@
+    build_yocto_stage $@ --
     ;;
   p | patch )
 		if [ $# -eq 0 ]; then
@@ -179,6 +182,7 @@ case "$COMMAND" in
     ;;
   check )
     docker_check
+    ;;
   * )
     echo -e "[ERROR]: Unexpected command found <$COMMAND>!\n"
     help

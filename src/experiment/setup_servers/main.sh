@@ -27,6 +27,7 @@ echo "max_servers = $max_servers"
 echo -e "\n"
 
 CACHE_DESKTOP_PATH="/home/$cache_usr/Desktop"
+CACHE_SERVER_WORKDIR=$CACHE_DESKTOP_PATH/test/src
 HASH_DESKTOP_PATH="/home/$hash_usr/Desktop"
 
 function check_ssh_connection() {
@@ -75,18 +76,42 @@ function check_cache_server_deps() {
 	echo -e "\n"
 }
 
+function setup_cache_servers() {
+	if ssh $cache_usr@$cache_ip "[ ! -d $CACHE_DESKTOP_PATH/test/ ]";
+	then
+	    echo "Start setup cache servers."
+	    ssh $hash_usr@$hash_ip "mkdir -p $CACHE_DESKTOP_PATH/test"
+	    echo "Copying \"src\" dir: start"
+	    rsync -aP $SRC_DIR --exclude $SRC_DIR/yocto-build/assembly/original_poky --exclude $SRC_DIR/yocto-build/assembly/build $cache_usr@$cache_ip:$CACHE_DESKTOP_PATH/test/ 2> /dev/null
+	    echo -e "Copying: done\n"
+	    
+	    ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/.. && python3 -m venv venv"
+	    ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/.. && source venv/bin/activate"
+	    ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR/yocto-build/assembly/servers_reqs && pip3 install -r requirements.txt" > /dev/null
+	    echo -e "Installing requirements: done\n"
+	    
+	    ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build-env --no-perf --no-cache" > /dev/null
+	    ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./entrypoint.sh build-yocto --only-poky" > /dev/null
+	    
+	    echo -e "THEN USER MANUALLY CONNECT TO THIS SERVER AND EXEC BUILDING"
+	    echo -e "cd /home/$cache_usr/Desktop/test/src && ./entrypoint.sh build-yocto"
+	    exit 2
+	done
+	    
+}
+
 function setup_and_start_hash_server() {
 	echo "Hash server create dir: start"
-	ssh $hash_usr@$hash_ip "rm -rf $hash_desktop_path/test"
-	ssh $hash_usr@$hash_ip "mkdir -p $hash_desktop_path/test"
+	ssh $hash_usr@$hash_ip "rm -rf $HASH_DESKTOP_PATH/test"
+	ssh $hash_usr@$hash_ip "mkdir -p $HASH_DESKTOP_PATH/test"
 	echo "Hash server create dir: done"
 	echo -e "\n"
 
 	echo "Start hash server:"
-	rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$hash_desktop_path/test/ > /dev/null
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  2> /dev/null
+	rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$HASH_DESKTOP_PATH/test/ > /dev/null
+	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  2> /dev/null
 
 	echo -e "\n"
 }
@@ -108,9 +133,9 @@ function prepare_host () {
 
 check_ssh_connection
 check_cache_server_deps
+setup_cache_servers
 setup_and_start_hash_server
 
-CACHE_SERVER_WORKDIR=$CACHE_DESKTOP_PATH/test/src
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 
 prepare_host
@@ -121,7 +146,7 @@ cd $SCRIPT_DIR
 for (( i=2; i<$max_servers; i+=$step ))
 do
 	# подъём серверов
- 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"  2> /dev/null
+ 	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./start_hash.sh $hash_port"  2> /dev/null
 	echo -e "\n\nHash server started at $hash_ip:$hash_port"
  
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i" > /dev/null
@@ -133,7 +158,6 @@ do
 	echo -e "[CACHE SERVERS $i]" >> $EXPERIMENT_DIR/"times"
 	for j in 1 2
 	do
-		cp -f $SCRIPT_DIR/auto_conf/conf/local.conf $SRC_DIR/conf/local.conf
 		filename="test_${i}_${j}"
 		start=`date +%s`
 		cd $SRC_DIR && ./entrypoint.sh build-yocto --no-layers --conf-file $SCRIPT_DIR/auto_conf/conf/local.conf > $RESULTS_DIR/"$filename"
@@ -151,8 +175,8 @@ do
 	done
 	echo -e "" >> $RESULTS_DIR/"times"
 	echo -e "Building Yocto on host: DONE.\n"
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
-	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
+	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
 	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 	
 	sleep 25

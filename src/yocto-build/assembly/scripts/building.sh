@@ -26,13 +26,18 @@ function check_dirs() {
 
 function check_poky() {
 
-  if [ ! -d "./poky" ]; then
+  if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
-    git clone $YOCTO_REPOSITORY
+    git clone $YOCTO_REPOSITORY ./original_poky
 
     YOCTO_CLONING_CODE=$?
   fi
-
+  
+  if [ ! -d "./poky" ]; then
+    mkdir -p ./poky
+    rsync -avu ./original_poky/ ./poky/
+  fi
+  
   if [ $YOCTO_CLONING_CODE -ne 0 ]; then
 	  echo "Yocto cloning ends with code: $YOCTO_CLONING_CODE"
     exit $YOCTO_CLONING_CODE
