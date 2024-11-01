@@ -116,17 +116,20 @@
 |          52 |   1113.8 |               689.4 |                424.4 |
 |          53 |   1130.6 |               697.4 |                433.2 |
 
+
 ### Графики
-![](wiki/experiments/experiment_results/avg_build_time.png)
+![avg_build_time](wiki/experiments/experiment_results/avg_build_time.png)
 
-![](wiki/experiments/experiment_results/avg_build_time_no_sstate.png)
+![avg_build_time_no_sstate](wiki/experiments/experiment_results/avg_build_time_no_sstate.png)
 
-![](wiki/experiments/experiment_results/avg_sstate_time.png)
+![avg_sstate_time](wiki/experiments/experiment_results/avg_sstate_time.png)
 
-![](wiki/experiments/experiment_results/all.png)
+![all](wiki/experiments/experiment_results/all.png)
 
 Из графиков ясно видно, что время сборки без сверки начинает изменяться на отличные от погрешности минимальные значения только при большом кол-ве кэш серверов (от 32). Это наводит на вывод, что основное время при сборке занимает именно сверка сигнатур, а не сама сборка.
 Сделанный вывод подтверждается приведёнными графиками, так как коэффициенты линейных функций (или углы) соответствующие графикам сверки сигнатур и сборки со сверкой отличаются на пренебрегаемое значение.
+
+
 ### Результаты
 Cхема результата:
 ```json
