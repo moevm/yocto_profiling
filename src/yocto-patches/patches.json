@@ -27,6 +27,14 @@
                 "path": "/",
                 "file": ""
         },
+        "add_net_limit.patch": {
+		            "path": "/bitbake/lib/bb/",
+		            "file": "runqueue.py"
+	      },
+	      "add_task_children_to_weight.patch": {
+		            "path": "/bitbake/lib/bb/",
+		            "file": "runqueue.py"
+	      },
         "cachefiles.patch": {
                 "path": "/meta/classes-global/",
                 "file": "sstate.bbclass"

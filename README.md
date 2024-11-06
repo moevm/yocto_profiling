@@ -187,3 +187,8 @@ git clone https://github.com/moevm/os_profiling.git
 3. В `local.conf` нужно указать в переменную SSTATE_MIRRORS рабочие сервера и нерабочие сервера
 4. Провести сборку с помощью `bitbake <target>`
 5. Во время сборки нужно смотреть на логи, выведется сообщение "Time from the start to end of checking sstate availability =="
+    
+# **Experiments**
+
+- [Experiment with cache servers](wiki/experiments/experiment_results/README.md)
+
