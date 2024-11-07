@@ -45,8 +45,8 @@ do
     cp -f ../../configs/${i}/local.conf ./conf
 
     start=`date +%s`
-    # bitbake core-image-minimal >> ../../times/$i
-    bitbake core-image-minimal
+    bitbake core-image-minimal >> ../../times/$i
+    # bitbake core-image-minimal
 
     end=`date +%s`
     runtime=$((end-start))
