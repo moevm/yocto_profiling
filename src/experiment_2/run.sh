@@ -25,7 +25,8 @@ else
         cd poky && \
         branch_name=my-upstream_5.0.1 && \
         commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810 && \
-        git checkout $commit_hash -b $branch_name 
+        git checkout $commit_hash -b $branch_name
+        cd .. 
 fi
 
 
@@ -52,7 +53,6 @@ do
     runtime=$((end-start))
     echo -e "[CACHE SERVERS $i]" >> ../../times/times
     echo -e "|$runtime|" >> ../../times/times
-    exit(0)
     # cd .. && rm -rf build
 
 
