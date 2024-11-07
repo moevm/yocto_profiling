@@ -129,14 +129,7 @@ do
  	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./start_hash.sh $hash_port"  2> /dev/null
 	echo -e "\n\nHash server started at $hash_ip:$hash_port"
  
-	# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i" > /dev/null
-	# делаем распределение кэша только на 2 сервера
-	if [ $i -eq 2 ]; then
-		echo "AAAAAAAAAAAAAAAAAAAAAAAA"
-		ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i" > /dev/null
-		echo "BBBBBBBBBBBBBBBBBBBBBBBB"
-
-	fi
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh start $cache_start_port $i" > /dev/null
 	cd $SCRIPT_DIR/auto_conf && python3 set_num_ports.py --cache_num_port $i
 	echo -e "Building Yocto on host with $i servers: START.\n"
 
@@ -165,8 +158,7 @@ do
 	echo -e "Building Yocto on host: DONE.\n"
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
 	ssh $hash_usr@$hash_ip "cd $hash_desktop_path/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
-	# не убиваем контейнер
-	# ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 	
 	sleep 25
 done
