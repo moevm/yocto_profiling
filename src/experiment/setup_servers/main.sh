@@ -55,6 +55,7 @@ function check_ssh_connection() {
 	    echo "Port 22 on $cache_ip is closed"
 	    exit 1
 	fi
+	
 	echo -e "\n"
 }
 
@@ -73,6 +74,7 @@ function check_cache_server_deps() {
 	    exit 1
 	fi
 	echo "Pip3 was found on cache server"
+	
 	echo -e "\n"
 }
 
@@ -96,22 +98,23 @@ function setup_cache_servers() {
 	    echo -e "THEN USER MANUALLY CONNECT TO THIS SERVER AND EXEC BUILDING"
 	    echo -e "cd /home/$cache_usr/Desktop/test/src && ./entrypoint.sh build-yocto"
 	    exit 2
-	done
-	    
+	fi
+	ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 }
 
-function setup_and_start_hash_server() {
+function setup_hash_server() {
 	echo "Hash server create dir: start"
 	ssh $hash_usr@$hash_ip "rm -rf $HASH_DESKTOP_PATH/test"
 	ssh $hash_usr@$hash_ip "mkdir -p $HASH_DESKTOP_PATH/test"
 	echo "Hash server create dir: done"
 	echo -e "\n"
 
-	echo "Start hash server:"
+	echo "Copying files and build hash server image: start"
 	rsync -aP $EXPERIMENT_DIR/hash_server_setuper $hash_usr@$hash_ip:$HASH_DESKTOP_PATH/test/ > /dev/null
 	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh stop" 2> /dev/null
 	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./manipulate_hash.sh rm" 2> /dev/null
 	ssh $hash_usr@$hash_ip "cd $HASH_DESKTOP_PATH/test/hash_server_setuper && ./build_docker_image_for_hash.sh"  2> /dev/null
+	echo "Copying files and build hash server image: done"
 
 	echo -e "\n"
 }
@@ -127,6 +130,7 @@ function prepare_host () {
 	echo "Cloning POKY: start"
 	./entrypoint.sh build-yocto --only-poky > /dev/null
 	echo "Cloning POKY: done"
+	
 	echo -e "\n"
 }
 
@@ -134,9 +138,7 @@ function prepare_host () {
 check_ssh_connection
 check_cache_server_deps
 setup_cache_servers
-setup_and_start_hash_server
-
-ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
+setup_hash_server
 
 prepare_host
 
