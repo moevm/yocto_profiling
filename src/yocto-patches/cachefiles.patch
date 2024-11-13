@@ -1,5 +1,5 @@
---- sstate.bbclass	2024-10-31 15:45:09.950119000 +0300
-+++ sstate.bbclass	2024-10-31 16:51:17.003103648 +0300
+--- sstate.bbclass	2024-11-13 16:30:35.255789000 +0300
++++ sstate.bbclass	2024-11-13 17:22:37.995697512 +0300
 @@ -732,6 +732,7 @@
  
  def pstaging_fetch(sstatefetch, d):
@@ -63,7 +63,7 @@
          # Copy the data object and override DL_DIR and SRC_URI
          localdata = bb.data.createCopy(d)
  
-@@ -1060,32 +1083,96 @@
+@@ -1060,29 +1083,98 @@
          for tid in missed:
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
@@ -75,9 +75,14 @@
 -            ## thread-safe counter
 -            cnt_tasks_done = itertools.count(start = 1)
 -            progress = len(tasklist) >= 100
--            if progress:
--                msg = "Checking sstate mirror object availability"
--                bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
++        ## thread-safe counter
++        cnt_tasks_done = itertools.count(start = 1)
++        progress = len(tasklist) >= 100
++
++        if tasklist:
+             if progress:
+                 msg = "Checking sstate mirror object availability"
+                 bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
 -
 -            # Have to setup the fetcher environment here rather than in each thread as it would race
 -            fetcherenv = bb.fetch2.get_fetcher_environment(d)
@@ -91,7 +96,7 @@
 -                    executor.map(checkstatus, tasklist.copy())
 -                checkstatus_end()
 -                bb.event.disable_threadlock()
-+        if tasklist:
++            
 +            cache_tasks = {}
 +            mirrors = (mirrors or "").replace('\\n',' ').split()
 +            if len(mirrors) % 2 != 0:
@@ -140,6 +145,10 @@
 +                        missed.remove(tid)
 +                        file_mirror_map.update({srcuri: m}) #таким образом будет только одно зеркало, можно сделать чтобы здесь был список из всех зеркал, на которых есть этот файл
 +                        tasklist_copy.remove(arg)
++                        if progress:
++                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
++
++                        
 +
 +            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
 +
@@ -156,13 +165,6 @@
 +                localdata.setVar('PREMIRRORS', mirrors_new)
 +                nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist_copy))
 +
-+                ## thread-safe counter
-+                cnt_tasks_done = itertools.count(start = 1)
-+                progress = len(tasklist_copy) >= 100
-+                if progress:
-+                    msg = "Checking sstate mirror object availability"
-+                    bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist_copy)), d)
-+
 +                # Have to setup the fetcher environment here rather than in each thread as it would race
 +                fetcherenv = bb.fetch2.get_fetcher_environment(d)
 +                with bb.utils.environment(**fetcherenv):
@@ -176,10 +178,5 @@
 +                    checkstatus_end()
 +                    bb.event.disable_threadlock()
  
--            if progress:
--                bb.event.fire(bb.event.ProcessFinished(msg), d)
-+                if progress:
-+                    bb.event.fire(bb.event.ProcessFinished(msg), d)
- 
-     inheritlist = d.getVar("INHERIT")
-     if "toaster" in inheritlist:
+             if progress:
+                 bb.event.fire(bb.event.ProcessFinished(msg), d)
