@@ -1,5 +1,5 @@
 import unittest
-from src.statistics_analyzer.src.ranking import ranking_task_info
+from src.common.analysis.statistics_analyzer.src.ranking import ranking_task_info
 
 
 class RankingTest(unittest.TestCase):

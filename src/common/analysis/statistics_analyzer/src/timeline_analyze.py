@@ -128,4 +128,4 @@ def write_to_excel(parser):
         for i in range(1, 9):
             ws.cell(row=index+2, column=i).alignment = Alignment(wrap_text=True)
 
-    wb.save('./src/statistics_analyzer/output/sources.xlsx')
+    wb.save('./statistics_analyzer/output/sources.xlsx')

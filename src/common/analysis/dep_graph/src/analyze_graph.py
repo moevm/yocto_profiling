@@ -1,5 +1,5 @@
 import networkx as nx
-from src.dep_graph.src.match_graph_names import sort_start_time, match
+from src.common.analysis.dep_graph.src.match_graph_names import sort_start_time, match
 
 
 def analyze_graph(dotfilename, info, create_txt=False):
@@ -30,7 +30,7 @@ def analyze_graph(dotfilename, info, create_txt=False):
 
 
     if create_txt:
-        with open('./src/dep_graph/text-files/task-order-sorted-offset.txt', 'w') as file:
+        with open('./dep_graph/text-files/task-order-sorted-offset.txt', 'w') as file:
             file.writelines(f"{item[0]}, offset: {item[1]}\n" for item in results)
 
     return results
@@ -44,5 +44,5 @@ def graph_task_children(dotfilename):
         for child in G.neighbors(node):
             task_children[node] = task_children.get(node, 0) + 1
 
-    with open('./src/dep_graph/text-files/task-children.txt', 'w') as file:
+    with open('./dep_graph/text-files/task-children.txt', 'w') as file:
         file.writelines(f"{key} {value}\n" for key, value in task_children.items())

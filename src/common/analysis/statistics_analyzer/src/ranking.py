@@ -1,5 +1,5 @@
 import math
-from src.statistics_analyzer.src.parsing import all_tasks
+from src.common.analysis.statistics_analyzer.src.parsing import all_tasks
 
 #Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
 #Можем ранжировать по любой метрике, по умолчанию ранжируется по времени выполнения задачи.
