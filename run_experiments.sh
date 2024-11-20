@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 show_help() {
     echo "Usage: $0 <experiment_name> [options]"
     echo
@@ -10,17 +12,27 @@ show_help() {
     echo
     echo
 
-    echo "There are two implemented experiments: "
+    echo "There are four implemented experiments: "
     echo "   1. Main experiment. Name -- main"
     echo "       Usage: ./run_experiments.sh main" 
+    echo
     echo "   2. Experiment with filtering non-working servers. Name -- filters"
     echo "       Usage: ./run_experiments.sh filters" 
-
+    echo
+    echo "   3. Experiment with speeding up building via net and priority patches. Name -- speeding_up"
+    echo "       Usage: ./run_experiments.sh speeding_up" 
+    echo
+    echo "   4. Experiment with profiling. Name -- profiling"
+    echo "       Usage: ./run_experiments.sh profiling" 
+    echo
     exit 0
 }
 
 PATH_TO_MAIN_EXP=./src/experiment
 PATH_TO_FILTERS_EXP=./src/experiment_2
+PATH_TO_SPEEDING_EXP=./src/scripts
+PATH_TO_PROFILING_EXP=./NONE
+
 
 if [ "$#" -lt 1 ]; then
     echo "Error: Experiment name is required."
@@ -61,7 +73,7 @@ else
     echo
 
     if [ "$EXPERIMENT_NAME" == "main" ]; then
-        echo "To start main experiment you need to fill out the confiпg located in <paste_config_path>"
+        echo "To start main experiment you need to fill configuration of experiment described in <paste_config_path_or_instruction_path>"
         echo "  After filling out the config, run this script via --confirm flag"
         echo "    Usage: ./run_experiments.sh main -c"
         echo "  or"
@@ -70,11 +82,30 @@ else
     fi 
 
     if [ "$EXPERIMENT_NAME" == "filters" ]; then
-        echo "To start filters experiment you need to fill out the confiпg located in <paste_config_path>"
+        echo "To start filters experiment you need to fill configuration of experiment described in ./src/experiment_2/README.md"
         echo "  After filling out the config, run this script via --confirm flag"
         echo "    Usage: ./run_experiments.sh filters -c"
         echo "  or"
         echo "    Usage: ./run_experiments.sh filters --confirm"
+        exit 1
+    fi 
+
+     if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
+        echo "To start speeding_up experiment you need to fill configuration of experiment described in <paste_config_path_or_instruction_path>"
+        echo "  After filling out the config, run this script via --confirm flag"
+        echo "    Usage: ./run_experiments.sh speeding_up -c"
+        echo "  or"
+        echo "    Usage: ./run_experiments.sh speeding_up --confirm"
+        exit 1
+    fi
+
+    
+     if [ "$EXPERIMENT_NAME" == "profiling" ]; then
+        echo "To start profiling experiment you need to fill configuration of experiment described in <paste_config_path_or_instruction_path>"
+        echo "  After filling out the config, run this script via --confirm flag"
+        echo "    Usage: ./run_experiments.sh profiling -c"
+        echo "  or"
+        echo "    Usage: ./run_experiments.sh profiling --confirm"
         exit 1
     fi 
 
@@ -87,13 +118,34 @@ if [ "$EXPERIMENT_NAME" == "main" ]; then
     cd $PATH_TO_MAIN_EXP
     echo "starting"
     # here gotta be start of main experiment
+    # # я не зню как запустить это дело :(
     exit 0
 fi 
 
- if [ "$EXPERIMENT_NAME" == "filters" ]; then
+if [ "$EXPERIMENT_NAME" == "filters" ]; then
     cd $PATH_TO_FILTERS_EXP
     echo "starting"
     # here gotta be start of filters experiment
+    # ./run.sh
+    exit 0
+fi 
+
+
+if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
+    cd $PATH_TO_SPEEDING_EXP
+    echo "starting"
+    # here gotta be start of speeding_up experiment
+    # $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh
+    exit 0
+fi 
+
+
+
+if [ "$EXPERIMENT_NAME" == "profiling" ]; then
+    cd $PATH_TO_PROFILING_EXP
+    echo "starting"
+    # here gotta be start of profiling experiment
+    # $PATH_TO_PROFILING_EXP........
     exit 0
 fi 
 
