@@ -117,10 +117,10 @@ if [ "$EXPERIMENT_NAME" == "main" ]; then
     echo "starting"
     # here gotta be start of main experiment
     if [ "$PATCHES_FLAG" == true ]; then
-        # ./run.sh --patches
+        # cd ./setup_servers && ./main.sh --patches
         echo "Running with --patches"
     else
-        # ./run.sh
+        # cd ./setup_servers && ./main.sh
         echo "Running without --patches"
     fi
     exit 0
