@@ -50,6 +50,14 @@ function create_saving_dir() {
 
 function main() {
   ARGS=("$@")
+  args_length=${#ARGS[@]}
+  PATCHES_ARG=0
+
+  for((i=0; i < args_length; i++)); do
+    if [[ "${ARGS[i]}" == "--patches"  || "${ARGS[i]}" == "-p" ]]; then
+          PATCHES_ARG=1
+    fi
+  done
 
   cd $SRC_DIR
   get_count_of_runs ${ARGS[0]}
@@ -63,7 +71,9 @@ function main() {
   for ((i=1; i<=num_runs; i++)); do
     ./entrypoint.sh clean-build
     ./entrypoint.sh build_yocto_image --only-poky
-    ./entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
+    if [[ "$PATCHES_ARG" -eq 1 ]]; then
+          ./entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
+    fi
 
 
     start_time=$(date +%s)
