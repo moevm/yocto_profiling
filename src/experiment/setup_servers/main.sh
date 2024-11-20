@@ -108,8 +108,22 @@ function prepare_host () {
 	./entrypoint.sh build_yocto_image --only-poky > /dev/null
 	echo "Cloning POKY: done"
 	echo -e "\n"
+
+	if [[ "$PATCHES_ARG" -eq 1 ]]; then
+          ./entrypoint.sh patch cachefiles.patch
+    fi
 }
 
+
+ARGS=("$@")
+args_length=${#ARGS[@]}
+PATCHES_ARG=0
+
+for((i=0; i < args_length; i++)); do
+	if [[ "${ARGS[i]}" == "--patches" || "${ARGS[i]}" == "-p" ]]; then
+          PATCHES_ARG=1
+    fi
+done
 
 check_ssh_connection
 check_cache_server_deps
