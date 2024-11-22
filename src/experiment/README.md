@@ -22,7 +22,7 @@ python3 -m venv venv
 source venv/bin/activate
 cd ./yocto-build/assembly/servers_reqs && pip3 install -r requirements.txt
 ``` 
-После чего нужно собрать проект с помощью команд скрипта `entrypoint.sh`, чтобы можно было использовать его кэш в эксперименте.
+После чего нужно собрать проект с помощью команд скрипта `entrypoint.sh`, чтобы можно было использовать его кэш в эксперименте. Либо просто подменить все файлы кэша на свои по пути `.../src/yocto-build/assembly/build/sstate-cache`.
 Точкой входа в работу с кэш сервером - `.../src/experiment/cache_containers.sh`.
 #### Эксперимент 
 Запуск эксперимента производится командой, находясь в директории `.../src/experiment/setup_servers`:
