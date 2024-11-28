@@ -122,18 +122,18 @@
 49_44
 ```
 
-Файлы с результатами: [result_before.txt](./result_before.txt) и [result_after.txt](./result_after.txt)
+Файлы с результатами: [result_before.txt](./source_results/result_before.txt) и [result_after.txt](./source_results/result_after.txt)
 
 ### Описание полученных графиков
 
 График зависимости времени от начала сборки до окончания сверки сигнатур до применения патча:  
-![Path error](./before.png)
+![Path error](./source_results/before.png)
 
 График зависимости времени от начала сборки до окончания сверки сигнатур после применения патча:  
-![Path error](./after.png)
+![Path error](./source_results/after.png)
 
 График с наложение графиков выше друг на друга, но в логарифмической шкале по оси времени (OY):  
-![Path error](./before_and_after_in_log_scale.png)
+![Path error](./source_results/before_and_after_in_log_scale.png)
 
 
 ### Выводы
