@@ -1,16 +1,18 @@
-ARG REQS_ARG
+ARG REQS_ARG=perf
 
 
 FROM ubuntu:20.04 AS requirements
 
-ARG YOCTO_INSTALL_PATH
-ARG LC_ALL
-ARG LANG
 ARG UID
 ARG GID
 ARG CORE
 ARG CODENAME
+
+ARG YOCTO_INSTALL_PATH
 ENV YOCTO_INSTALL_PATH=$YOCTO_INSTALL_PATH
+
+ARG LC_ALL
+ARG LANG
 ENV LC_ALL=$LC_ALL
 ENV LANG=$LANG
 
@@ -57,7 +59,6 @@ RUN apt-get update && \
 	dpkg-reconfigure locales && locale-gen ${LC_ALL} && update-locale LC_ALL=${LC_ALL} LANG=${LANG}
 
 
-
 FROM requirements AS perf
 
 # install linux-tools-$CORE for host core
@@ -69,11 +70,10 @@ RUN sed -i "s/focal/${CODENAME}/g" /etc/apt/sources.list  && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-FROM $REQS_ARG as base
+FROM $REQS_ARG AS base
 
 # Python utils
 RUN python3 -m pip install -U psutil numpy matplotlib 
-
 
 # Replace dash with bash, User management              
 RUN rm /bin/sh && ln -s bash /bin/sh && \                                       
@@ -84,11 +84,9 @@ RUN rm /bin/sh && ln -s bash /bin/sh && \
 	install -o $UID -g $GID -d $YOCTO_INSTALL_PATH && \
 	echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-
 # Run as build user from the installation path                                                                     
 USER yocto_user             
 WORKDIR $YOCTO_INSTALL_PATH
 
-COPY ./build/conf ./conf 
 
 ENTRYPOINT ["./assembly/scripts/setup.sh"]

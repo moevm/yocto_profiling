@@ -25,17 +25,16 @@
 > Вывод:
 > Если мы настраиваем сервер кэша, который потенциально должен работать удаленно - мы должны создать и хэш сервер, который будет сравнивать сигнатуры кэшированных пакетов.
 
-### Немного о том, как работает хэш сервер работает
-Глобально можно рассмотреть две схемы хэширования - GPG и OEEquivHash, по умолчания взят **OEEquivHash**, но предлагаю рассмотреть оба варианта.
-  
-**1) GPG**  
-В Yocto Project для проверки пакетов может использоваться GPG-подпись. Когда пакет создается, он подписывается с помощью ключа GPG, и полученная подпись сохраняется вместе с пакетом. Когда пакет загружается, его подпись проверяется с помощью соответствующего открытого ключа GPG. Если подпись верна, то пакет считается подлинным, закрытый ключ же хранится где-то в качестве переменной сборки.
+### Немного о том, какие есть обработчики сигнатур
+В yocto поддерживаются следующие параметры `BB_SIGNATURE_HANDLER` : 
+1. noop -- [SignatureGenerator(object)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/bitbake/lib/bb/siggen.py#L71) -- полупустой класс, который почти ничего не делает
+2. basic -- [SignatureGeneratorBasic(SignatureGenerator)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/bitbake/lib/bb/siggen.py#L218) -- наследуется от `noop`; разработичики говорят, что медленный, но может использоваться для отладки
+3. basichash -- [SignatureGeneratorBasicHash(SignatureGeneratorBasic)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/bitbake/lib/bb/siggen.py#L499) -- наследуется от `basic`; используется в качестве родителя для TestEquivHash, OEBasicHash, OEEquivHash
+4. TestEquivHash -- [SignatureGeneratorTestEquivHash(SignatureGeneratorUniHashMixIn, SignatureGeneratorBasicHash)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/bitbake/lib/bb/siggen.py#L892) -- фиктивный класс для тестов
+5. OEBasicHash -- [SignatureGeneratorOEBasicHash(SignatureGeneratorOEBasicHashMixIn, bb.siggen.SignatureGeneratorBasicHash)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/meta/lib/oe/sstatesig.py#L316) -- проверяет целостность пакетов
+6. OEEquivHash -- [SignatureGeneratorOEEquivHash(SignatureGeneratorOEBasicHashMixIn, bb.siggen.SignatureGeneratorUniHashMixIn, bb.siggen.SignatureGeneratorBasicHash)](https://github.com/yoctoproject/poky/blob/yocto-5.0.1/meta/lib/oe/sstatesig.py#L319) -- проверяет целостность пакетов и обеспечивает, что эквивалентные пакеты дадут один и тот же хэш и не придется пересобирать эквивалетные пакеты. Подробнее про эквивалентность пакетов можно посмотреть [тут](https://docs.yoctoproject.org/5.0.4/overview-manual/concepts.html?highlight=oeequivhash#hash-equivalence).
 
-GPG (GNU Privacy Guard) - это свободная реализация OpenPGP (Pretty Good Privacy) стандарта, который предоставляет криптографические методы для обеспечения конфиденциальности, целостности и подлинности данных.  
-
-**2) OEEquivHash**  
-OEEquivHash отличается от GPG-подписи тем, что он не использует криптографические ключи для проверки подлинности пакетов. Вместо этого, он полагается на то, что хэш-суммы, сохраненные в файле с метаданными, были созданы доверенным источником. Его использования рекомендовано в условиях работы в закрытой или локальной сети, поскольку ускоряет хэш преобразования, упрощает само хэширование и работу с ним, ведь нет надобности администрировать еще и работу с ключами.   
-
+Рекомендуется использовать `OEEquivHash`.
 
 # Конфигурация удаленной сборки и сборка
 

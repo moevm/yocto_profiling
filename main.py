@@ -6,7 +6,7 @@ from tests.src.ranking_tests import RankingTest
 from tests.src.graph_tests import GraphTest
 from src.statistics_analyzer.src.parsing import Parser
 from src.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
-from src.dep_graph.src.analyze_graph import analyze_graph
+from src.dep_graph.src.analyze_graph import analyze_graph, graph_task_children
 from src.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals, get_tasks_for_intervals, write_to_json
 
 def create_args():
@@ -14,7 +14,8 @@ def create_args():
     parser.add_argument("-t", "--timestamp", type=str, help="time stamp for log files")
     parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
     parser.add_argument("-p", "--poky_path", type=str, help="poky directory path")
-    parser.add_argument("-g", "--goal", type=str, help="choose one of ranking/graph/tests", required=True)
+    parser.add_argument("-g", "--goal", type=str, help="choose one of ranking/graph/tests/task_children",
+                        choices=["ranking", "graph", "tests", "task_children"], required=True)
     parser.add_argument("-d", "--dot_file", type=str, help='path to .dot file to analyze')
     parser.add_argument("--border", type=float, help='border for ranking (0, 1], default=1')
     parser.add_argument("--metric", type=str, help='metric to ranking, default="Elapsed time"')
@@ -92,9 +93,17 @@ def start_graph_analyze(args):
     if not args.dot_file:
         print('Enter -d (--dot_file)')
         return -1
-    
+
     parser = start_parser(args)
     analyze_graph(args.dot_file, parser.info, True)
+
+
+def start_task_children(args):
+    if not args.dot_file:
+        print('Enter -d (--dot_file)')
+        return -1
+
+    graph_task_children(args.dot_file)
 
 
 def start_timeline_analyze(args):
@@ -134,6 +143,8 @@ if __name__ == '__main__':
         start_ranking(args)
     elif args.goal == 'graph':
         start_graph_analyze(args)
+    elif args.goal == "task_children":
+        start_task_children(args)
     elif args.goal == 'tests':
         start_tests(args)
     elif args.goal == 'timeline':
