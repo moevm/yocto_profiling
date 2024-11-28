@@ -108,21 +108,38 @@ function prepare_host () {
 	./entrypoint.sh build_yocto_image --only-poky > /dev/null
 	echo "Cloning POKY: done"
 	echo -e "\n"
+}
 
-	if [[ "$PATCHES_ARG" -eq 1 ]]; then
-          ./entrypoint.sh patch cachefiles.patch
+function setup_pathces () {
+	if [[ "$PATCHES_ARG" -eq 0 ]]; then
+        return 0
     fi
+	patches_count=${#CUSTOM_PATCHES_ARR[@]}
+	if [[ "$patches_count" -eq 0 ]]; then
+		for((i=0; i < ${#ALL_PATCHES_ARR[@]}; i++)); do
+			./entrypoint.sh patch "${ALL_PATCHES_ARR[i]}"
+		done
+		return 0
+	fi
+	for ((i=0; i<patches_count; i++)); do
+		./entrypoint.sh patch "${CUSTOM_PATCHES_ARR[i]}"
+	done
 }
 
 
 ARGS=("$@")
 args_length=${#ARGS[@]}
 PATCHES_ARG=0
+CUSTOM_PATCHES_ARR=()
+ALL_PATCHES_ARR=("cachefiles.patch")
 
 for((i=0; i < args_length; i++)); do
 	if [[ "${ARGS[i]}" == "--patches" || "${ARGS[i]}" == "-p" ]]; then
           PATCHES_ARG=1
     fi
+	if [[ "${ARGS[i]}" == *".patch"*  ]]; then
+		  CUSTOM_PATCHES_ARR+=("${ARGS[i]}")
+	fi
 done
 
 check_ssh_connection
@@ -133,6 +150,7 @@ CACHE_SERVER_WORKDIR=$cache_desktop_path/test/src
 ssh $cache_usr@$cache_ip "cd $CACHE_SERVER_WORKDIR && ./experiment/cache_containers.sh kill" 2> /dev/null
 
 prepare_host
+setup_pathces
 
 
 # LOOP
