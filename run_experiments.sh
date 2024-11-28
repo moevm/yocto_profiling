@@ -117,10 +117,10 @@ if [ "$EXPERIMENT_NAME" == "main" ]; then
     echo "starting"
     # here gotta be start of main experiment
     if [ "$PATCHES_FLAG" == true ]; then
-        # cd ./setup_servers && ./main.sh --patches
         echo "Running with --patches"
+        cd ./setup_servers && ./main.sh --patches
     else
-        # cd ./setup_servers && ./main.sh
+        cd ./setup_servers && ./main.sh
         echo "Running without --patches"
     fi
     exit 0
@@ -131,11 +131,11 @@ if [ "$EXPERIMENT_NAME" == "filters" ]; then
     echo "starting"
     # here gotta be start of filters experiment
     if [ "$PATCHES_FLAG" == true ]; then
-        # ./run.sh --patches
-        echo "Running with --patches"
+        echo "Warning! filters does not require the --patches flag!"
+        ./run.sh 
     else
-        # ./run.sh
         echo "Running without --patches"
+        ./run.sh
     fi
     exit 0
 fi
@@ -145,11 +145,11 @@ if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
     echo "starting"
     # here gotta be start of speeding_up experiment
     if [ "$PATCHES_FLAG" == true ]; then
-        # $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh --patches
         echo "Running with --patches"
+        $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh --patches
     else
-        # $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh
         echo "Running without --patches"
+        $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh
     fi
     exit 0
 fi
@@ -159,11 +159,11 @@ if [ "$EXPERIMENT_NAME" == "profiling" ]; then
     echo "starting"
     # here gotta be start of profiling experiment
     if [ "$PATCHES_FLAG" == true ]; then
-        # $PATH_TO_PROFILING_EXP/profiling_experiment.sh --patches
         echo "Running with --patches"
+        # $PATH_TO_PROFILING_EXP/profiling_experiment.sh --patches
     else
-        # $PATH_TO_PROFILING_EXP/profiling_experiment.sh
         echo "Running without --patches"
+        # $PATH_TO_PROFILING_EXP/profiling_experiment.sh
     fi
     exit 0
 fi
