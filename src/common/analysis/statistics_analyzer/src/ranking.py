@@ -1,9 +1,9 @@
 import math
-from src.common.analysis.statistics_analyzer.src.parsing import all_tasks
+from .parsing import all_tasks
 
-#Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
-#Можем ранжировать по любой метрике, по умолчанию ранжируется по времени выполнения задачи.
-#border - доля данных, которая нас интересует, т.е. если border=1, то это все имеющиеся данные,
+# Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
+# Можем ранжировать по любой метрике, по умолчанию ранжируется по времени выполнения задачи.
+# border - доля данных, которая нас интересует, т.е. если border=1, то это все имеющиеся данные,
 # например, если reverse=True и border=0.1, то найдем 10% самых затратных пакетов по этой задаче
 def ranking_task_info(info, task, metric='Elapsed time', border=1, reverse=True):
     task_info = []

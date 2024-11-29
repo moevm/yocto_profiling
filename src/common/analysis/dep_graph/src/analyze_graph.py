@@ -1,5 +1,5 @@
 import networkx as nx
-from src.common.analysis.dep_graph.src.match_graph_names import sort_start_time, match
+from .match_graph_names import sort_start_time, match
 
 
 def analyze_graph(dotfilename, info, create_txt=False):

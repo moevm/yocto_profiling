@@ -2,13 +2,11 @@ import os
 import argparse
 import unittest
 
-from tests.src.ranking_tests import RankingTest
-from tests.src.graph_tests import GraphTest
-
-from src.common.analysis.statistics_analyzer.src.parsing import Parser
-from src.common.analysis.statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
-from src.common.analysis.dep_graph.src.analyze_graph import analyze_graph, graph_task_children
-from src.common.analysis.statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals, get_tasks_for_intervals, write_to_json
+from init import *
+from statistics_analyzer.src.parsing import Parser
+from statistics_analyzer.src.ranking import write_ranked_data, get_ranked_data_for_all_tasks
+from statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, find_free_intervals, get_tasks_for_intervals, write_to_json
+from dep_graph.src.analyze_graph import analyze_graph, graph_task_children
 
 
 def create_args():

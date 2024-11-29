@@ -13,7 +13,6 @@ import socket
 
 DNS_SERVERS = ["8.8.8.8", "77.88.8.8", "77.88.8.1", "8.8.4.4", "1.1.1.1", "1.0.0.1"]
 
-
 def get_local_ip():
     for dns_server in DNS_SERVERS:
         try:
@@ -31,5 +30,4 @@ def get_local_ip():
 
 if __name__ == "__main__":
     ip = get_local_ip()
-
     print(ip)

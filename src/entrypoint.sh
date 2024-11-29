@@ -176,6 +176,7 @@ case "$COMMAND" in
     ;;
   cb | clean-build )
     echo "Remove poky, build dir, conf"
+		rm -rf $DOCKERFILE_DIR/assembly/original_poky
 		rm -rf $DOCKERFILE_DIR/assembly/poky
 		rm -rf $DOCKERFILE_DIR/assembly/build
     rm -f $CONFIGS_DIR/local.conf

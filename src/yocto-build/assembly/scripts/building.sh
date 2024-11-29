@@ -29,21 +29,28 @@ function check_poky() {
   if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
     git clone $YOCTO_REPOSITORY ./original_poky
-
     YOCTO_CLONING_CODE=$?
+
+    if [ $YOCTO_CLONING_CODE -ne 0 ]; then
+      rm -rf ./original_poky/
+      echo -e "Yocto cloning from git ends with code: $YOCTO_CLONING_CODE"
+      exit $YOCTO_CLONING_CODE
+    fi
   fi
   
   if [ ! -d "./poky" ]; then
     mkdir -p ./poky
     rsync -avu ./original_poky/ ./poky/
-  fi
-  
-  if [ $YOCTO_CLONING_CODE -ne 0 ]; then
-	  echo "Yocto cloning ends with code: $YOCTO_CLONING_CODE"
-    exit $YOCTO_CLONING_CODE
-  fi
-  echo "Yocto cloning finish successfully."
+    YOCTO_CLONING_CODE=$?
 
+    if [ $YOCTO_CLONING_CODE -ne 0 ]; then
+	    rm -rf ./poky/
+	    echo -e "Yocto cloning from buff \"./yocto-build/assembly/original_poky/\" ends with code: $YOCTO_CLONING_CODE"
+      exit $YOCTO_CLONING_CODE
+    fi
+  fi
+
+  echo "Yocto cloning finish successfully."
   cd $POKY_DIR
 
   CURRENT_BRANCH=$(git branch --show-current)

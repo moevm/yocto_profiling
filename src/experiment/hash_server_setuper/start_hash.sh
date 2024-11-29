@@ -1,14 +1,31 @@
-#!/bin/bash
+#! /bin/bash
 
+PORT=8888
 
-# The argument needs to be passed - the server identification is based on port
-PORT=$1
+branch_name=my-upstream_5.0.1
+commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
 
-if [ -z "$PORT" ]; then
-    echo "Usage: $0 <port>"
-    echo "The argument needs to be passed - the server identification is based on port"
-    exit 1
+cd ../poky
+
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "$branch_name" ]; then
+	echo "Switch the branch."
+	git checkout $commit_hash -b $branch_name
 fi
 
+. oe-init-build-env build
+# source oe-init-build-env
 
-docker run -d -p $PORT:8888 hash
+cd ../..
+
+mkdir hashserver
+
+cd hashserver
+echo "$PWD"
+echo "Start hash server at -- $ip:$PORT"
+
+bitbake-hashserv -b :$PORT
+
+echo "Something wrong with your bitbake-hashserv"
+
+exit 1

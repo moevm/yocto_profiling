@@ -1,50 +1,18 @@
 #! /bin/bash
 
 SCRIPT_DIR=$(dirname "$(realpath $0)")
-SRC_DIR=$SCRIPT_DIR/..
+SRC_DIR=$SCRIPT_DIR/../..
 DOCKERFILE_DIR=$SRC_DIR/yocto-build
-PATH_TO_CACHE=/yocto-build/assembly/build/sstate-cache
-
-
-function build_env(){
-	$SRC_DIR/entrypoint.sh build-env --no-perf
-
-	EXIT_CODE=$?
-	if [[ ! $EXIT_CODE -eq 0 ]]; then
-		echo -e "\nError during building env."
-		exit 1
-	fi
-}
-
-function build_yocto_image(){
-	$SRC_DIR/entrypoint.sh build-yocto
-
-	EXIT_CODE=$?
-	if [[ ! $EXIT_CODE -eq 0 ]]; then
-		echo -e "\nError during building yocto image."
-		exit 1
-	fi
-}
+PATH_TO_CACHE=$SRC_DIR/yocto-build/assembly/build/sstate-cache
 
 function start_servers(){
-	python3 $DOCKERFILE_DIR/assembly/cache_servers.py start --path $PATH_TO_CACHE -p $1 -c $2
+	python3 $SCRIPT_DIR/cache.py start --path $PATH_TO_CACHE -p $1 -c $2
 
 	EXIT_CODE=$?
 	if [[ ! $EXIT_CODE -eq 0 ]]; then
 		echo -e "\nError during upping sstate-cache servers."
 		exit 1
 	fi
-}
-
-function pipeline(){
-        # echo -e "\n\nSTAGE 1: build env\n\n"
-        # build_env
-
-        # echo -e "\n\nSTAGE 2: build yocto\n\n"
-        # build_yocto_image
-
-        echo -e "\n\nStart sstate-cache servers: \n\n"
-        start_servers $1 $2
 }
 
 function help(){
@@ -81,11 +49,12 @@ case "$1" in
                 fi
 
 		echo -e "\nARGS: START_PORT=$PORT COUNT_OF_SERVERS=$COUNT_OF_SERVERS"
-		pipeline $PORT $COUNT_OF_SERVERS
+		echo -e "\n\nStart sstate-cache servers: \n\n"
+    start_servers $PORT $COUNT_OF_SERVERS
 		;;
 	"kill")
 		echo -e "STOP AND REMOVE CACHE CONTAINERS!"
-		python3 $DOCKERFILE_DIR/assembly/cache_servers.py kill --path $PATH_TO_CACHE
+		python3 $SCRIPT_DIR/cache.py kill --path $PATH_TO_CACHE
 		;;
 	*)
 		help

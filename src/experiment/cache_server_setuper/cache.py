@@ -4,14 +4,15 @@ import os
 from typing import Optional, Union, Tuple, List
 
 import docker
-import docker.errors
+from docker import DockerClient
+from docker.errors import DockerException, APIError, ImageNotFound, BuildError
 from docker.models.containers import Container
 
 
-def connect_to_docker() -> docker.DockerClient:
+def connect_to_docker() -> DockerClient:
     try:
         cl = docker.from_env()
-    except docker.errors.DockerException as e:
+    except DockerException as e:
         raise Exception(
             f"An error occurred while retrieving docker information, check that docker is installed and running.\n{e}"
         )
@@ -39,7 +40,7 @@ def variables_check(*, start_port: int = 9000, count_of_servers: int = 4) -> Tup
 def find_image(image: str) -> bool:
     try:
         CLIENT.images.get(image)
-    except docker.errors.ImageNotFound:
+    except ImageNotFound:
         return False
     return True
 
@@ -54,18 +55,15 @@ def pull_reqs_images(*, images: Optional[List[str]] = None) -> None:
 
         try:
             CLIENT.images.pull(image)
-        except docker.errors.APIError as e:
+        except APIError as e:
             raise Exception(f"Error while pulling image {image}: {e}")
 
     return
 
 
-def sstate_dir_check(*, path: str = '/build/sstate-cache') -> str:
-    current_path = os.getcwd()
-    result_path = current_path + path
-    if not (os.path.isdir(result_path) and os.listdir(result_path)):
+def sstate_dir_check(*, path: str) -> None:
+    if not (os.path.isdir(path) and os.listdir(path)):
         raise OSError('Directory with sstate-cache was not found or it is empty!')
-    return result_path
 
 
 def create_volume_note(cache_dir: str) -> str:
@@ -104,9 +102,10 @@ def container_creator(*, image: str, name: str, port: int, volume: Union[List[st
                 "PORT": PORT_INSIDE_CONTAINER
                 },
             volumes=volume,
-            read_only=True
+            read_only=True,
+            detach=True
         )
-    except docker.errors.APIError as e:
+    except APIError as e:
         raise Exception(f"Error while creating containers, retry or delete already exists containers. {e}")
 
     return container
@@ -116,7 +115,7 @@ def create_containers(*, image: str, vol: Tuple[List[str], str]) -> Tuple[Contai
     parted_vol, universal_vol = vol
 
     if not find_image(image):
-        raise docker.errors.ImageNotFound("Base image not found!")
+        raise ImageNotFound("Base image not found!")
 
     remove_exists_containers(image=image)
 
@@ -148,7 +147,7 @@ def start_containers(*, image: str, containers: Tuple[Container, ...]) -> None:
     for container in containers:
         try:
             container.start()
-        except docker.errors.APIError as e:
+        except APIError as e:
             remove_exists_containers(image=image)
             raise e
 
@@ -163,28 +162,26 @@ def remove_exists_containers(*, image: str) -> None:
 def remove_container(container: Container) -> None:
     try:
         container.remove(force=True)
-    except docker.errors.APIError:
-        raise docker.errors.APIError(
+    except APIError as e:
+        raise APIError(
             "Error while removing container, check \'docker ps -a\' that it was removed successfully!"
-        )
+        ) from e
 
 
 def stop_container(container: Container) -> None:
     try:
-        container.stop(force=True)
-    except docker.errors.APIError:
-        raise docker.errors.APIError(
+        container.stop(timeout=0)
+    except APIError as e:
+        raise APIError(
             "Error while stopping container, check list of containers!"
-        )
+        ) from e
 
 
 def build_base_image(*, tag: str) -> None:
     try:
         image, _ = CLIENT.images.build(path=CONTEXT, dockerfile='Dockerfile', tag=tag, forcerm=True)
-    except (docker.errors.BuildError, docker.errors.APIError) as e:
-        raise Exception(f'An error occurred while building base image! {e}')
-    except TypeError as e:
-        raise e
+    except (BuildError, APIError) as e:
+        raise Exception('An error occurred while building base image!') from e
 
 
 def option_create() -> Tuple:
@@ -210,17 +207,19 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', type=int, default=9000)
     parser.add_argument('-c', '--count', type=int, default=4)
     parser.add_argument('--path', type=str, default='/build/sstate-cache')
-    parser.add_argument('--context', type=str, default=os.path.dirname(os.path.realpath(sys.argv[0])) + '/servers_reqs')
+    parser.add_argument('--context', type=str, default=os.path.dirname(os.path.realpath(sys.argv[0])) + '/reqs')
 
     args = parser.parse_args()
 
     START_PORT, COUNT_OF_SERVERS = variables_check(start_port=args.port, count_of_servers=args.count)
-    SSTATE_DIR_PATH = sstate_dir_check(path=args.path)
+    sstate_dir_check(path=args.path)
+
+    SSTATE_DIR_PATH = args.path
     CONTEXT = args.context
 
     CLIENT = connect_to_docker()
     IMAGE_NAME: str = 'parted-sstate-cache:latest'
-    PORT_INSIDE_CONTAINER: int = 9000
+    PORT_INSIDE_CONTAINER: str = '9000'
 
     if args.action == 'create':
         option_create()

@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from src.common.analysis.statistics_analyzer.src.log_iterator import log_files_iterator, log_iterator
+from .log_iterator import log_files_iterator, log_iterator
 
 
 all_metrics = ['PID', 'Elapsed time', 'utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'IO syscr',

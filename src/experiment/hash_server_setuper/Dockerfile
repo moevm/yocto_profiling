@@ -23,11 +23,11 @@ RUN apt-get update && \
 	python3-jinja2 \
 	libegl1-mesa \
 	libsdl1.2-dev \
-	python3-subunit \ 
-	mesa-common-dev \ 
-	zstd \ 
-	liblz4-tool \ 
-	file \ 
+	python3-subunit \
+	mesa-common-dev \
+	zstd \
+	liblz4-tool \
+	file \
 	libacl1 \
 	locales \
 	sudo \
@@ -40,13 +40,9 @@ RUN apt-get update && \
 	sysstat \
 	strace 
 
+WORKDIR /hash_server
 RUN git clone git://git.yoctoproject.org/poky
-
-
-WORKDIR /building
-COPY ./building ./
+COPY start_hash.sh ./
 
 EXPOSE ${8888}
-
-
-CMD ["sh", "-c", "./building.sh"]	
+CMD ["sh", "-c", "./start_hash.sh"]
