@@ -26,7 +26,7 @@ RUN apt-get update && \
 	unzip \
 	texinfo \
 	gcc-multilib \
-    build-essential \
+	build-essential \
 	chrpath \
 	socat \
 	cpio \
