@@ -1,21 +1,22 @@
 
 # GENERAL
-**/.idea
-**/__pycache__/*
-**/*.swp
+**/.idea/
+**/__pycache__/
+**/*.swp/
+**/.venv/
 
 # CONFIGS
 **/src/conf/local.conf
 
 # YOCTO
-**/assembly/build*
-**/assembly/logs
-**/assembly/poky
-**/assembly/meta*
+**/assembly/build*/
+**/assembly/logs/
+**/assembly/original_poky/
+**/assembly/poky/
+**/assembly/meta*/
 
 # EXPERIMENT
 **/auto_conf/experiment.conf
 **/auto_conf/conf/local.conf
-**/experiment/test*
-**/experiment/times
+**/experiment/results/
 
