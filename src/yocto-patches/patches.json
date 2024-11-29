@@ -38,5 +38,9 @@
         "cachefiles.patch": {
                 "path": "/meta/classes-global/",
                 "file": "sstate.bbclass"
+        },
+        "compose_indexfile.patch": {
+                "path": "/bitbake/lib/bb/",
+                "file": "runqueue.py"
         }
 }
