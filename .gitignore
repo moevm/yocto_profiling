@@ -2,7 +2,7 @@
 # GENERAL
 **/.idea/
 **/__pycache__/
-**/*.swp/
+**/*.swp
 **/.venv/
 
 # CONFIGS
