@@ -7,11 +7,7 @@ from typing import Optional, Tuple, List
 from pathlib import Path
 
 
-def validate_path(poky_path: Optional[str], dir_path: Optional[str], patches_filename: str) -> tuple[Path, Path, Path]:
-    if poky_path is None:
-        raise ValueError("[Error] The poky path was not received. Use --poky-path to pass this value.")
-    if dir_path is None:
-        raise ValueError("[Error] The path was not received. Use --dir-path to pass this value.")
+def validate_path(poky_path: str, dir_path: str, patches_filename: str) -> Tuple[Path, Path, Path]:
     if not ".json" in patches_filename:
         raise ValueError("[Error] Json file was expected.")
 
@@ -122,8 +118,8 @@ def get_patches(args: argparse.Namespace, patches_file: Path) -> Optional[List[T
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--poky-path', dest="poky_path", type=str, default=None)
-    parser.add_argument('--dir-path', dest="dir_path", type=str, default=None)
+    parser.add_argument('--poky-path', dest="poky_path", type=str, required=True)
+    parser.add_argument('--dir-path', dest="dir_path", type=str, required=True)
     parser.add_argument('--patches-filename', dest="patches_filename", type=str, default="patches.json")
     parser.add_argument('-p', '--patch', dest="patches", nargs='*', help="Patches to be applied")
     parser.add_argument('-l', '--patches-list', dest="patches_list", action="store_true",
