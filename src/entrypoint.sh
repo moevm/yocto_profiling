@@ -123,14 +123,15 @@ function build_yocto_stage() {
 }
 
 function clean_docker() {
-  CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
-  docker rm -f $CONTAINER_ID
+  CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
+  if [ ! -z "$CONTCONTAINER_ID" ]; then
+    docker rm -f $CONTAINER_ID
 
   $CHECKS_DIR/yocto-image-check.sh $IMAGE_NAME
   CHECK_CODE=$?
   if [ $CHECK_CODE -eq 0 ]; then
-          IMAGE_ID=$(docker inspect --format="{{.Id}}" $IMAGE_NAME)
-          docker rmi $IMAGE_ID
+    IMAGE_ID=$(docker inspect --format="{{.Id}}" $IMAGE_NAME)
+    docker rmi $IMAGE_ID
   fi
 
   $SRC_DIR/entrypoint.sh build-env --no-perf --no-cache
