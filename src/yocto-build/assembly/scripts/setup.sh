@@ -8,7 +8,7 @@ case "$STAGE_VAR" in
         	sleep infinity
 		;;
 	*)
-		echo "Buiding script was executed!"
+		echo "Building script was executed!"
 		./building.sh
 		;;
 esac

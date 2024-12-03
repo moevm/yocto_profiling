@@ -12,6 +12,4 @@ if [[ $? -eq 1 ]]; then
 fi
 
 cd $DOCKERFILE_DIR
-STAGE_VAR="sleep" docker compose up -d
-docker container exec -it $CONTAINER_NAME /bin/bash
-$CHECKS_DIR/active-container-check.sh $DOCKERFILE_DIR $CONTAINER_NAME
+docker compose run --rm -it --entrypoint /bin/bash $CONTAINER_NAME
