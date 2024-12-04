@@ -146,10 +146,10 @@ if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
     # here gotta be start of speeding_up experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Running with --patches"
-        $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh --patches
+        ./speeding_up_experiment.sh 50 --patches 
     else
         echo "Running without --patches"
-        $PATH_TO_SPEEDING_EXP/speeding_up_experiment.sh
+        ./speeding_up_experiment.sh 50
     fi
     exit 0
 fi
