@@ -10,7 +10,7 @@ if [ -d "configs" ]; then
 fi
 
 if [ -d "times" ]; then
-    rm -rf
+    rm -rf times
 fi
 
 mkdir times
@@ -19,16 +19,16 @@ python3 ./auto_compose_local_conf.py
 
 
 if [ -d "poky" ]; then
-  echo "poky already exist"
-else
-    git clone git://git.yoctoproject.org/poky && \
-        cd poky && \
-        branch_name=my-upstream_5.0.1 && \
-        commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810 && \
-        git checkout $commit_hash -b $branch_name
-        cd .. 
+  echo "poky already exist. Removing..."
+  rm -rf ./poky
 fi
 
+git clone https://github.com/yoctoproject/poky.git && \
+    cd poky && \
+    branch_name=my-upstream_5.0.1 && \
+    commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810 && \
+    git checkout $commit_hash -b $branch_name
+    cd .. 
 
 cp -f async_filter_with_time.patch ./poky/
 cd poky 
