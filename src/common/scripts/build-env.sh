@@ -28,6 +28,6 @@ if [[ -z "$NO_CACHE" ]]; then
 	$VARS
 else
 	docker compose build $NO_CACHE \
-  $VARS
+	$VARS
 fi
 
