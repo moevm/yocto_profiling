@@ -1,0 +1,18 @@
+#! /bin/bash
+
+SRC_DIR=$ENTRYPOINT_DIR/src
+CONFIGS_DIR=$SRC_DIR/conf
+PATCHES_DIR=$SRC_DIR/yocto-patches
+BUILD_DIR=$SRC_DIR/yocto-build
+EXPERIMENTS_DIR=$SRC_DIR/experiment
+
+ANALYSIS_DiR=$SRC_DIR/common/analysis
+SCRIPTS_DIR=$SRC_DIR/common/scripts
+CHECKS_DIR=$SCRIPTS_DIR/checks
+
+DOCKERFILE_DIR=$BUILD_DIR
+ASSEMBLY_DIR=$BUILD_DIR/assembly
+POKY_DIR=$ASSEMBLY_DIR/poky
+
+CONTAINER_NAME=yocto-container
+IMAGE_NAME=yocto-image

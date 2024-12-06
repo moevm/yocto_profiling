@@ -2,15 +2,18 @@
 
 set -e
 
-SCRIPT_DIR=$(dirname "$(realpath $0)")
-SRC_DIR=$SCRIPT_DIR/..
-PROJECT_DIR=$SRC_DIR/..
-BUILDSTATS_DIR=$SRC_DIR/yocto-build/assembly/build/tmp/buildstats
+ENTRYPOINT_DIR=$(git rev-parse --show-toplevel 2> /dev/null)
+if [ -z $ENTRYPOINT_DIR ] || [ "os_profiling" != $(basename -s .git `git config --get remote.origin.url`) ]; then
+  echo -e "You are not in the os_profiling cloned repo!"
+  exit 2
+fi
+. $ENTRYPOINT_DIR/src/common/scripts/vars.sh
+CURRENT_DIR=$(dirname "$(realpath $0)")
+
+BUILDSTATS_DIR=$ASSEMBLY_DIR/build/tmp/buildstats
 SAVE_DIR=$SRC_DIR/buildstats_saves
 SAVING_TIME_FILE=$SAVE_DIR/time.txt
 
-CONTAINER_NAME=yocto-container
-IMAGE_NAME=yocto-image
 
 function get_count_of_runs() {
   if [ -z "$1" ]; then
@@ -22,24 +25,21 @@ function get_count_of_runs() {
 }
 
 function make_task_children_file() {
-  ./entrypoint.sh clean-build
-  ./entrypoint.sh clean-docker
-  ./entrypoint.sh build-env --no-perf
-  ./entrypoint.sh build-yocto --only-poky
+  $ENTRYPOINT_DIR/entrypoint.sh clean-build
+  $ENTRYPOINT_DIR/entrypoint.sh clean-docker
+  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+  $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
 
-  cd yocto-build
   docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
 
-  cd $PROJECT_DIR
-  python3 main.py -g task_children -d ./src/yocto-build/assembly/build/task-depends.dot
-  cd $SRC_DIR
+  python3 $ANALYSIS_DIR/main.py -g task_children -d $ASSEMBLY_DIR/build/task-depends.dot
 }
 
 function prepare_build() {
-  ./entrypoint.sh clean-docker
-  ./entrypoint.sh clean-build
-  ./entrypoint.sh build-env --no-perf
-  cp dep_graph/text-files/task-children.txt yocto-build/assembly
+  $ENTRYPOINT_DIR/entrypoint.sh clean-docker
+  $ENTRYPOINT_DIR/entrypoint.sh clean-build
+  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+  cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
 }
 
 function create_saving_dir() {
@@ -62,13 +62,13 @@ function main() {
 
   total_time=0
   for ((i=1; i<=num_runs; i++)); do
-    ./entrypoint.sh clean-build
-    ./entrypoint.sh build-yocto --only-poky
-    ./entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
+    $ENTRYPOINT_DIR/entrypoint.sh clean-build
+    $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
+    $ENTRYPOINT_DIR/entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
 
 
     start_time=$(date +%s)
-    ./entrypoint.sh build-yocto
+    $ENTRYPOINT_DIR/entrypoint.sh build-yocto
     end_time=$(date +%s)
 
     elapsed_time=$((end_time - start_time))
@@ -78,7 +78,7 @@ function main() {
     cp -r $BUILDSTATS_DIR "$SAVE_DIR/run_$i"
   done
 
-  ./entrypoint.sh clean-build
+  $ENTRYPOINT_DIR/entrypoint.sh clean-build
 
   average_time=$((total_time / num_runs))
   echo -e "average time: $average_time\n" >> $SAVING_TIME_FILE

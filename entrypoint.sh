@@ -1,17 +1,12 @@
 #! /bin/bash
 
-SRC_DIR=$(dirname "$(realpath $0)")
-CONFIGS_DIR=$SRC_DIR/conf
-PATCHES_DIR=$SRC_DIR/yocto-patches
-DOCKERFILE_DIR=$SRC_DIR/yocto-build
-
-POKY_DIR=$DOCKERFILE_DIR/assembly/poky
-
-SCRIPTS_DIR=$SRC_DIR/common/scripts
-CHECKS_DIR=$SCRIPTS_DIR/checks
-
-CONTAINER_NAME=yocto-container
-IMAGE_NAME=yocto-image
+ENTRYPOINT_DIR=$(git rev-parse --show-toplevel 2> /dev/null)
+if [ -z $ENTRYPOINT_DIR ] || [ "os_profiling" != $(basename -s .git `git config --get remote.origin.url`) ]; then
+  echo -e "You are not in the os_profiling cloned repo!"
+  exit 2
+fi
+. $ENTRYPOINT_DIR/src/common/scripts/vars.sh
+CURRENT_DIR=$(dirname "$(realpath $0)")
 
 
 function help() {
@@ -104,6 +99,10 @@ function build_yocto_stage() {
         ;;
       --conf-file )
         CONFIG_FILE="$2"
+        if [ ! -s "$file" ]; then
+           echo -e "$CONFIG_FILE does not exist, or is empty!"
+           exit 2
+        fi
         echo "Using conf $CONFIG_FILE"
         shift 2
         ;;
@@ -124,7 +123,7 @@ function build_yocto_stage() {
 
 function clean_docker() {
   CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
-  if [ ! -z "${CONTCONTAINER_ID+x}" ]; then
+  if [ ! -z "${CONTAINER_ID+x}" ]; then
     docker rm -f $CONTAINER_ID
   fi
 
@@ -135,7 +134,7 @@ function clean_docker() {
     docker rmi $IMAGE_ID
   fi
 
-  $SRC_DIR/entrypoint.sh build-env --no-perf --no-cache
+  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf --no-cache
   EXIT_CODE=$?
 }
 
@@ -178,9 +177,9 @@ case "$COMMAND" in
     ;;
   cb | clean-build )
     echo "Remove poky, build dir, conf"
-		rm -rf $DOCKERFILE_DIR/assembly/original_poky
-		rm -rf $DOCKERFILE_DIR/assembly/poky
-		rm -rf $DOCKERFILE_DIR/assembly/build
+		rm -rf $ASSEMBLY_DIR/original_poky
+		rm -rf $ASSEMBLY_DIR/poky
+		rm -rf $ASSEMBLY_DIR/build
     rm -f $CONFIGS_DIR/local.conf
     ;;
   check )

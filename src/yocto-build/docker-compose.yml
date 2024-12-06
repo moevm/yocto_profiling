@@ -24,6 +24,7 @@ services:
       - PATCHES_DIR=/home/yocto_user/project/yocto-patches
       - STAGE_VAR
       - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
+      - BRANCH_NAME=my-upstream_5.0.1
     cap_add:
       - SYS_PTRACE
     security_opt:

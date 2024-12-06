@@ -1,12 +1,7 @@
 #! /bin/bash
 
-ASSEMBLY_DIR=$YOCTO_INSTALL_PATH/assembly
-POKY_DIR=$ASSEMBLY_DIR/poky
-SCRIPTS_DIR=$ASSEMBLY_DIR/scripts
+
 FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
-
-
-BRANCH_NAME="my-upstream_5.0.1"
 YOCTO_REPOSITORY=git://git.yoctoproject.org/poky
 
 YOCTO_EXIT_CODE=0
