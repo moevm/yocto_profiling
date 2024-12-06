@@ -1,13 +1,13 @@
 
 services:
-  yocto_project:
-    container_name: yocto_project
+  yocto-container:
+    container_name: yocto-container
     image: yocto-image
     # stdin_open: true
     tty: true
     build:
-      context: ../../
-      dockerfile: ./src/yocto-build/Dockerfile
+      context: ../
+      dockerfile: ./yocto-build/Dockerfile
       target: base
       args:
         - CODENAME
@@ -19,11 +19,11 @@ services:
         - LC_ALL=en_US.UTF-8
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
     environment:
-        - ASSEMBLY_DIR=/home/yocto_user/project/assembly
-        - POKY_DIR=/home/yocto_user/project/assembly/poky
-        - PATCHES_DIR=/home/yocto_user/project/yocto-patches
-        - STAGE_VAR
-        - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
+      - ASSEMBLY_DIR=/home/yocto_user/project/assembly
+      - POKY_DIR=/home/yocto_user/project/assembly/poky
+      - PATCHES_DIR=/home/yocto_user/project/yocto-patches
+      - STAGE_VAR
+      - YOCTO_COMMIT_HASH=4b07a5316ed4b858863dfdb7cab63859d46d1810
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -32,5 +32,5 @@ services:
     volumes:
       - ../yocto-patches:/home/yocto_user/project/yocto-patches
       - ./assembly:/home/yocto_user/project/assembly
-      - ../../build/conf:/home/yocto_user/project/conf
+      - ../conf:/home/yocto_user/project/conf
       - /sys/kernel/debug:/sys/kernel/debug

@@ -1,173 +1,199 @@
 #! /bin/bash
 
 SRC_DIR=$(dirname "$(realpath $0)")
-CONF_PATH=$SRC_DIR/../build/conf
-
-SCRIPTS_DIR=$SRC_DIR/scripts
+CONFIGS_DIR=$SRC_DIR/conf
 PATCHES_DIR=$SRC_DIR/yocto-patches
-CHECKS_DIR=$SCRIPTS_DIR/checks
-
 DOCKERFILE_DIR=$SRC_DIR/yocto-build
+
 POKY_DIR=$DOCKERFILE_DIR/assembly/poky
 
+SCRIPTS_DIR=$SRC_DIR/common/scripts
+CHECKS_DIR=$SCRIPTS_DIR/checks
+
+CONTAINER_NAME=yocto-container
+IMAGE_NAME=yocto-image
+
+
 function help() {
-	echo "This script is needed for interaction with the image of Yocto Project."
-	echo "List of available parameters:"
-	
-	echo -e "\tbuild_env -- Builds an image of the virtual environment."
-	echo -e "\t\t--no-perf -- Disables installation of the perf."
-	echo -e "\t\t--no-cache -- Disables docker cache using."
-	
-	echo -e ""
-	echo -e "\t*ONLY AFTER STAGE*: build_env"
-	echo -e "\tshell -- Opens a terminal in container."
-	echo -e "\tbuild_yocto_image -- Build the yocto image in container."
-	echo -e "\t\t--no-layers -- Build yocto image without custom config and layers."
-	echo -e "\t\t--only-poky -- Only clones poky instead of a full build."
+  echo "Usage: entrypoint [ env | build-env ]
+                    --no-perf -- disables installation of the perf
+                    --no-cache -- disables docker cache using
 
-	echo -e ""
-	echo -e "\t*REQUIRED CLONED POKY*"
-	echo -e "\tpatch <list_of_patches> -- Patching the project."
-	echo -e "\t\t-r, --reverse -- Disable choosen patches."
-	echo -e "\t\t-l, --patches-list -- Print available patches."
-	
-	echo -e ""
-	echo -e "\t*ONLY AFTER STAGE*: build_yocto_image"
-	echo -e "\tstart_yocto -- Up the yocto image."
-	
-	echo -e ""
-	echo -e "\tclean-docker -- Removing existing container and image of yocto."
-	echo -e "\tclean-build -- Removing poky and build dir."
-	
-	echo -e ""
-	echo -e "\tcheck -- Verify that dependencies are installed for the project."
+                  *required stage build-env*
+                  [ sh | shell ]
+                  [ by | build-yocto ]
+                      --only-poky -- only clones poky repo
+                      --no-layers -- build yocto image without layers and dependencies
+                      --conf-file <path> -- config file to use (works only for --no-layers)
+
+                  *required cloned poky*
+                  [ p | patch ] <list_of_patches>
+                      -r, --reverse -- disable choosen patches
+                      -l, --patches-list -- print available patches
+
+                  *required built yocto*
+                  [ sy | start-yocto ]
+
+                  [ cd | clean-docker ]
+                  [ cb | clean-build ]
+                  [ check ]"
+
+  exit 2
 }
 
-function check(){
-	check_codes=()
-
+function docker_check() {
 	$CHECKS_DIR/docker-check.sh
-	check_codes+=($?)
-	for code in ${check_codes[@]}; do
-		if [ $code -eq 1 ]; then
-			echo -e "\nVerification failed! Problems were found."
-			exit 1
-		fi
-	done
+	EXIT_CODE=$?
+  if [[ ! $EXIT_CODE -eq 0 ]]; then
+    echo -e "\nVerification failed! Problems were found."
+    exit $EXIT_CODE
+  fi
+
 	echo -e "\nVerification completed successfully!"
+  exit 0
 }
 
+function build_env_stage() {
+  REQS_ARG="perf"
+  NO_CACHE=""
+
+  while :
+  do
+    case "$1" in
+      --no-perf )
+        echo "DISABLE PERF"
+        REQS_ARG="requirements"
+        shift 1
+        ;;
+      --no-cache )
+        echo "DISABLE CACHING"
+        NO_CACHE="--no-cache"
+        shift 1
+        ;;
+      --)
+        break
+        ;;
+      *)
+        echo "Unexpected option for command \`build-env\`: $1"
+        exit 2
+        ;;
+    esac
+  done
+
+  echo "BUILDING ENV"
+  $SCRIPTS_DIR/build-env.sh $DOCKERFILE_DIR $REQS_ARG $NO_CACHE
+  EXIT_CODE=$?
+}
+
+function build_yocto_stage() {
+  STAGE_ARG="full"
+  CONFIG_FILE=$CONFIGS_DIR/default.conf
+
+  while :
+  do
+    case "$1" in
+      --only-poky )
+        echo "Only clones poky repo"
+        STAGE_ARG="only-poky"
+        break
+        ;;
+      --no-layers )
+        echo "Enable no-layers mode"
+        STAGE_ARG="no-layers"
+        shift 1
+        ;;
+      --conf-file )
+        CONFIG_FILE="$2"
+        echo "Using conf $CONFIG_FILE"
+        shift 2
+        ;;
+      --)
+        break
+        ;;
+      *)
+        echo "Unexpected option for command \`build-yocto\`: $1"
+        exit 2
+        ;;
+    esac
+  done
+  cp $CONFIG_FILE $CONFIGS_DIR/local.conf
+
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $STAGE_ARG $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
+  EXIT_CODE=$?
+}
+
+function clean_docker() {
+  CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
+  if [ ! -z "${CONTCONTAINER_ID+x}" ]; then
+    docker rm -f $CONTAINER_ID
+  fi
+
+  $CHECKS_DIR/yocto-image-check.sh $IMAGE_NAME
+  CHECK_CODE=$?
+  if [ $CHECK_CODE -eq 0 ]; then
+    IMAGE_ID=$(docker inspect --format="{{.Id}}" $IMAGE_NAME)
+    docker rmi $IMAGE_ID
+  fi
+
+  $SRC_DIR/entrypoint.sh build-env --no-perf --no-cache
+  EXIT_CODE=$?
+}
+
+
+# ===========================
 if [ $# -eq 0 ]; then
 	help
-	exit 0
 fi
 
-
-args_count=$(($#-1))
-p_command=$1
+COMMAND=$1
 shift 1
+VALID_ARGUMENTS=$#
 
-for (( i = 0; i < $args_count; i++ ))
-do
-	args_arr[$i]=$1
-	shift 1
-done
+case "$COMMAND" in
+  env | build-env )
+    build_env_stage $@ --
+    ;;
+  sh | shell )
+    $SCRIPTS_DIR/shell.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
+    EXIT_CODE=$?
+    ;;
+  by | build-yocto )
+    build_yocto_stage $@ --
+    ;;
+  p | patch )
+		if [ $# -eq 0 ]; then
+      echo "[WARNING]: No instructions were found"
+      help
+    fi
 
-
-EXIT_CODE=0
-case "$p_command" in 
-	"patch")
-		if [[ ! -z "${args_arr[0]}" ]]; then
-			$SCRIPTS_DIR/patching.sh $DOCKERFILE_DIR ${args_arr[@]}
-		else
-			echo "[WARNING]: No instructions were found"
-			help
-		fi
-		;;
-	"build_env")
-		REQS_ARG="perf"
-		NO_CACHE=""
-
-		for (( i = 0; i < $args_count; i++ ))
-		do
-			case "${args_arr[$i]}" in
-				"--no-perf")
-					echo "DISABLE PERF"
-					REQS_ARG="requirements"
-					;;
-				"--no-cache")
-					echo "DISABLE CACHING"
-					NO_CACHE="--no-cache"
-					;;
-				*)
-					echo "[WARNING]: Unknown arg: ${args_arr[$i]}"
-					;;
-			esac
-		done
-		echo "BUILDING ENV"
-		$SCRIPTS_DIR/build_env.sh $DOCKERFILE_DIR $REQS_ARG $NO_CACHE
-		;;
-	"shell")
-		$SCRIPTS_DIR/shell.sh $DOCKERFILE_DIR
-		
-		EXIT_CODE=$?
-		;;
-	"build_yocto_image")
-		STAGE_ARG="full"
-                if [[ ! -z "${args_arr[0]}" ]]; then
-                        if [[ "${args_arr[0]}" == "--only-poky" ]]; then
-                                STAGE_ARG="only-poky"
-                        fi
-                        if [[ "${args_arr[0]}" == "--no-layers" ]]; then
-                                STAGE_ARG="no-layers"
-                        fi
-                fi
-		
-		$SCRIPTS_DIR/build_yocto_image.sh $DOCKERFILE_DIR $STAGE_ARG
-		
-		EXIT_CODE=$?
-		;;
-	"start_yocto")
-		$SCRIPTS_DIR/start_yocto.sh $DOCKERFILE_DIR
-		
-		EXIT_CODE=$?
-		;;
-	"check")
-		check
-		;;
-	"clean-docker")
-                CONTAINER_NAME=yocto_project
-                CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
-                docker stop $CONTAINER_ID
-                docker rm $CONTAINER_ID
-
-                $CHECKS_DIR/yocto-image-check.sh
-                CHECK_CODE=$?
-                if [ $CHECK_CODE -eq 0 ]; then
-                        IMAGE_NAME=yocto-image
-                        IMAGE_ID=$(docker inspect --format="{{.Id}}" yocto-image)
-                        docker rmi $IMAGE_ID
-                fi
-	       	
-                ./entrypoint.sh build_env --no-perf ${args_arr[@]}
-                ;;
-	"clean-build")
-		echo "REMOVING POKY"
+    $SCRIPTS_DIR/patching.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $@
+    EXIT_CODE=$?
+    ;;
+  sy | start-yocto )
+    $SCRIPTS_DIR/start-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
+    EXIT_CODE=$?
+    ;;
+  cd | clean-docker )
+    clean_docker
+    ;;
+  cb | clean-build )
+    echo "Remove poky, build dir, conf"
+		rm -rf $DOCKERFILE_DIR/assembly/original_poky
 		rm -rf $DOCKERFILE_DIR/assembly/poky
-		echo "REMOVING BUILD DIR"
 		rm -rf $DOCKERFILE_DIR/assembly/build
-		;;
-	*)
-		echo -e "[ERROR]: Unexpected parameter found <$p_command>!\n"
-        	help
-        	exit 1
+    rm -f $CONFIGS_DIR/local.conf
+    ;;
+  check )
+    docker_check
+    ;;
+  * )
+    echo -e "[ERROR]: Unexpected command found <$COMMAND>!\n"
+    help
 		;;
 esac
 
-
 if [[ ! $EXIT_CODE -eq 0 ]]; then
 	echo "Exit code: $EXIT_CODE"
-	$CHECKS_DIR/active-container-check.sh
-
+	$CHECKS_DIR/active-container-check.sh $DOCKERFILE_DIR $CONTAINER_NAME
 fi
-
+# ===========================

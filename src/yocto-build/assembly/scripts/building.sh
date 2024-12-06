@@ -26,19 +26,31 @@ function check_dirs() {
 
 function check_poky() {
 
-  if [ ! -d "./poky" ]; then
+  if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
-    git clone $YOCTO_REPOSITORY
-
+    git clone $YOCTO_REPOSITORY ./original_poky
     YOCTO_CLONING_CODE=$?
+
+    if [ $YOCTO_CLONING_CODE -ne 0 ]; then
+      rm -rf ./original_poky/
+      echo -e "Yocto cloning from git ends with code: $YOCTO_CLONING_CODE"
+      exit $YOCTO_CLONING_CODE
+    fi
+  fi
+  
+  if [ ! -d "./poky" ]; then
+    mkdir -p ./poky
+    rsync -avu ./original_poky/ ./poky/
+    YOCTO_CLONING_CODE=$?
+
+    if [ $YOCTO_CLONING_CODE -ne 0 ]; then
+	    rm -rf ./poky/
+	    echo -e "Yocto cloning from buff \"./yocto-build/assembly/original_poky/\" ends with code: $YOCTO_CLONING_CODE"
+      exit $YOCTO_CLONING_CODE
+    fi
   fi
 
-  if [ $YOCTO_CLONING_CODE -ne 0 ]; then
-	  echo "Yocto cloning ends with code: $YOCTO_CLONING_CODE"
-    exit $YOCTO_CLONING_CODE
-  fi
   echo "Yocto cloning finish successfully."
-
   cd $POKY_DIR
 
   CURRENT_BRANCH=$(git branch --show-current)
@@ -89,18 +101,12 @@ function build() {
 	fi
 
 	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
-	if [ ! -f $YOCTO_INSTALL_PATH/conf/local.conf ]; then
-                cp $YOCTO_INSTALL_PATH/conf/default.conf $YOCTO_INSTALL_PATH/conf/local.conf
-	fi
-	
 	if [[ "$STAGE_VAR" != "no-layers" ]]; then
 		$SCRIPTS_DIR/add_layers.sh $POKY_DIR
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
 
-  	cp $YOCTO_INSTALL_PATH/conf/local.conf $YOCTO_INSTALL_PATH/conf/current.conf
-  	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
-	rm $YOCTO_INSTALL_PATH/conf/local.conf
+  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
 
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
@@ -114,8 +120,6 @@ function build() {
 	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
     exit $YOCTO_EXIT_CODE
   fi
-
-  echo "Yocto cloning finish successfully."
 }
 
 check_dirs

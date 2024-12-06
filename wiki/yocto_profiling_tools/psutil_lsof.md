@@ -3,6 +3,7 @@
 ####  1) lsof -p <pid>
  **psutil.Process.open_files()** - Эта функция возвращает список открытых файлов для указанного процесса. Можно использовать эту функцию для получения аналогичной информации, которую показывает команда `lsof -p <pid>`
 **Пример программы:**
+
 ```python
 import psutil
 
@@ -141,19 +142,22 @@ pmmap_grouped(path='/dev/shm/.com.google.Chrome.RgmFRp', rss=262144, size=262144
 
 #### 5) lsof -d 
 Эта команда позволяет выяснить, какие папки и файлы открыты в некоей директории (но не в её поддиректориях) - принимает аргумент - абсолютный или относительный путь.
+
 ```python
 import psutil
 import os
+
 
 def lsof_d(directory_path):
     for proc in psutil.process_iter():
         try:
             files = proc.open_files()
             for file in files:
-                if directory_path in file.path:
-                    print(f"PID: {proc.pid} - File: {file.path}")
+                if directory_path in file.repo_path:
+                    print(f"PID: {proc.pid} - File: {file.repo_path}")
         except psutil.NoSuchProcess:
             pass
+
 
 # dir = os.getcwd()  # получение рабочей директории
 dir = '/home'
