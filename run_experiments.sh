@@ -29,7 +29,7 @@ show_help() {
 
 PATH_TO_MAIN_EXP=./src/experiment
 PATH_TO_FILTERS_EXP=./src/experiment_2
-PATH_TO_SPEEDING_EXP=./src/scripts
+PATH_TO_SPEEDING_EXP=./src/common/scripts
 PATH_TO_PROFILING_EXP=./NONE
 speeding_num_servers=50
 
@@ -123,9 +123,9 @@ if [ "$EXPERIMENT_NAME" == "main" ]; then
     # here gotta be start of main experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Running with --patches"
-        cd ./setup_servers && ./main.sh --patches
+        ./main.sh --patches
     else
-        cd ./setup_servers && ./main.sh
+        ./main.sh
         echo "Running without --patches"
     fi
     exit 0
