@@ -251,7 +251,7 @@
 53_227,2
 ```
 
-
+Файлы с результатами: [result_before.txt](./source_results/build_time_before.txt) и [result_after.txt](./source_results/build_time_after.txt)
 
 ### Описание полученных графиков
 
