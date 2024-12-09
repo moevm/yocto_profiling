@@ -3,7 +3,7 @@
 set -e
 
 show_help() {
-    echo "Usage: $0 <experiment_name> [options] [speeding_num_servers]"
+    echo "Usage: $0 <experiment_name> [options] [speeding_num_runs]"
     echo
     echo "Options:"
     echo "  -h, --help    Show this help message and exit"
@@ -19,7 +19,7 @@ show_help() {
     echo "       Usage: ./run_experiments.sh filters"
     echo
     echo "   3. Experiment with speeding up building via net and priority patches. Name -- speeding_up"
-    echo "       Usage: ./run_experiments.sh speeding_up [speeding_num_servers]"
+    echo "       Usage: ./run_experiments.sh speeding_up [speeding_num_runs]"
     echo
     echo "   4. Experiment with profiling. Name -- profiling"
     echo "       Usage: ./run_experiments.sh profiling"
@@ -31,7 +31,7 @@ PATH_TO_MAIN_EXP=./src/experiment
 PATH_TO_FILTERS_EXP=./src/experiment_2
 PATH_TO_SPEEDING_EXP=./src/common/scripts
 PATH_TO_PROFILING_EXP=./NONE
-speeding_num_servers=50
+speeding_num_runs=50
 
 if [ "$#" -lt 1 ]; then
     echo "Error: Experiment name is required."
@@ -56,7 +56,7 @@ while [[ "$#" -gt 0 ]]; do
                 EXPERIMENT_NAME=$1
             else
                 if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
-                    speeding_num_servers=$1
+                    speeding_num_runs=$1
                 else
                     echo "Error: Unknown argument '$1'"
                     show_help
@@ -151,10 +151,10 @@ if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
     # here gotta be start of speeding_up experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Running with --patches"
-        ./speeding_up_experiment.sh "$speeding_num_servers" --patches
+        ./speeding_up_experiment.sh "$speeding_num_runs" --patches
     else
         echo "Running without --patches"
-        ./speeding_up_experiment.sh "$speeding_num_servers"
+        ./speeding_up_experiment.sh "$speeding_num_runs"
     fi
     exit 0
 fi
