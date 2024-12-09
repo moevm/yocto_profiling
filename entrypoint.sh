@@ -31,6 +31,7 @@ function help() {
 
                   [ cd | clean-docker ]
                   [ cb | clean-build ]
+		      -o, --orig -- also cleans original poky dir
                   [ check ]"
 
   exit 2
@@ -138,6 +139,39 @@ function clean_docker() {
 }
 
 
+function clean_build() {
+  CLEANING_ORIG_POKY=0
+  while :
+  do
+    case "$1" in
+      -o | --orig )
+        CLEANING_ORIG_POKY=1
+        break
+        ;;
+      --)
+        break
+        ;;
+      *)
+        echo "Unexpected option for command \`clean-build\`: $1"
+        exit 2
+        ;;
+    esac
+  done
+
+  echo "DELETING POKY, BUILD, LOCAL.CONF"
+  rm -rf $ASSEMBLY_DIR/poky
+  rm -rf $ASSEMBLY_DIR/build
+  rm -f $CONFIGS_DIR/local.conf
+
+  if [ $CLEANING_ORIG_POKY -eq 1 ]; then
+    echo "DELETING ORIG POKY"
+    rm -rf $ASSEMBLY_DIR/original_poky
+  fi
+
+  EXIT_CODE=$?
+}
+
+
 # ===========================
 if [ $# -eq 0 ]; then
 	help
@@ -175,11 +209,7 @@ case "$COMMAND" in
     clean_docker
     ;;
   cb | clean-build )
-    echo "Remove poky, build dir, conf"
-		rm -rf $ASSEMBLY_DIR/original_poky
-		rm -rf $ASSEMBLY_DIR/poky
-		rm -rf $ASSEMBLY_DIR/build
-    rm -f $CONFIGS_DIR/local.conf
+    clean_build $@ --
     ;;
   check )
     docker_check

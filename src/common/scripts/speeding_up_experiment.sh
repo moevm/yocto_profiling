@@ -25,7 +25,7 @@ function get_count_of_runs() {
 }
 
 function make_task_children_file() {
-  $ENTRYPOINT_DIR/entrypoint.sh clean-build
+  $ENTRYPOINT_DIR/entrypoint.sh clean-build --orig
   $ENTRYPOINT_DIR/entrypoint.sh clean-docker
   $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
   $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky

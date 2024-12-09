@@ -38,6 +38,7 @@ git clone https://github.com/moevm/os_profiling.git
 
                   [ cd | clean-docker ]
                   [ cb | clean-build ]
+		      -o, --orig -- also cleans original poky dir
                   [ check ]
         ```
        
