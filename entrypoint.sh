@@ -88,12 +88,12 @@ function build_yocto_stage() {
   do
     case "$1" in
       --only-poky )
-        echo "Only clones poky repo"
+        echo "CLONING POKY REPO ONLY"
         STAGE_ARG="only-poky"
         break
         ;;
       --no-layers )
-        echo "Enable no-layers mode"
+        echo "ENABLE no-layers MODE"
         STAGE_ARG="no-layers"
         shift 1
         ;;
@@ -103,7 +103,7 @@ function build_yocto_stage() {
            echo -e "$CONFIG_FILE does not exist, or is empty!"
            exit 2
         fi
-        echo "Using conf $CONFIG_FILE"
+        echo "USING CONF $CONFIG_FILE"
         shift 2
         ;;
       --)
@@ -134,7 +134,6 @@ function clean_docker() {
     docker rmi $IMAGE_ID
   fi
 
-  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf --no-cache
   EXIT_CODE=$?
 }
 
