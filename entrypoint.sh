@@ -19,6 +19,7 @@ function help() {
                   [ by | build-yocto ]
                       --only-poky -- only clones poky repo
                       --no-layers -- build yocto image without layers and dependencies
+                      --tracing -- enables tracing of the build with perf, ftrace, strace
                       --conf-file <path> -- config file to use (works only for --no-layers)
 
                   *required cloned poky*
@@ -83,6 +84,7 @@ function build_env_stage() {
 }
 
 function build_yocto_stage() {
+  TRACING="false"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 
@@ -108,6 +110,10 @@ function build_yocto_stage() {
         echo "USING CONF $CONFIG_FILE"
         shift 2
         ;;
+      --tracing )
+        TRACING="true"
+        shift 1
+        ;;
       --)
         break
         ;;
@@ -119,7 +125,7 @@ function build_yocto_stage() {
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
 
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TRACING
   EXIT_CODE=$?
 }
 
@@ -175,7 +181,7 @@ function clean_build() {
 function install_analysis_deps() {
   deactivate 2> /dev/null
   cd $ENTRYPOINT_DIR && python -m venv venv
-  
+
   unameOut="$(uname -s)"
   case "${unameOut}" in
     Linux*)     MACHINE=Linux;;

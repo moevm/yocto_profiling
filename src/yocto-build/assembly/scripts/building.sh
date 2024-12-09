@@ -59,38 +59,8 @@ function check_poky() {
 
 }
 
-function start_logging() {
-	# start utils for logging
-	# $1 is txt file for logs
-	# USE SUDO PLS 
-	echo "Start building yocto:" >> $1
-}
-
-function finish_logging() {
-	# finish utils for logging
-	# $1 is txt file for logs
-	# USE SUDO PLS
-	echo "Completed building yocto!" >> $1
-}
-
-function decorate_logs() {
-	LOG_FILE=$ASSEMBLY_DIR/logs/building_logs.txt
-
-	if [ $# -eq 0 ]; then
-		echo "You can use wrapper function. It takes any function with args and logs output to <./logs/building_logs.txt>"
-		return 1
-	fi
-
-	FUNC_TO_LOG="$1"
-	cp /dev/null $LOG_FILE
-
-	start_logging $LOG_FILE
-	$FUNC_TO_LOG $@ 2>&1
-	finish_logging $LOG_FILE
-}
-
-function build() {
-	if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
+function prepare_for_build() {
+  if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
 		rm $ASSEMBLY_DIR/build/conf/bblayers.conf
 	fi
 
@@ -100,25 +70,62 @@ function build() {
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
 
+
   if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
     cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
   fi
-        
+
 	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
 
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
- 
+
 	bitbake-layers show-layers
+}
+
+function build() {
+  LOG_FILE=$ASSEMBLY_DIR/logs/building_logs.txt
+	cp /dev/null $LOG_FILE
+
+  if [[ "$IS_TRACING_NEEDED" == "true" ]]; then
+    perf --version > /dev/null
+    IS_PERF_INSTALLED=$?
+    if [ $IS_PERF_INSTALLED -ne 0 ]; then
+      echo -e "Perf is not installed."
+      exit $IS_PERF_INSTALLED
+    fi
+  fi
+
+	# TBD: GET pid
 	bitbake core-image-minimal
-	YOCTO_EXIT_CODE=$?
-	
-	if [ $YOCTO_EXIT_CODE -ne 0 ]; then
-	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
-          exit $YOCTO_EXIT_CODE
-        fi
+  YOCTO_EXIT_CODE=$?
+
+  if [[ "$IS_TRACING_NEEDED" == "true" ]]; then
+    # TBD: combine with pid of process
+    # ========================================================================
+    perf stat -o $LOG_FILE bitbake core-image-minimal
+    strace -o $LOG_FILE bitbake core-image-minimal
+
+    TRACING=/sys/kernel/debug/tracing
+    sysctl kernel.ftrace_enabled=1
+
+    echo function > ${TRACING}/current_tracer
+    echo 1 > ${TRACING}/tracing_on
+
+    bitbake core-image-minimal
+
+    echo 0 > ${TRACING}/tracing_on
+    ${dir}/trace >> $LOG_FILE
+    # ========================================================================
+  fi
 }
 
 check_dirs
-decorate_logs build
+prepare_for_build
+build
+
+if [ $YOCTO_EXIT_CODE -ne 0 ]; then
+  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
+  exit $YOCTO_EXIT_CODE
+fi
