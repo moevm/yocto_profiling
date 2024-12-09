@@ -22,10 +22,10 @@ function get_count_of_runs() {
 }
 
 function make_task_children_file() {
-  ../../entrypoint.sh clean-build
-  ../../entrypoint.sh clean-docker
-  ../../entrypoint.sh build-env --no-perf
-  ../../entrypoint.sh build-yocto --only-poky
+  ../entrypoint.sh clean-build
+  ../entrypoint.sh clean-docker
+  ../entrypoint.sh build-env --no-perf
+  ../entrypoint.sh build-yocto --only-poky
 
   cd yocto-build
   docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
@@ -36,9 +36,9 @@ function make_task_children_file() {
 }
 
 function prepare_build() {
-  ../../entrypoint.sh clean-docker
-  ../../entrypoint.sh clean-build
-  ../../entrypoint.sh build-env --no-perf
+  ../entrypoint.sh clean-docker
+  ../entrypoint.sh clean-build
+  ../entrypoint.sh build-env --no-perf
   cp dep_graph/text-files/task-children.txt yocto-build/assembly
 }
 
@@ -58,12 +58,12 @@ function setup_patches () {
 	patches_count=${#CUSTOM_PATCHES_ARR[@]}
 	if [[ "$patches_count" -eq 0 ]]; then
 		for((i=0; i < ${#ALL_PATCHES_ARR[@]}; i++)); do
-			../../entrypoint.sh patch "${ALL_PATCHES_ARR[i]}"
+			../entrypoint.sh patch "${ALL_PATCHES_ARR[i]}"
 		done
 		return 0
 	fi
 	for ((i=0; i<patches_count; i++)); do
-		../../entrypoint.sh patch "${CUSTOM_PATCHES_ARR[i]}"
+		../entrypoint.sh patch "${CUSTOM_PATCHES_ARR[i]}"
 	done
 }
 
@@ -91,13 +91,13 @@ function main() {
 
   total_time=0
   for ((i=1; i<=num_runs; i++)); do
-    ../../entrypoint.sh clean-build
-    ../../entrypoint.sh build_yocto_image --only-poky
+    ../entrypoint.sh clean-build
+    ../entrypoint.sh build_yocto_image --only-poky
     setup_patches
 
 
     start_time=$(date +%s)
-    ../../entrypoint.sh build-yocto
+    ../entrypoint.sh build-yocto
     end_time=$(date +%s)
 
     elapsed_time=$((end_time - start_time))
@@ -107,7 +107,7 @@ function main() {
     cp -r $BUILDSTATS_DIR "$SAVE_DIR/run_$i"
   done
 
-  ../../entrypoint.sh clean-build
+  ../entrypoint.sh clean-build
 
   average_time=$((total_time / num_runs))
   echo -e "average time: $average_time\n" >> $SAVING_TIME_FILE
