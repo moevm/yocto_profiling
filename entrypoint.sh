@@ -123,7 +123,7 @@ function build_yocto_stage() {
 
 function clean_docker() {
   CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
-  if [ ! -z "${CONTAINER_ID+x}" ]; then
+  if [[ "${CONTAINER_ID}" =~ "[[:digit:]]+" ]]; then
     docker rm -f $CONTAINER_ID
   fi
 

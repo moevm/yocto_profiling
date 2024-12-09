@@ -16,11 +16,11 @@ if [[ ($USER_ID -eq 0) && ($GROUP_ID -eq 0) ]]; then
 	exit 1
 fi
 
-VARS="--build-arg UID=\$USER_ID \
-	--build-arg GID=\$GROUP_ID \
-	--build-arg CORE=\$CORE \
-	--build-arg CODENAME=\$CODENAME \
-	--build-arg REQS_ARG=\"\$REQS\""
+VARS="--build-arg UID=$USER_ID \
+	--build-arg GID=$GROUP_ID \
+	--build-arg CORE=$CORE \
+	--build-arg CODENAME=$CODENAME \
+	--build-arg REQS_ARG=$REQS"
 
 cd $DOCKERFILE_DIR
 if [[ -z "$NO_CACHE" ]]; then

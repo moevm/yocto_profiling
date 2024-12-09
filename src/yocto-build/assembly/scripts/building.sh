@@ -35,7 +35,7 @@ function check_poky() {
   
   if [ ! -d "./poky" ]; then
     mkdir -p ./poky
-    rsync -avu ./original_poky/ ./poky/
+    rsync -avu ./original_poky/ ./poky/ > /dev/null
     YOCTO_CLONING_CODE=$?
 
     if [ $YOCTO_CLONING_CODE -ne 0 ]; then
@@ -100,21 +100,21 @@ function build() {
 		$SCRIPTS_DIR/add_layers.sh $POKY_DIR
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
-
-  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+        
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
 
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
-	
+ 
 	bitbake-layers show-layers
 	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
 	
 	if [ $YOCTO_EXIT_CODE -ne 0 ]; then
 	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
-    exit $YOCTO_EXIT_CODE
-  fi
+          exit $YOCTO_EXIT_CODE
+        fi
 }
 
 check_dirs

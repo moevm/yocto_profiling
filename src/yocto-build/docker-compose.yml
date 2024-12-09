@@ -20,6 +20,7 @@ services:
         - YOCTO_INSTALL_PATH=/home/yocto_user/project
     environment:
       - ASSEMBLY_DIR=/home/yocto_user/project/assembly
+      - SCRIPTS_DIR=/home/yocto_user/project/assembly/scripts
       - POKY_DIR=/home/yocto_user/project/assembly/poky
       - PATCHES_DIR=/home/yocto_user/project/yocto-patches
       - STAGE_VAR
