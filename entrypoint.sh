@@ -146,6 +146,7 @@ function clean_build() {
     case "$1" in
       -o | --orig )
         CLEANING_ORIG_POKY=1
+        shift 1
         break
         ;;
       --)
