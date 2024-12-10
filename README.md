@@ -191,4 +191,5 @@ git clone https://github.com/moevm/os_profiling.git
 # **Experiments**
 
 - [Experiment with cache servers](wiki/experiments/experiment_results/README.md)
+- [Experiment with checking mirors patch](wiki/experiments/checking_mirrors_cache_experiment/README.md)
 
