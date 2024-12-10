@@ -193,3 +193,55 @@ git clone https://github.com/moevm/os_profiling.git
 - [Experiment with cache servers](wiki/experiments/experiment_results/README.md)
 - [Experiment with checking mirors patch](wiki/experiments/checking_mirrors_cache_experiment/README.md)
 
+# Patch usage (fast instruction)
+
+## Index file for sstate-cache
+
+* Основной патч `cachefiles.patch`: добавляет проверку на индекс файл на сервере, и если он есть, то использует информацию из него для оптимизации поиска на удаленных кэш-серверах
+  * Если нет index файла, то используется прошлая схема
+* На кэш-сервере должен быть index файл. Местоположение: `$path_to_sstate_cache_dir/index.txt`
+* Индекс файл можно получить двумя способами:
+  * Через патч `compose_indexfile.patch`, который после завершения сборки создаст index файл в папке с `sstate-cache`
+  * Через отдельный скрипт, который можно использовать уже на имеющемся кэше (*работает на python!*)
+  ```python
+  import os
+  import sys
+
+  if __name__ == "__main__":
+      if len(sys.argv) < 2:
+          print(f"USAGE: {sys.argv[0]} </path/to/sstate_dir>")
+          exit(1)
+      directory = sys.argv[1]
+      output_file = os.path.join(directory, 'index.txt')
+      with open(output_file, 'w') as f:
+          for root, dirs, files in os.walk(directory):
+              for file in files:
+                  file_path = os.path.join(root, file)
+                  relative_path = os.path.relpath(file_path, directory)
+                  f.write(f"{relative_path}\n")
+    ```
+
+## Mirrors availability
+
+* Патч `async_filter_with_time.patch`: добавляет проверку на доступность зеркал с кэшом по протоколу tcp
+  * Должно работать из коробки
+
+## Net limitation
+
+* Патчи:
+  * `add_net_buildstats.patch` добавляет сбор статистики по использованию сети. Сохраняет результаты в файлы `reduced_proc_net.log`, `net_pressure.log` и `current_max_pressure.log`
+  * `add_net_limit.patch` добавляет достижение лимита сети при выборе задачи из очереди (если достигнут лимит, то выбирается *build* задача вместо *fetch*)
+  * Должно работать из коробки
+
+
+## Task reweighing
+
+* Основной патч `add_task_children_to_weight.patch`: увеличивает приоритет задачам, которые имеют большее количество потомков в графе зависимостей
+  * ***Для работы необходим файл `task-children.txt`!***
+* Вспомогательный файл `task-children.txt` содержит информацию о потомках для каждой задачи. Как его получить:
+  * Выгрузить из yocto граф зависимостей: `bitbake -g $your_image_recipe`
+  * Запустить [утилиту для анализа](./src/common/analysis/): `python3 main.py -g task_children -d $path_to_generated_task_depends.dot`
+  * Файл `task-children.txt` будет лежать в [`dep_graph/text-files/task-children.txt`](./src/common/analysis/dep_graph/text-files/)
+  * Скопировать полученный файл в папку `poky/build`
+  * После этого патч при запуске сборки начнёт работать
+
