@@ -240,8 +240,8 @@ git clone https://github.com/moevm/os_profiling.git
   * ***Для работы необходим файл `task-children.txt`!***
 * Вспомогательный файл `task-children.txt` содержит информацию о потомках для каждой задачи. Как его получить:
   * Выгрузить из yocto граф зависимостей: `bitbake -g $your_image_recipe`
-  * Запустить [утилита для анализа](./src/common/analysis/): `python3 main.py -g task_children -d $path_to_generated_task_depends.dot`
+  * Запустить [утилиту для анализа](./src/common/analysis/): `python3 main.py -g task_children -d $path_to_generated_task_depends.dot`
   * Файл `task-children.txt` будет лежать в [`dep_graph/text-files/task-children.txt`](./src/common/analysis/dep_graph/text-files/)
   * Скопировать полученный файл в папку `poky/build`
-  * После этого патч при запуске сборки патч начнёт работать
+  * После этого патч при запуске сборки начнёт работать
 
