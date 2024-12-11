@@ -6,7 +6,7 @@ PATCHES_DIR=$SRC_DIR/yocto-patches
 BUILD_DIR=$SRC_DIR/yocto-build
 EXPERIMENTS_DIR=$SRC_DIR/experiment
 
-ANALYSIS_DiR=$SRC_DIR/common/analysis
+ANALYSIS_DIR=$SRC_DIR/common/analysis
 SCRIPTS_DIR=$SRC_DIR/common/scripts
 CHECKS_DIR=$SCRIPTS_DIR/checks
 

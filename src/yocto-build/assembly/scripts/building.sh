@@ -2,7 +2,7 @@
 
 
 FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
-YOCTO_REPOSITORY=git://git.yoctoproject.org/poky
+YOCTO_REPOSITORY=https://github.com/yoctoproject/poky.git
 
 YOCTO_EXIT_CODE=0
 YOCTO_CLONING_CODE=0

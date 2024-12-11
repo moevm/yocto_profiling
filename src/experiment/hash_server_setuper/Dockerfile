@@ -41,7 +41,7 @@ RUN apt-get update && \
 	strace 
 
 WORKDIR /hash_server
-RUN git clone git://git.yoctoproject.org/poky
+RUN git clone https://github.com/yoctoproject/poky.git
 COPY start_hash.sh ./
 
 EXPOSE ${8888}
