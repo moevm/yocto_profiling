@@ -4,8 +4,10 @@ EXPERIMENT_DIR=$(dirname "$(realpath $0)")
 
 RESULTS_DIR=$EXPERIMENT_DIR/results
 SRC_DIR=$EXPERIMENT_DIR/..
+N_RUNS=5
 
-rm -rf $RESULTS_DIR
+mkdir -p $RESULTS_DIR
+rm -rf $RESULTS_DIR/*
 
 
 . $EXPERIMENT_DIR/auto_conf/read_config.sh
@@ -26,7 +28,7 @@ echo "max_servers = $max_servers"
 echo -e "\n"
 
 CACHE_DESKTOP_PATH="/home/$cache_usr/Desktop"
-CACHE_SERVER_WORKDIR=$CACHE_DESKTOP_PATH/test/src
+CACHE_SERVER_WORKDIR=$CACHE_DESKTOP_PATH/test
 CACHE_SERVER_SETUPER_WORKDIR=$CACHE_SERVER_WORKDIR/experiment/cache_server_setuper
 HASH_DESKTOP_PATH="/home/$hash_usr/Desktop"
 HASH_SERVER_SETUPER_WORKDIR=$HASH_DESKTOP_PATH/test/hash_server_setuper
@@ -160,7 +162,7 @@ do
   cp -f $SRC_DIR/conf/experiment.conf $EXPERIMENT_DIR/auto_conf/conf/local.conf
   cd $EXPERIMENT_DIR/auto_conf && python3 auto_compose_local_conf.py
 	echo -e "[CACHE SERVERS $i]" >> $EXPERIMENT_DIR/"times"
-	for j in 1 2
+	for j in $(seq 1 $N_RUNS)
 	do
 		filename="test_${i}_${j}"
 		start=`date +%s`
@@ -175,7 +177,6 @@ do
 		echo -e "Remove build folder\n"
 		cd $SRC_DIR/yocto-build/assembly && rm -rf ./build
 
-		sleep 15
 	done
 	echo -e "" >> $RESULTS_DIR/"times"
 	echo -e "Building Yocto on host: DONE.\n"
