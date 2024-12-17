@@ -91,7 +91,7 @@ function build_yocto_stage() {
       --only-poky )
         echo "CLONING POKY REPO ONLY"
         STAGE_ARG="only-poky"
-        break
+        shift 1
         ;;
       --no-layers )
         echo "ENABLE no-layers MODE"
@@ -118,13 +118,13 @@ function build_yocto_stage() {
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
 
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $STAGE_ARG $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG
   EXIT_CODE=$?
 }
 
 function clean_docker() {
   CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
-  if [[ "${CONTAINER_ID}" =~ "[[:digit:]]+" ]]; then
+  if [[ "$CONTAINER_ID" =~ ^[[:xdigit:]]+$ ]]; then
     docker rm -f $CONTAINER_ID
   fi
 
