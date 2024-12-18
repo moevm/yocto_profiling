@@ -30,10 +30,10 @@ function make_task_children_file() {
   $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
   $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
   cd $DOCKERFILE_DIR
+  docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "pip3 install networkx==3.1 openpyxl==3.1.5 pydot==3.0.2" 
   docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
   cd - > /dev/null
   python3 $ANALYSIS_DIR/main.py -g task_children -d $ASSEMBLY_DIR/build/task-depends.dot
-  exit 1
 }
 
 function prepare_build() {
