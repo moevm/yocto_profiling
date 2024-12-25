@@ -20,11 +20,6 @@ function check_dirs() {
 }
 
 function check_poky() {
-
-  echo "Set proxy settings for git"
-  git config --global http.proxy http://10.136.2.7:3128
-  git config --global https.proxy http://10.136.2.7:3128
-
   if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
     git clone $YOCTO_REPOSITORY ./original_poky

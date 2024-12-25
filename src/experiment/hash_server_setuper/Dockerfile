@@ -41,11 +41,7 @@ RUN apt-get update && \
 	strace 
 
 WORKDIR /hash_server
-# this is for ETU proxy 
-RUN git config --global http.proxy http://10.136.2.7:3128 && \
-	git config --global https.proxy http://10.136.2.7:3128 && \
- 	git clone https://github.com/yoctoproject/poky.git
-# for local run 
+
 RUN git clone https://github.com/yoctoproject/poky.git
 
 COPY start_hash.sh ./
