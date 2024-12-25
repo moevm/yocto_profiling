@@ -21,9 +21,9 @@ function check_dirs() {
 
 function check_poky() {
 
-  echo "Set proxy settings for git"
-  git config --global http.proxy http://10.136.2.7:3128
-  git config --global https.proxy http://10.136.2.7:3128
+  # echo "Set proxy settings for git"
+  # git config --global http.proxy http://10.136.2.7:3128
+  # git config --global https.proxy http://10.136.2.7:3128
 
   if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
@@ -104,6 +104,10 @@ function build() {
 		$SCRIPTS_DIR/add_layers.sh $POKY_DIR
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
+
+  if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
+    cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
+  fi
         
 	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
 

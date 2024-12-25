@@ -39,7 +39,7 @@ function prepare_build() {
   $ENTRYPOINT_DIR/entrypoint.sh clean-docker
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
   $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
-  cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR/build
+  cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
 }
 
 function create_saving_dir() {
