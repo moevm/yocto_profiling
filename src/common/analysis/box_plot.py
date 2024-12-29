@@ -44,7 +44,7 @@ def plot_custom_boxplot(data_list, plot_name, save, show):
 
         ax.text(positions[i], p1, f'1st percentile: {p1:.2f} min', verticalalignment='top', horizontalalignment='center', color='green')
         ax.text(positions[i], p99, f'99th percentile: {p99:.2f} min', verticalalignment='bottom', horizontalalignment='center', color='blue')
-        ax.text(positions[i], p50, f'Median: {p50:.2f} min', verticalalignment='center', horizontalalignment='center', color='white')
+        ax.text(positions[i], p50, f'Median: {p50:.2f} min', verticalalignment='center', horizontalalignment='center', color='black')
 
     plt.title(plot_name)
     plt.ylabel('Values (minutes)')
@@ -58,10 +58,10 @@ def plot_custom_boxplot(data_list, plot_name, save, show):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Specify the paths to the time.txt files.')
-    parser.add_argument('--file_path_no_pathes', type=str, default='time1.txt', help='Enter the path to the file')
-    parser.add_argument('--file_path_net_patch', type=str, default='time2.txt', help='Enter the path to the file')
-    parser.add_argument('--file_path_childrens_patch', type=str, default='time3.txt', help='Enter the path to the file')
-    parser.add_argument('--file_path_all_patches', type=str, default='time4.txt', help='Enter the path to the file')
+    parser.add_argument('--file_path_no_pathes', type=str, default='./speeding_up_results/time1.txt', help='Enter the path to the file')
+    parser.add_argument('--file_path_net_patch', type=str, default='./speeding_up_results/time2.txt', help='Enter the path to the file')
+    parser.add_argument('--file_path_childrens_patch', type=str, default='./speeding_up_results/time3.txt', help='Enter the path to the file')
+    parser.add_argument('--file_path_all_patches', type=str, default='./speeding_up_results/time4.txt', help='Enter the path to the file')
     parser.add_argument('--plot_name', type=str, default='No-name', help='Enter title of plot')
     parser.add_argument('--save', action=argparse.BooleanOptionalAction, default=True, help='Save the plot')
     parser.add_argument('--show', action=argparse.BooleanOptionalAction, default=True, help='Show the plot')

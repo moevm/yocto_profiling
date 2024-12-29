@@ -1,0 +1,64 @@
+### This is task_children patch stats ###
+
+
+run 1: 3518
+
+run 2: 3644
+
+run 3: 4028
+
+run 4: 3768
+
+run 5: 3693
+
+run 6: 3525
+
+run 7: 3830
+
+run 8: 3685
+
+run 9: 3688
+
+run 10: 3715
+
+run 11: 3737
+
+run 12: 3603
+
+run 13: 3572
+
+run 14: 3653
+
+run 15: 3578
+
+run 16: 3735
+
+run 17: 3801
+
+run 18: 3552
+
+run 19: 3715
+
+run 20: 3895
+
+run 21: 3839
+
+run 22: 5545
+
+run 23: 5965
+
+run 24: 5116
+
+run 25: 3659
+
+run 26: 3481
+
+run 27: 3770
+
+run 28: 3760
+
+run 29: 3751
+
+run 30: 3824
+
+average time: 3888
