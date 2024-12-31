@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('--file_path_net_patch', type=str, default='./speeding_up_results/time2.txt', help='Enter the path to the file')
     parser.add_argument('--file_path_childrens_patch', type=str, default='./speeding_up_results/time3.txt', help='Enter the path to the file')
     parser.add_argument('--file_path_all_patches', type=str, default='./speeding_up_results/time4.txt', help='Enter the path to the file')
-    parser.add_argument('--plot_name', type=str, default='No-name', help='Enter title of plot')
+    parser.add_argument('--plot_name', type=str, default='Patch_analysis', help='Enter title of plot')
     parser.add_argument('--save', action=argparse.BooleanOptionalAction, default=True, help='Save the plot')
     parser.add_argument('--show', action=argparse.BooleanOptionalAction, default=True, help='Show the plot')
 

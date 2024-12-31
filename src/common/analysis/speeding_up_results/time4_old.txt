@@ -1,0 +1,66 @@
+### This is net and task_children patch stats ###
+
+### Incorrect statistics ###
+
+run 1: 3471
+
+run 2: 3374
+
+run 3: 2213
+
+run 4: 2498
+
+run 5: 2751
+
+run 6: 2421
+
+run 7: 2512
+
+run 8: 3382
+
+run 9: 2411
+
+run 10: 796
+
+run 11: 2201
+
+run 12: 2548
+
+run 13: 2662
+
+run 14: 2624
+
+run 15: 2955
+
+run 16: 2641
+
+run 17: 3160
+
+run 18: 2402
+
+run 19: 2558
+
+run 20: 3680
+
+run 21: 2394
+
+run 22: 2628
+
+run 23: 2910
+
+run 24: 2924
+
+run 25: 2861
+
+run 26: 4598
+
+run 27: 4354
+
+run 28: 2685
+
+run 29: 2708
+
+run 30: 2850
+
+average time: 2805
+
