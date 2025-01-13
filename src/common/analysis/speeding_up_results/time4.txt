@@ -1,7 +1,5 @@
 ### This is net and task_children patch stats ###
 
-### Incorrect statistics ###
-
 run 1: 2544
 
 run 2: 2593

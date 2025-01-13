@@ -1,6 +1,5 @@
 ### This is net patch stats ###
 
-
 run 1: 2588
 
 run 2: 2740
