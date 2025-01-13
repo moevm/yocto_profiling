@@ -46,7 +46,8 @@ def plot_custom_boxplot(data_list, plot_name, save, show):
         ax.text(positions[i], p99, f'99th percentile: {p99:.2f} min', verticalalignment='bottom', horizontalalignment='center', color='blue')
         ax.text(positions[i], p50, f'Median: {p50:.2f} min', verticalalignment='center', horizontalalignment='center', color='black')
 
-    plt.title(plot_name)
+    title_text = f"{plot_name}. Numbers of runs: {', '.join(map(str, [len(sublist) for sublist in data_list]))}"
+    plt.title(title_text)
     plt.ylabel('Values (minutes)')
     plt.xticks(positions, ['No patches', 'Net patch', 'Task-childrens patch', 'All patches'])
 
