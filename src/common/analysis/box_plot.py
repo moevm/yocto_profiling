@@ -27,9 +27,9 @@ def plot_custom_boxplot(data_list, plot_name, save, show):
 
     positions = [1, 2, 3, 4]
     for i, data in enumerate(data_list):
-        values = [item[1] / 60 for item in data]  
+        values = [item[1] / 60 for item in data]
         p1, p25, p50, p75, p99 = calculate_percentiles(data)
-        p1, p25, p50, p75, p99 = p1 / 60, p25 / 60, p50 / 60, p75 / 60, p99 / 60 
+        p1, p25, p50, p75, p99 = p1 / 60, p25 / 60, p50 / 60, p75 / 60, p99 / 60
 
         bp = ax.boxplot(values, positions=[positions[i]], widths=0.6, patch_artist=True,
                         showmeans=False, showfliers=False,
@@ -41,6 +41,8 @@ def plot_custom_boxplot(data_list, plot_name, save, show):
 
         ax.plot([positions[i], positions[i]], [p1, p25], color='black', linestyle='--')
         ax.plot([positions[i], positions[i]], [p75, p99], color='black', linestyle='--')
+
+        ax.scatter([positions[i]] * len(values), values, color='red', alpha=0.5)
 
         ax.text(positions[i], p1, f'1st percentile: {p1:.2f} min', verticalalignment='top', horizontalalignment='center', color='green')
         ax.text(positions[i], p99, f'99th percentile: {p99:.2f} min', verticalalignment='bottom', horizontalalignment='center', color='blue')
