@@ -19,4 +19,5 @@
 **/auto_conf/experiment.conf
 **/auto_conf/conf/local.conf
 **/experiment/results/
+**/buildstats_saves/
 

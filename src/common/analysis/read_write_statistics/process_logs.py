@@ -1,7 +1,13 @@
 import re
+from pathlib import Path
 from collections import defaultdict
 from statistics import median
 import argparse
+
+
+CURRENT_DIR = Path(__file__).parent.absolute()
+OUTPUT_DIR = CURRENT_DIR / "output"
+
 
 
 def parse_arguments():
@@ -137,8 +143,8 @@ def main():
 
     log_file = args.log_file
     tasks_file = args.tasks_file
-    output_file_rw = 'output/process_statistics_rw.txt'
-    output_file_rwv = 'output/process_statistics_rwv.txt'
+    output_file_rw = OUTPUT_DIR / "process_statistics_rw.txt"
+    output_file_rwv = OUTPUT_DIR / "process_statistics_rwv.txt"
 
     task_info = load_task_info(tasks_file)
     process_stats_rw, process_stats_rwv = process_statistics(log_file)

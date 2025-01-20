@@ -1,13 +1,8 @@
 #! /bin/bash
 
-ASSEMBLY_DIR=$YOCTO_INSTALL_PATH/assembly
-POKY_DIR=$ASSEMBLY_DIR/poky
-SCRIPTS_DIR=$ASSEMBLY_DIR/scripts
+
 FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
-
-
-BRANCH_NAME="my-upstream_5.0.1"
-YOCTO_REPOSITORY=git://git.yoctoproject.org/poky
+YOCTO_REPOSITORY=https://github.com/yoctoproject/poky.git
 
 YOCTO_EXIT_CODE=0
 YOCTO_CLONING_CODE=0
@@ -25,7 +20,6 @@ function check_dirs() {
 }
 
 function check_poky() {
-
   if [ ! -d "./original_poky" ]; then
     echo "Clone Poky."
     git clone $YOCTO_REPOSITORY ./original_poky
@@ -40,7 +34,7 @@ function check_poky() {
   
   if [ ! -d "./poky" ]; then
     mkdir -p ./poky
-    rsync -avu ./original_poky/ ./poky/
+    rsync -avu ./original_poky/ ./poky/ > /dev/null
     YOCTO_CLONING_CODE=$?
 
     if [ $YOCTO_CLONING_CODE -ne 0 ]; then
@@ -106,20 +100,24 @@ function build() {
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
 
-  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+  if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
+    cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
+  fi
+        
+	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
 
 	mkdir -p $FRAGMENT_PATH/files/
 	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
 	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
-	
+ 
 	bitbake-layers show-layers
 	bitbake core-image-minimal
 	YOCTO_EXIT_CODE=$?
 	
 	if [ $YOCTO_EXIT_CODE -ne 0 ]; then
 	  echo "Yocto building ends with code: $YOCTO_EXIT_CODE"
-    exit $YOCTO_EXIT_CODE
-  fi
+          exit $YOCTO_EXIT_CODE
+        fi
 }
 
 check_dirs
