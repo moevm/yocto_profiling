@@ -90,15 +90,7 @@ function main() {
 
   total_time=0
   for ((i=1; i<=num_runs; i++)); do
-<<<<<<< HEAD
-    ../entrypoint.sh clean-build
-    ../entrypoint.sh build_yocto_image --only-poky
-    setup_patches
 
-
-    start_time=$(date +%s)
-    ../entrypoint.sh build-yocto
-=======
     $ENTRYPOINT_DIR/entrypoint.sh clean-build
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
     $ENTRYPOINT_DIR/entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
@@ -106,7 +98,6 @@ function main() {
 
     start_time=$(date +%s)
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto
->>>>>>> feat/paths-update
     end_time=$(date +%s)
 
     elapsed_time=$((end_time - start_time))
@@ -116,11 +107,8 @@ function main() {
     cp -r $BUILDSTATS_DIR "$SAVE_DIR/run_$i"
   done
 
-<<<<<<< HEAD
-  ../entrypoint.sh clean-build
-=======
+
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
->>>>>>> feat/paths-update
 
   average_time=$((total_time / num_runs))
   echo -e "average time: $average_time\n" >> $SAVING_TIME_FILE
