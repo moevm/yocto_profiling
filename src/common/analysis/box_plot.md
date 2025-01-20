@@ -22,6 +22,8 @@ options:
                         Enter title of plot
   --save, --no-save     Save the plot (default: True)
   --show, --no-show     Show the plot (default: True)
+  --standard_boxplot, --no-standard_boxplot
+                      Use standard box plot (default: False)
 ```
 
 
@@ -29,6 +31,7 @@ options:
 - `file_path_no_pathes`, `file_path_net_patch`, `file_path_childrens_patch`, `file_path_all_patches`: аргументы, помогающие указать пути к текстовым файлам - результатам работы эксперимента сборки `core-image-minimal` без патчей, с патчем балансировки нагрузки на сети, патчем, меняющим приоритет задач, и с обоими патчами соответственно. По умолчанию скрипт ожидает, что в дочерней (относительно расположения скрипта) директории `speeding_up_results` расположены файлы `time1.txt`, `time2.txt`, `time3.txt`, `time4.txt`.
 - `plot_name`: имя, которое используется в заголовке графика и под которым он сохраняется в формате PNG. По умолчанию устанавливается `Patch_analysis`.
 - `save` и `show`: значения, настраивающие поведение программы - показывать или не показывать, сохранять или не сохранять полученные графики. По умолчанию график показывается и сохраняется.
+- `standard_boxplot`: флаг, который можно указать, чтобы убрать все кастомизации, оставив только стандартный `boxplot` и отрисовку значений красными точками.
 
 ## Как читать графики?
 - По оси ординат указано время выполнения эксперимента (в минутах).
@@ -50,4 +53,11 @@ options:
 
 ## Результат работы скрипта 
 
+### Результат работы с флагом --standard_boxplot
+
 ![Patch_analysis.png](./Patch_analysis.png)
+
+
+### Результат работы без флага --standard_boxplot
+
+![Patch_analysis_full.png](./Patch_analysis_full.png)
