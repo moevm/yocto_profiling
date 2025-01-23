@@ -19,7 +19,7 @@ function help() {
                   [ by | build-yocto ]
                       --only-poky -- only clones poky repo
                       --no-layers -- build yocto image without layers and dependencies
-                      --tracing -- enables tracing of the build with perf, ftrace, strace
+                      --tracing <tool> -- enables tracing of the build with one of the tools (perf, ftrace, strace)
                       --conf-file <path> -- config file to use (works only for --no-layers)
 
                   *required cloned poky*
@@ -84,7 +84,7 @@ function build_env_stage() {
 }
 
 function build_yocto_stage() {
-  TRACING="false"
+  TTOOL="none"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 
@@ -111,13 +111,15 @@ function build_yocto_stage() {
         shift 2
         ;;
       --tracing )
-        TRACING="true"
-        shift 1
+        check_ttool $2
+        TTOOL="$2"
+        shift 2
         ;;
-      --)
+        ;;
+      -- )
         break
         ;;
-      *)
+      * )
         echo "Unexpected option for command \`build-yocto\`: $1"
         exit 2
         ;;
@@ -125,8 +127,18 @@ function build_yocto_stage() {
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
 
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TRACING
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL
   EXIT_CODE=$?
+}
+
+function check_ttool() {
+  LIST="strace ftrace perf"
+  VALUE=$1
+  IS_VALUE_IN_LIST=$(echo $LIST | tr " " "\n" | grep -F -x "$VALUE")
+  if [ -z $IS_VALUE_IN_LIST ]; then
+    echo "Unexpected tracing tool: $1"
+    exit 2
+  fi
 }
 
 function clean_docker() {
@@ -180,7 +192,7 @@ function clean_build() {
 
 function install_analysis_deps() {
   deactivate 2> /dev/null
-  cd $ENTRYPOINT_DIR && python -m venv venv
+  cd $ENTRYPOINT_DIR && python3 -m venv venv
 
   unameOut="$(uname -s)"
   case "${unameOut}" in
@@ -195,13 +207,13 @@ function install_analysis_deps() {
   if [[ "$MACHINE" != "Linux" ]]; then
     echo -e "Machine: $MACHINE"
     echo -e "Activate venv and install dependencies from requirements.txt file"
-    echo -e "Command for installing: pip install -r $ENTRYPOINT_DIR/requirements.txt"
+    echo -e "Command for installing: pip3 install -r $ENTRYPOINT_DIR/requirements.txt"
     exit 0
   fi
 
   # Doesn't work for Windows systems (path = $ENTRYPOINT_DIR/venv/Scripts/activate)
   source $ENTRYPOINT_DIR/venv/bin/activate
-  pip install -r $ENTRYPOINT_DIR/requirements.txt
+  pip3 install -r $ENTRYPOINT_DIR/requirements.txt
 }
 
 

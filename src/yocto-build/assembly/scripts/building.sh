@@ -70,7 +70,6 @@ function prepare_for_build() {
 		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
 	fi
 
-
   if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
     cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
   fi
@@ -85,40 +84,43 @@ function prepare_for_build() {
 }
 
 function build() {
-  LOG_FILE=$ASSEMBLY_DIR/logs/building_logs.txt
+  LOG_FILE=$ASSEMBLY_DIR/logs/building_logs_$TRACING_TOOL.txt
 	cp /dev/null $LOG_FILE
 
-  if [[ "$IS_TRACING_NEEDED" == "true" ]]; then
-    perf --version > /dev/null
-    IS_PERF_INSTALLED=$?
-    if [ $IS_PERF_INSTALLED -ne 0 ]; then
-      echo -e "Perf is not installed."
-      exit $IS_PERF_INSTALLED
-    fi
-  fi
+	case $TRACING_TOOL in
+	  perf )
+      perf --version > /dev/null
+      IS_PERF_INSTALLED=$?
+      if [ $IS_PERF_INSTALLED -ne 0 ]; then
+        echo -e "Perf is not installed."
+        exit $IS_PERF_INSTALLED
+      fi
 
-	# TBD: GET pid
-	bitbake core-image-minimal
-  YOCTO_EXIT_CODE=$?
+      perf stat -a -o $LOG_FILE bitbake core-image-minimal
+      YOCTO_EXIT_CODE=$?
+	    ;;
+	  strace )
+      strace -o $LOG_FILE bitbake core-image-minimal
+      YOCTO_EXIT_CODE=$?
+	    ;;
+	  ftrace )
+	    TRACING=/sys/kernel/debug/tracing
+      sysctl kernel.ftrace_enabled=1
 
-  if [[ "$IS_TRACING_NEEDED" == "true" ]]; then
-    # TBD: combine with pid of process
-    # ========================================================================
-    perf stat -o $LOG_FILE bitbake core-image-minimal
-    strace -o $LOG_FILE bitbake core-image-minimal
+      echo function > ${TRACING}/current_tracer
+      echo 1 > ${TRACING}/tracing_on
 
-    TRACING=/sys/kernel/debug/tracing
-    sysctl kernel.ftrace_enabled=1
+      bitbake core-image-minimal
+      YOCTO_EXIT_CODE=$?
 
-    echo function > ${TRACING}/current_tracer
-    echo 1 > ${TRACING}/tracing_on
-
-    bitbake core-image-minimal
-
-    echo 0 > ${TRACING}/tracing_on
-    ${dir}/trace >> $LOG_FILE
-    # ========================================================================
-  fi
+      echo 0 > ${TRACING}/tracing_on
+      ${dir}/trace >> $LOG_FILE
+	    ;;
+	  * )
+	    bitbake core-image-minimal
+      YOCTO_EXIT_CODE=$?
+	    ;;
+	esac
 }
 
 check_dirs

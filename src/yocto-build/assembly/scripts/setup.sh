@@ -5,7 +5,7 @@ cd $YOCTO_INSTALL_PATH/assembly/scripts
 
 case "$STAGE_VAR" in
 	"sleep")
-        	sleep infinity
+		sleep infinity
 		;;
 	*)
 		./building.sh
