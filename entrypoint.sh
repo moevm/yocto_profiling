@@ -31,7 +31,8 @@ function help() {
 
                   [ cd | clean-docker ]
                   [ cb | clean-build ]
-		      -o, --orig -- also cleans original poky dir
+                      -o, --orig -- also cleans original poky dir
+                  [ deps | install-deps ]
                   [ check ]"
 
   exit 2
@@ -138,7 +139,6 @@ function clean_docker() {
   EXIT_CODE=$?
 }
 
-
 function clean_build() {
   CLEANING_ORIG_POKY=0
   while :
@@ -170,6 +170,32 @@ function clean_build() {
   fi
 
   EXIT_CODE=$?
+}
+
+function install_analysis_deps() {
+  deactivate 2> /dev/null
+  cd $ENTRYPOINT_DIR && python -m venv venv
+  
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    CYGWIN*)    MACHINE=Cygwin;;
+    MINGW*)     MACHINE=MinGw;;
+    MSYS_NT*)   MACHINE=MSys;;
+    *)          MACHINE="UNKNOWN:${unameOut}"
+  esac
+
+  if [[ "$MACHINE" != "Linux" ]]; then
+    echo -e "Machine: $MACHINE"
+    echo -e "Activate venv and install dependencies from requirements.txt file"
+    echo -e "Command for installing: pip install -r $ENTRYPOINT_DIR/requirements.txt"
+    exit 0
+  fi
+
+  # Doesn't work for Windows systems (path = $ENTRYPOINT_DIR/venv/Scripts/activate)
+  source $ENTRYPOINT_DIR/venv/bin/activate
+  pip install -r $ENTRYPOINT_DIR/requirements.txt
 }
 
 
@@ -211,6 +237,9 @@ case "$COMMAND" in
     ;;
   cb | clean-build )
     clean_build $@ --
+    ;;
+  deps | install-deps )
+    install_analysis_deps
     ;;
   check )
     docker_check
