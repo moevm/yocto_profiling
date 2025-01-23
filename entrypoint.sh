@@ -174,7 +174,7 @@ function clean_build() {
 
 function install_analysis_deps() {
   deactivate 2> /dev/null
-  cd $ENTRYPOINT_DIR && python -m venv venv
+  cd $ENTRYPOINT_DIR && python3 -m venv venv
   
   unameOut="$(uname -s)"
   case "${unameOut}" in
@@ -189,13 +189,13 @@ function install_analysis_deps() {
   if [[ "$MACHINE" != "Linux" ]]; then
     echo -e "Machine: $MACHINE"
     echo -e "Activate venv and install dependencies from requirements.txt file"
-    echo -e "Command for installing: pip install -r $ENTRYPOINT_DIR/requirements.txt"
+    echo -e "Command for installing: pip3 install -r $ENTRYPOINT_DIR/requirements.txt"
     exit 0
   fi
 
   # Doesn't work for Windows systems (path = $ENTRYPOINT_DIR/venv/Scripts/activate)
   source $ENTRYPOINT_DIR/venv/bin/activate
-  pip install -r $ENTRYPOINT_DIR/requirements.txt
+  pip3 install -r $ENTRYPOINT_DIR/requirements.txt
 }
 
 
