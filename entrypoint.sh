@@ -115,7 +115,6 @@ function build_yocto_stage() {
         TTOOL="$2"
         shift 2
         ;;
-        ;;
       -- )
         break
         ;;
