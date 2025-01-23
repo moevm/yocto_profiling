@@ -16,4 +16,4 @@ if [[ -z "$check" ]]; then
 	echo -e "SRC_URI = \"$a_grep$a_place \\ \n\t$b_grep$b_place \\ \n\t$add\"" >> linux-yocto_6.6.bb
 fi
 
-cd -
+cd - > /dev/null

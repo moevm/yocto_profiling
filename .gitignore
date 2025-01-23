@@ -4,6 +4,7 @@
 **/__pycache__/
 **/*.swp
 **/.venv/
+**/venv/
 
 # CONFIGS
 **/src/conf/local.conf
@@ -19,4 +20,5 @@
 **/auto_conf/experiment.conf
 **/auto_conf/conf/local.conf
 **/experiment/results/
+**/buildstats_saves/
 
