@@ -175,7 +175,9 @@ git clone https://github.com/moevm/os_profiling.git
 ### **Анализ сборки**
 Для анализа был разработан [набор скриптов](src/common/analysis). 
 
-Для их корректной работы необходимо установить зависимости (скрипт полностью автоматизирован только для систем Linux):
+Для их корректной работы необходимо:
+- Предустановленый пакет python3-venv
+- Установить зависимости (скрипт полностью автоматизирован только для систем Linux):
 ```shell
 ./entrypoint.sh deps
 ```
@@ -184,7 +186,7 @@ git clone https://github.com/moevm/os_profiling.git
 Если у вас уже есть виртуальное окружение:
 ```shell
 source <path-to-venv>/bin/activate
-pip install -r <project-path>/requirements.txt
+pip3 install -r <project-path>/requirements.txt
 ```
 
 Деактивация окружения:
