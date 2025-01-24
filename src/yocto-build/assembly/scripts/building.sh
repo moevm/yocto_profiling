@@ -108,8 +108,6 @@ function build() {
       sysctl kernel.ftrace_enabled=1
 
       echo function > ${TRACING}/current_tracer
-      # filter with parent pid
-      # echo "common_pid == <parent_pid>" > ${TRACING}/events/raw_syscalls/sys_enter/filter
       echo 1 > ${TRACING}/tracing_on
 
       bitbake core-image-minimal
