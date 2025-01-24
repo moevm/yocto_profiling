@@ -1,6 +1,8 @@
---- runqueue.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ runqueue.py	(date 1728408785660)
-@@ -162,6 +162,13 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..b1dfdb72b1 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -164,6 +164,13 @@ class RunQueueScheduler(object):
          self.rev_prio_map = None
          self.is_pressure_usable()
  
@@ -14,7 +16,7 @@
      def is_pressure_usable(self):
          """
          If monitoring pressure, return True if pressure files can be open and read. For example
-@@ -232,6 +239,25 @@
+@@ -234,6 +241,25 @@ class RunQueueScheduler(object):
              return limit
          return False
  
@@ -40,7 +42,7 @@
      def next_buildable_task(self):
          """
          Return the id of the first task we find that is buildable
-@@ -288,9 +314,15 @@
+@@ -290,9 +316,15 @@ class RunQueueScheduler(object):
                  stamp = self.stamps[tid]
                  if stamp in self.rq.build_stamps.values():
                      continue
