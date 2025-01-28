@@ -8,7 +8,7 @@
 * `async_filter_with_time.patch` фильтрует асинхронно зеркала + измеряет время
 * `runqueue.patch` 0 информации, но по коду измеряется какое-то время и что-то закрывается
 * `add_net_statistics_charts.patch` строятся графики по сети (в целом рисует нагрузку на сеть, received, transmitted bytes. изначально на графиках нет ничего про сеть)
-* `buildstats_netstat_and_timestamps.patch` не понятно что это такое
+* `buildstats_netstat_and_timestamps.patch` что-то устаревшее, скорее всего нигде не используется
 * `add_nvme_support.patch` фикс какой-то ошибки с nvme дисками
 * `cachefiles.patch` индекс файл
 
