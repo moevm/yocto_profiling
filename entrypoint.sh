@@ -85,6 +85,7 @@ function build_env_stage() {
 
 function build_yocto_stage() {
   TTOOL="none"
+  TOPTIONS="none"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 
@@ -115,6 +116,10 @@ function build_yocto_stage() {
         TTOOL="$2"
         shift 2
         ;;
+      --tracing-options )
+        TOPTIONS="$2"
+        shift 2
+        ;;
       -- )
         break
         ;;
@@ -126,7 +131,7 @@ function build_yocto_stage() {
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
 
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL "$TOPTIONS"
   EXIT_CODE=$?
 }
 

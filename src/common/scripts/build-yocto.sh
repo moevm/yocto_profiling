@@ -7,7 +7,8 @@ CONTAINER_NAME=$3
 IMAGE_NAME=$4
 STAGE=$5
 TTOOL=$6
-shift 6
+TOPTIONS="$7"
+shift 7
 
 
 $CHECKS_DIR/yocto-image-check.sh $IMAGE_NAME
@@ -16,7 +17,7 @@ if [[ $? -eq 1 ]]; then
 fi
 
 cd $DOCKERFILE_DIR
-STAGE_VAR="$STAGE" TRACING_TOOL="$TTOOL" docker compose up --no-log-prefix
+STAGE_VAR="$STAGE" TRACING_TOOL="$TTOOL" TRACING_OPTIONS="$TOPTIONS" docker compose up --no-log-prefix
 
 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
 EXIT_CODE=$(docker inspect $CONTAINER_ID --format='{{.State.ExitCode}}')
