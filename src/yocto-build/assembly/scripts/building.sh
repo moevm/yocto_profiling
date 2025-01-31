@@ -59,6 +59,11 @@ function check_poky() {
 
 }
 
+function default_build_exec() {
+  bitbake $image_name
+  return $?
+}
+
 function prepare_for_build() {
   if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
 		rm $ASSEMBLY_DIR/build/conf/bblayers.conf
@@ -97,29 +102,30 @@ function build() {
         echo -e "Perf is not installed."
         exit $IS_PERF_INSTALLED
       fi
-      perf stat -a -o $LOG_FILE bitbake $image_name
+
+      default_options="-a -o $LOG_FILE"
+      perf stat $default_options bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
     strace )
-      strace -o $LOG_FILE bitbake $image_name
+      default_options="-o $LOG_FILE"
+      strace $default_options bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
-#    ftrace )
-#      TRACING=/sys/kernel/debug/tracing
-#      sudo sysctl kernel.ftrace_enabled=1
-#
-#      sudo echo function > ${TRACING}/current_tracer
-#      # echo $PID > set_ftrace_pid
-#      sudo echo 1 > ${TRACING}/tracing_on
-#
-#      bitbake $image_name
-#      YOCTO_EXIT_CODE=$?
-#
-#      sudo echo 0 > ${TRACING}/tracing_on
-#      sudo ${TRACING}/trace >> $LOG_FILE
-#      ;;
+    ftrace )
+      TRACING=/sys/kernel/debug/tracing
+      sudo sysctl kernel.ftrace_enabled=1
+      sudo echo function > ${TRACING}/current_tracer
+      sudo echo 1 > ${TRACING}/tracing_on
+
+      default_build_exec
+      YOCTO_EXIT_CODE=$?
+
+      sudo echo 0 > ${TRACING}/tracing_on
+      sudo ${TRACING}/trace >> $LOG_FILE
+      ;;
     * )
-      bitbake $image_name
+      default_build_exec
       YOCTO_EXIT_CODE=$?
       ;;
   esac

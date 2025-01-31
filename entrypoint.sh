@@ -85,7 +85,6 @@ function build_env_stage() {
 
 function build_yocto_stage() {
   TTOOL="none"
-  TOPTIONS="none"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 

@@ -15,8 +15,15 @@ if [[ $? -eq 1 ]]; then
 	exit 1
 fi
 
+TOPTS=$(printenv TRACING_OPTIONS)
+if [ -z "$TOPTS" ]; then
+  TOPTS="none"
+fi
+echo "$TOPTS"
+
+
 cd $DOCKERFILE_DIR
-STAGE_VAR="$STAGE" TRACING_TOOL="$TTOOL" docker compose up --no-log-prefix
+STAGE_VAR="$STAGE" TRACING_TOOL="$TTOOL" TRACING_OPTIONS="$TOPTS" docker compose up --no-log-prefix
 
 CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME)
 EXIT_CODE=$(docker inspect $CONTAINER_ID --format='{{.State.ExitCode}}')
