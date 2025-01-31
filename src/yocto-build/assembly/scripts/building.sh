@@ -88,12 +88,6 @@ function build() {
   cp /dev/null $LOG_FILE
 
   image_name="core-image-minimal"
-  USE_DEFAULT_OPTIONS=1
-
-  if [ "$TRACING_OPTIONS" != "none" ]; then
-    USE_DEFAULT_OPTIONS=0
-  fi
-
 
   case $TRACING_TOOL in
     perf )
@@ -103,39 +97,27 @@ function build() {
         echo -e "Perf is not installed."
         exit $IS_PERF_INSTALLED
       fi
-      default_options="-a"
-
-      if [ $USE_DEFAULT_OPTIONS -eq 0 ]; then
-        default_options="$TRACING_OPTIONS"
-      fi
-
-      perf stat $default_options -o $LOG_FILE bitbake $image_name
+      perf stat -a -o $LOG_FILE bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
     strace )
-      default_options=""
-
-      if [ $USE_DEFAULT_OPTIONS -eq 0 ]; then
-        default_options="$TRACING_OPTIONS"
-      fi
-
-      strace $default_options -o $LOG_FILE bitbake $image_name
+      strace -o $LOG_FILE bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
-    ftrace )
-      TRACING=/sys/kernel/debug/tracing
-      sysctl kernel.ftrace_enabled=1
-
-      echo function > ${TRACING}/current_tracer
-      # echo $PID > set_ftrace_pid
-      echo 1 > ${TRACING}/tracing_on
-
-      bitbake $image_name
-      YOCTO_EXIT_CODE=$?
-
-      echo 0 > ${TRACING}/tracing_on
-      ${TRACING}/trace >> $LOG_FILE
-      ;;
+#    ftrace )
+#      TRACING=/sys/kernel/debug/tracing
+#      sudo sysctl kernel.ftrace_enabled=1
+#
+#      sudo echo function > ${TRACING}/current_tracer
+#      # echo $PID > set_ftrace_pid
+#      sudo echo 1 > ${TRACING}/tracing_on
+#
+#      bitbake $image_name
+#      YOCTO_EXIT_CODE=$?
+#
+#      sudo echo 0 > ${TRACING}/tracing_on
+#      sudo ${TRACING}/trace >> $LOG_FILE
+#      ;;
     * )
       bitbake $image_name
       YOCTO_EXIT_CODE=$?
