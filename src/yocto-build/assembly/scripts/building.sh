@@ -86,6 +86,7 @@ function prepare_for_build() {
 function build() {
   LOG_FILE=$ASSEMBLY_DIR/logs/building_logs_$TRACING_TOOL.txt
   cp /dev/null $LOG_FILE
+  image_name="core-image-minimal"
 
   case $TRACING_TOOL in
     perf )
@@ -96,11 +97,11 @@ function build() {
         exit $IS_PERF_INSTALLED
       fi
 
-      perf stat -a -o $LOG_FILE bitbake core-image-minimal
+      perf stat -a -o $LOG_FILE bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
     strace )
-      strace -o $LOG_FILE bitbake core-image-minimal
+      strace -o $LOG_FILE bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
     ftrace )
@@ -110,14 +111,14 @@ function build() {
       echo function > ${TRACING}/current_tracer
       echo 1 > ${TRACING}/tracing_on
 
-      bitbake core-image-minimal
+      bitbake $image_name
       YOCTO_EXIT_CODE=$?
 
       echo 0 > ${TRACING}/tracing_on
       ${dir}/trace >> $LOG_FILE
       ;;
     * )
-      bitbake core-image-minimal
+      bitbake $image_name
       YOCTO_EXIT_CODE=$?
       ;;
   esac
