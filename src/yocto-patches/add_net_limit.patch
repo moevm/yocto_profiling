@@ -1,5 +1,3 @@
-diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..9088a8c565 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -164,6 +164,8 @@ class RunQueueScheduler(object):
