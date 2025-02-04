@@ -79,7 +79,7 @@ else
     echo
 
     if [ "$EXPERIMENT_NAME" == "main" ]; then
-        echo "To start main experiment you need to fill configuration of experiment described in <paste_config_path_or_instruction_path>"
+        echo "To start main experiment you need to fill configuration of experiment described in ./src/experiment/README.md"
         echo "  After filling out the config, run this script via --confirm flag"
         echo "    Usage: ./run_experiments.sh main -c"
         echo "  or"
@@ -97,8 +97,8 @@ else
     fi
 
     if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
-        echo "To start speeding_up experiment you need to fill configuration of experiment described in <paste_config_path_or_instruction_path>"
-        echo "  After filling out the config, run this script via --confirm flag"
+        echo "To start speeding_up experiment you do not need to fill in the configurations, you only need to specify the number of repetitions."
+        echo "  To confirm the number of repetitions, run this script via --confirm flag"
         echo "    Usage: ./run_experiments.sh speeding_up -c"
         echo "  or"
         echo "    Usage: ./run_experiments.sh speeding_up --confirm"
@@ -115,12 +115,10 @@ else
     fi
 fi
 
-# At this stage, the user has specified the name of the experiment and confirmed that they have filled out the config
 
 if [ "$EXPERIMENT_NAME" == "main" ]; then
     cd $PATH_TO_MAIN_EXP
     echo "starting"
-    # here gotta be start of main experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Running with --patches"
         ./main.sh --patches
@@ -134,7 +132,6 @@ fi
 if [ "$EXPERIMENT_NAME" == "filters" ]; then
     cd $PATH_TO_FILTERS_EXP
     echo "starting"
-    # here gotta be start of filters experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Warning! filters does not require the --patches flag!"
         ./run.sh 
@@ -148,7 +145,6 @@ fi
 if [ "$EXPERIMENT_NAME" == "speeding_up" ]; then
     cd $PATH_TO_SPEEDING_EXP
     echo "starting"
-    # here gotta be start of speeding_up experiment
     if [ "$PATCHES_FLAG" == true ]; then
         echo "Running with --patches"
         ./speeding_up_experiment.sh "$speeding_num_runs" --patches
