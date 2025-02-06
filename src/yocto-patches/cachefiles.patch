@@ -1,6 +1,8 @@
---- sstate.bbclass	2024-11-13 16:30:35.255789000 +0300
-+++ sstate.bbclass	2024-11-13 17:22:37.995697512 +0300
-@@ -732,6 +732,7 @@
+diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
+index 2c259a6657..d6fee3f966 100644
+--- a/meta/classes-global/sstate.bbclass
++++ b/meta/classes-global/sstate.bbclass
+@@ -716,6 +716,7 @@ sstate_package[vardepsexclude] += "SSTATE_SIG_KEY SSTATE_PKG"
  
  def pstaging_fetch(sstatefetch, d):
      import bb.fetch2
@@ -8,11 +10,11 @@
  
      # Only try and fetch if the user has configured a mirror
      mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -741,6 +742,18 @@
+@@ -725,6 +726,18 @@ def pstaging_fetch(sstatefetch, d):
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
-+    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует 
++    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует
 +    try:
 +        with open('./file_mirror_map', 'r') as mapping_file:
 +            file_mirror_map = json.load(mapping_file)
@@ -27,16 +29,7 @@
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -767,7 +780,7 @@
-         localdata.setVar('SRC_URI', srcuri)
-         try:
-             fetcher = bb.fetch2.Fetch([srcuri], localdata, cache=False)
--            fetcher.checkstatus()
-+            #fetcher.checkstatus()
-             fetcher.download()
- 
-         except bb.fetch2.BBFetchException:
-@@ -957,9 +970,13 @@
+@@ -937,9 +950,13 @@ BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
  
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
@@ -50,40 +43,24 @@
  
      def gethash(task):
          return sq_data['unihash'][task]
-@@ -1000,6 +1017,12 @@
-     foundLocal = len(found)
-     mirrors = d.getVar("SSTATE_MIRRORS")
-     if mirrors:
-+        mirrors_copy = mirrors[:]
-+        mirrors_copy = (mirrors_copy or "").replace('\\n',' ').split()
-+        if len(mirrors_copy) % 2 != 0:
-+            bb.warn('Invalid mirror data %s, should have paired members.' % data)
-+        mirrors_missed = [mirrors_copy[i] for i in range(len(mirrors_copy)) if i % 2]
-+
-         # Copy the data object and override DL_DIR and SRC_URI
-         localdata = bb.data.createCopy(d)
- 
-@@ -1060,29 +1083,98 @@
-         for tid in missed:
+@@ -1041,28 +1058,97 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
-+        tasklist_copy = tasklist.copy()
  
 -        if tasklist:
 -            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
++        ## thread-safe counter
++        cnt_tasks_done = itertools.count(start = 1)
++        progress = len(tasklist) >= 100
  
 -            ## thread-safe counter
 -            cnt_tasks_done = itertools.count(start = 1)
 -            progress = len(tasklist) >= 100
-+        ## thread-safe counter
-+        cnt_tasks_done = itertools.count(start = 1)
-+        progress = len(tasklist) >= 100
-+
 +        if tasklist:
              if progress:
                  msg = "Checking sstate mirror object availability"
                  bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
--
+ 
 -            # Have to setup the fetcher environment here rather than in each thread as it would race
 -            fetcherenv = bb.fetch2.get_fetcher_environment(d)
 -            with bb.utils.environment(**fetcherenv):
@@ -96,46 +73,48 @@
 -                    executor.map(checkstatus, tasklist.copy())
 -                checkstatus_end()
 -                bb.event.disable_threadlock()
-+            
 +            cache_tasks = {}
-+            mirrors = (mirrors or "").replace('\\n',' ').split()
++
++            mirrors = (mirrors or '').replace('\n', ' ').split()
++            mirrors_copy = mirrors.copy()
++
 +            if len(mirrors) % 2 != 0:
 +                bb.warn('Invalid mirror data %s, should have paired members.' % data)
++
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
++            mirrors_missed = mirrors.copy()
 +
 +            for mirror in mirrors:
 +                if 'http' in mirror:
 +                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
 +                    response = requests.get(f'{url}/index.txt')
 +
-+                    # Проверка успешности запроса
 +                    if response.status_code == 200:
 +                        cache_tasks.update({mirror: response.text.split('\n')})
 +                        mirrors_missed.remove(mirror)
-+                        
++
 +
 +                if 'ftp' in mirror:
 +                    try:
-+                        ftp = FTP() # Подключение к FTP серверу
++                        ftp = FTP()
 +                        ip, port = str(str(mirror.split('//')[1]).split('/')[0]).split(':')
 +                        port = int(port)
-+                        ftp.connect(ip, port)  
-+                        ftp.login()  
-+                    
++                        ftp.connect(ip, port)
++                        ftp.login()
++
 +                        with open('index.txt', 'wb') as local_file:
 +                            ftp.retrbinary('RETR /sstate-cache/index.txt', local_file.write)
-+
-+                        # Закрытие соединения
-+                        #ftp.quit()
-+
++                        ftp.quit()
 +
 +                        with open('index.txt', 'r') as local_file:
 +                            content = local_file.read().split('\n')
 +                            cache_tasks.update({mirror: content})
 +                        mirrors_missed.remove(mirror)
++
 +                    except:
 +                        pass
 +
++            tasklist_copy = tasklist.copy()
 +            for arg in tasklist:
 +                (tid, sstatefile) = arg
 +                srcuri = sstatefile
@@ -143,12 +122,11 @@
 +                    if srcuri in files:
 +                        found.add(tid)
 +                        missed.remove(tid)
-+                        file_mirror_map.update({srcuri: m}) #таким образом будет только одно зеркало, можно сделать чтобы здесь был список из всех зеркал, на которых есть этот файл
++                        file_mirror_map.update({srcuri: m})
 +                        tasklist_copy.remove(arg)
 +                        if progress:
 +                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
 +
-+                        
 +
 +            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
 +
