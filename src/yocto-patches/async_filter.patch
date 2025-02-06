@@ -1,0 +1,72 @@
+--- a/bitbake/lib/bb/cookerdata.py
++++ b/bitbake/lib/bb/cookerdata.py
+@@ -305,6 +305,69 @@ class CookerDataBuilder(object):
+ 
+         bb.codeparser.update_module_dependencies(self.data)
+ 
++        try:
++            import asyncio
++            from urllib.parse import urlparse
++
++            mirrors = self.data.getVar('SSTATE_MIRRORS')
++            parts = mirrors.split()
++            mirrors_list = [' '.join(parts[i:i+2]) for i in range(0, len(parts), 2)]
++
++            def get_default_port(scheme):
++                if scheme == 'http':
++                    return 80
++                elif scheme == 'https':
++                    return 443
++                elif scheme == 'ftp':
++                    return 21
++                elif scheme == 'ftps':
++                    return 990
++                else:
++                    return 8888  # Default value for unknown schemes
++
++            async def is_port_open(address, port, timeout=5):
++                try:
++                    reader, writer = await asyncio.wait_for(asyncio.open_connection(address, port), timeout)
++                    writer.close()
++                    await writer.wait_closed()
++                    return True
++                except (asyncio.TimeoutError, OSError):
++                    return False
++
++            def extract_address_and_port(url):
++                parsed_url = urlparse(url)
++                address = parsed_url.hostname
++                port = parsed_url.port if parsed_url.port else get_default_port(parsed_url.scheme)
++                return address, port
++
++
++            async def async_mirrors_filter(mirrors_list, data):
++                filtered_result = []
++                tasks = []
++
++                for item in mirrors_list:
++                    url = item.split()[1]
++                    address, port = extract_address_and_port(url)
++                    if address and port:
++                        tasks.append(is_port_open(address, port))
++
++                results = await asyncio.gather(*tasks)
++
++                if False in results:
++                    for i, result in enumerate(results):
++                        if result:
++                            filtered_result.append(mirrors_list[i])
++
++                    log_string = f'Several SSTATE_MIRRORS are not available, using: {str(filtered_result)}!'
++                    logger.warning(log_string)
++                    output_string = ' '.join(filtered_result)
++                    data.setVar('SSTATE_MIRRORS', output_string)
++
++            asyncio.run(async_mirrors_filter(mirrors_list, self.data))
++            
++        except Exception as e:
++            logger.error(f"Error checking SSTATE_MIRRORS availability: {e}")
++
+         # Handle obsolete variable names
+         d = self.data
+         renamedvars = d.getVarFlags('BB_RENAMED_VARIABLES') or {}
