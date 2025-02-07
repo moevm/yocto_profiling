@@ -1,23 +1,22 @@
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -164,6 +164,8 @@ class RunQueueScheduler(object):
+@@ -163,6 +163,7 @@ class RunQueueScheduler(object):
+ 
          self.rev_prio_map = None
          self.is_pressure_usable()
- 
 +        self.max_net_pressure = None
-+
+ 
      def is_pressure_usable(self):
          """
-         If monitoring pressure, return True if pressure files can be open and read. For example
-@@ -234,6 +236,25 @@ class RunQueueScheduler(object):
+@@ -234,6 +235,25 @@ class RunQueueScheduler(object):
              return limit
          return False
  
-+    def exceeds_max_net(self):
++    def exceeds_max_net(self, net_pressure_file='net_pressure.log'):
 +        if self.max_net_pressure is None:
 +            return False
 +        try:
-+            with open('net_pressure.log', 'r') as f:
++            with open(net_pressure_file, 'r') as f:
 +                receive_diff, transmit_diff = [int(elem) for elem in f.readline().split()]
 +                if receive_diff > self.max_net_pressure[0] or transmit_diff > self.max_net_pressure[1]:
 +                    return True
@@ -26,16 +25,16 @@
 +            return False
 +        return False
 +
-+    def set_max_net_pressure(self):
-+        if os.path.isfile('current_max_net_pressure.log'):
-+            with open('current_max_net_pressure.log', 'r') as f:
++    def set_max_net_pressure(self, max_net_pressure_file='current_max_net_pressure.log'):
++        if os.path.isfile(max_net_pressure_file):
++            with open(max_net_pressure_file, 'r') as f:
 +                max_receive_diff, max_transmit_diff = [int(elem) for elem in f.readline().split()]
 +                self.max_net_pressure = (max_receive_diff, max_transmit_diff)
 +
      def next_buildable_task(self):
          """
          Return the id of the first task we find that is buildable
-@@ -290,9 +311,16 @@ class RunQueueScheduler(object):
+@@ -290,9 +310,16 @@ class RunQueueScheduler(object):
                  stamp = self.stamps[tid]
                  if stamp in self.rq.build_stamps.values():
                      continue
