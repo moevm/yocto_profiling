@@ -129,6 +129,12 @@ git clone https://github.com/moevm/os_profiling.git
     yocto-container  | NOTE: Tasks Summary: Attempted 4099 tasks of which 4099 didn't need to be rerun and all succeeded.
     yocto-container exited with code 0
     ```
+   
+    Для запуска сборки с инструментом трассировки нужно использовать опцию `--tracing <tool>`.
+    Конфигурация трассировка происходит через переменную среды `TRACING_OPTIONS`, установка её значения:
+    ```shell
+   export TRACING_OPTIONS="your_options"
+   ```
 
 6. Запуск образа Yocto:
     ```shell

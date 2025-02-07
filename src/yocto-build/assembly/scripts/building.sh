@@ -4,6 +4,9 @@
 FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
 YOCTO_REPOSITORY=https://github.com/yoctoproject/poky.git
 
+LOG_FILE=$ASSEMBLY_DIR/logs/building_logs_$TRACING_TOOL.txt
+IMAGE_NAME="core-image-minimal"
+
 YOCTO_EXIT_CODE=0
 YOCTO_CLONING_CODE=0
 
@@ -61,7 +64,44 @@ function check_poky() {
 
 function default_build_exec() {
   bitbake $image_name
-  return $?
+  YOCTO_EXIT_CODE=$?
+}
+
+function perf_build_exec() {
+  perf --version > /dev/null
+  IS_PERF_INSTALLED=$?
+  if [ $IS_PERF_INSTALLED -ne 0 ]; then
+    echo -e "Perf is not installed."
+    exit $IS_PERF_INSTALLED
+  fi
+
+  default_options="-a -o $LOG_FILE"
+  if [[ "$TRACING_OPTIONS" != "none" ]]; then
+    default_options="$TRACING_OPTIONS"
+  fi
+  perf stat $default_options bitbake $IMAGE_NAME
+  YOCTO_EXIT_CODE=$?
+}
+
+function strace_build_exec() {
+  default_options="-o $LOG_FILE"
+  if [[ "$TRACING_OPTIONS" != "none" ]]; then
+    default_options="$TRACING_OPTIONS"
+  fi
+  strace $default_options bitbake $IMAGE_NAME
+  YOCTO_EXIT_CODE=$?
+}
+
+function ftrace_build_exec() {
+  TRACING=/sys/kernel/debug/tracing
+  sudo sysctl kernel.ftrace_enabled=1
+  sudo echo function > ${TRACING}/current_tracer
+  sudo echo 1 > ${TRACING}/tracing_on
+
+  default_build_exec
+
+  sudo echo 0 > ${TRACING}/tracing_on
+  sudo ${TRACING}/trace >> $LOG_FILE
 }
 
 function prepare_for_build() {
@@ -89,44 +129,20 @@ function prepare_for_build() {
 }
 
 function build() {
-  LOG_FILE=$ASSEMBLY_DIR/logs/building_logs_$TRACING_TOOL.txt
   cp /dev/null $LOG_FILE
-
-  image_name="core-image-minimal"
 
   case $TRACING_TOOL in
     perf )
-      perf --version > /dev/null
-      IS_PERF_INSTALLED=$?
-      if [ $IS_PERF_INSTALLED -ne 0 ]; then
-        echo -e "Perf is not installed."
-        exit $IS_PERF_INSTALLED
-      fi
-
-      default_options="-a -o $LOG_FILE"
-      perf stat $default_options bitbake $image_name
-      YOCTO_EXIT_CODE=$?
+      perf_build_exec
       ;;
     strace )
-      default_options="-o $LOG_FILE"
-      strace $default_options bitbake $image_name
-      YOCTO_EXIT_CODE=$?
+      perf_build_exec
       ;;
     ftrace )
-      TRACING=/sys/kernel/debug/tracing
-      sudo sysctl kernel.ftrace_enabled=1
-      sudo echo function > ${TRACING}/current_tracer
-      sudo echo 1 > ${TRACING}/tracing_on
-
-      default_build_exec
-      YOCTO_EXIT_CODE=$?
-
-      sudo echo 0 > ${TRACING}/tracing_on
-      sudo ${TRACING}/trace >> $LOG_FILE
+      ftrace_build_exec
       ;;
     * )
       default_build_exec
-      YOCTO_EXIT_CODE=$?
       ;;
   esac
 }
