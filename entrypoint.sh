@@ -125,7 +125,8 @@ function build_yocto_stage() {
     esac
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
-
+  
+  echo ""
   $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL
   EXIT_CODE=$?
 }

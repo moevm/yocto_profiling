@@ -19,8 +19,6 @@ TOPTS=$(printenv TRACING_OPTIONS)
 if [ -z "$TOPTS" ]; then
   TOPTS="none"
 fi
-echo "$TOPTS"
-
 
 cd $DOCKERFILE_DIR
 STAGE_VAR="$STAGE" TRACING_TOOL="$TTOOL" TRACING_OPTIONS="$TOPTS" docker compose up --no-log-prefix

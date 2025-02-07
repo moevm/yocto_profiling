@@ -59,84 +59,94 @@ function check_poky() {
   if [[ "$STAGE_VAR" == "only-poky" ]]; then
     exit $YOCTO_CLONING_CODE
   fi
+}
 
+function prepare_for_build() {
+  if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
+    rm $ASSEMBLY_DIR/build/conf/bblayers.conf
+  fi
+
+  source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
+  if [[ "$STAGE_VAR" != "no-layers" ]]; then
+    $SCRIPTS_DIR/add_layers.sh $POKY_DIR
+    cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
+  fi
+
+  if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
+    cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
+  fi
+
+  cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
+
+  mkdir -p $FRAGMENT_PATH/files/
+  cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
+  $SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
+
+  bitbake-layers show-layers
 }
 
 function default_build_exec() {
-  bitbake $image_name
+  echo ""
+  echo -e "  RESULT COMMAND: bitbake $IMAGE_NAME\n"
+  bitbake $IMAGE_NAME
   YOCTO_EXIT_CODE=$?
 }
 
 function perf_build_exec() {
-  perf --version > /dev/null
+  perf --version > /dev/null 2>&1
   IS_PERF_INSTALLED=$?
   if [ $IS_PERF_INSTALLED -ne 0 ]; then
-    echo -e "Perf is not installed."
+    echo -e "\nRunTimeError: Perf is not installed! "
     exit $IS_PERF_INSTALLED
   fi
 
-  default_options="-a -o $LOG_FILE"
+  options="-a -o $LOG_FILE"
   if [[ "$TRACING_OPTIONS" != "none" ]]; then
-    default_options="$TRACING_OPTIONS"
+    options="$TRACING_OPTIONS"
   fi
-  perf stat $default_options bitbake $IMAGE_NAME
+  echo -e "  TRACING OPTIONS: \"$options\"\n"
+  echo -e "  RESULT COMMAND: perf stat $options bitbake $IMAGE_NAME\n"
+  perf stat $options bitbake $IMAGE_NAME
   YOCTO_EXIT_CODE=$?
 }
 
 function strace_build_exec() {
-  default_options="-o $LOG_FILE"
+  options="-o $LOG_FILE"
   if [[ "$TRACING_OPTIONS" != "none" ]]; then
-    default_options="$TRACING_OPTIONS"
+    options="$TRACING_OPTIONS"
   fi
-  strace $default_options bitbake $IMAGE_NAME
+  
+  echo -e "  TRACING OPTIONS: \"$options\"\n"
+  echo -e "  RESULT COMMAND: strace $options bitbake $IMAGE_NAME\n"
+  strace $options bitbake $IMAGE_NAME
   YOCTO_EXIT_CODE=$?
 }
 
 function ftrace_build_exec() {
   TRACING=/sys/kernel/debug/tracing
-  sudo sysctl kernel.ftrace_enabled=1
+  # sudo mount -t debugfs none /sys/kernel/debug
+  # sudo chmod -R 777 $TRACING
+  sudo sysctl kernel.ftrace_enabled=1 > /dev/null
   sudo echo function > ${TRACING}/current_tracer
   sudo echo 1 > ${TRACING}/tracing_on
 
   default_build_exec
 
   sudo echo 0 > ${TRACING}/tracing_on
-  sudo ${TRACING}/trace >> $LOG_FILE
-}
-
-function prepare_for_build() {
-  if [ -f $ASSEMBLY_DIR/build/conf/bblayers.conf ]; then
-		rm $ASSEMBLY_DIR/build/conf/bblayers.conf
-	fi
-
-	source $POKY_DIR/oe-init-build-env $ASSEMBLY_DIR/build/ >/dev/null
-	if [[ "$STAGE_VAR" != "no-layers" ]]; then
-		$SCRIPTS_DIR/add_layers.sh $POKY_DIR
-		cp $YOCTO_INSTALL_PATH/conf/original.conf $YOCTO_INSTALL_PATH/conf/local.conf
-	fi
-
-  if [ -f "$ASSEMBLY_DIR/task-children.txt" ]; then
-    cp "$ASSEMBLY_DIR/task-children.txt" "$ASSEMBLY_DIR/build/task-children.txt"
-  fi
-
-	cp $YOCTO_INSTALL_PATH/conf/local.conf $ASSEMBLY_DIR/build/conf/local.conf
-
-	mkdir -p $FRAGMENT_PATH/files/
-	cp $YOCTO_INSTALL_PATH/conf/fragment.cfg $FRAGMENT_PATH/files/fragment.cfg
-	$SCRIPTS_DIR/update_kernel.sh $FRAGMENT_PATH
-
-	bitbake-layers show-layers
+  sudo cat ${TRACING}/trace > $LOG_FILE
 }
 
 function build() {
   cp /dev/null $LOG_FILE
-
+  
+  echo -e "\nSPECIFIED ->"
+  echo -e "  TRACING TOOL: $TRACING_TOOL"
   case $TRACING_TOOL in
     perf )
       perf_build_exec
       ;;
     strace )
-      perf_build_exec
+      strace_build_exec
       ;;
     ftrace )
       ftrace_build_exec
