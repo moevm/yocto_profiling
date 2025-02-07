@@ -124,6 +124,7 @@ function strace_build_exec() {
 
 function ftrace_build_exec() {
   TRACING=/sys/kernel/debug/tracing
+  # it is kernel dir and adding some permissions also affects on host
   # sudo mount -t debugfs none /sys/kernel/debug
   # sudo chmod -R 777 $TRACING
   sudo sysctl kernel.ftrace_enabled=1 > /dev/null
