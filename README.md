@@ -131,10 +131,17 @@ git clone https://github.com/moevm/os_profiling.git
     ```
    
     Для запуска сборки с инструментом трассировки нужно использовать опцию `--tracing <tool>`.
-    Конфигурация трассировка происходит через переменную среды `TRACING_OPTIONS`, установка её значения:
+    Конфигурация трассировки опциями происходит через переменную среды `TRACING_OPTIONS`, установка её значения:
     ```shell
-   export TRACING_OPTIONS="your_options"
-   ```
+    export TRACING_OPTIONS="your_options"
+    ```
+   
+    При выборе инструмента `ftrace` стоит учитывать, что используется трассировщик и файлы ядра, поэтому необходимо, при возникновении ошибок доступа, раскомментировать команды в [файле](src/yocto-build/assembly/scripts/building.sh):  
+    ```shell
+    sudo mount -t debugfs none /sys/kernel/debug
+    sudo chmod -R 777 /sys/kernel/debug/tracing
+    ```
+    **_Важно, что при изменении прав доступа к этим файлам в Docker-контейнере, они также изменяться на хосте!_**
 
 6. Запуск образа Yocto:
     ```shell

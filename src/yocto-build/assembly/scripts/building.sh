@@ -135,6 +135,7 @@ function ftrace_build_exec() {
 
   sudo echo 0 > ${TRACING}/tracing_on
   sudo cat ${TRACING}/trace > $LOG_FILE
+  # sudo chmod -R 755 $TRACING
 }
 
 function build() {
