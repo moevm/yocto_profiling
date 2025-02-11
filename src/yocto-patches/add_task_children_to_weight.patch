@@ -1,39 +1,27 @@
---- runqueue.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ runqueue.py	(date 1727784053205)
-@@ -591,24 +591,66 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..754f44c15b 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -593,6 +593,51 @@ class RunQueueData:
  
          return msgs
  
--    def calculate_task_weights(self, endpoints):
--        """
--        Calculate a number representing the "weight" of each task. Heavier weighted tasks
--        have more dependencies and hence should be executed sooner for maximum speed.
-+    def get_task_children(self):
++    def get_task_children(self, filepath='task-children.txt'):
 +        try:
-+            f = open('task-children.txt')
-+        except OSError:
-+            return None
-+        else:
-+            task_children = {}
-+            with f:
-+                for line in f:
++            with open(filepath, 'r') as file:
++                task_children = {}
++                for line in file:
 +                    task_name, children = line.split()
 +                    task_children[task_name] = int(children)
-+            return task_children
- 
--        This function also sanity checks the task list finding tasks that are not
--        possible to execute due to circular dependencies.
--        """
--
--        numTasks = len(self.runtaskentries)
-+    def change_weight(self, task_children):
-         weight = {}
-         deps_left = {}
-         task_done = {}
--
-         for tid in self.runtaskentries:
--            task_done[tid] = False
--            weight[tid] = 1
++                return task_children
++        except OSError:
++            return None
++
++    def change_weight(self, task_children, current_weight_constant=10, initial_weight_constant=200):
++        weight = {}
++        deps_left = {}
++        task_done = {}
++        for tid in self.runtaskentries:
 +            if not task_children:
 +                weight[tid] = 1
 +            else:
@@ -43,7 +31,7 @@
 +                task_name = match.group(1).split('_')[0] + '.' + match.group(2) if match else ""
 +
 +                if task_name in task_children:
-+                    weight[tid] = task_children[task_name] * 10 / 200
++                    weight[tid] = task_children[task_name] * (current_weight_constant / initial_weight_constant)
 +                else:
 +                    part1, _, part2 = task_name.rpartition('.')
 +                    native_name = f"{part1}-native.{part2}"
@@ -51,29 +39,33 @@
 +                    gcc_name = f"{part1}-14.1.0.{part2}"
 +
 +                    if native_name in task_children:
-+                        weight[tid] = task_children[native_name] * 10 / 200
++                        weight[tid] = task_children[native_name] * (current_weight_constant / initial_weight_constant)
 +                    elif x86_name in task_children:
-+                        weight[tid] = task_children[x86_name] * 10 / 200
++                        weight[tid] = task_children[x86_name] * (current_weight_constant / initial_weight_constant)
 +                    elif gcc_name in task_children:
-+                        weight[tid] = task_children[gcc_name] * 10 / 200
++                        weight[tid] = task_children[gcc_name] * (current_weight_constant / initial_weight_constant)
 +                    else:
-+                        weight[tid] = 10 / 200
++                        weight[tid] = current_weight_constant / initial_weight_constant
 +
 +            task_done[tid] = False
-             deps_left[tid] = len(self.runtaskentries[tid].revdeps)
++            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
 +        return weight, task_done, deps_left
 +
-+    def calculate_task_weights(self, endpoints):
-+        """
-+        Calculate a number representing the "weight" of each task. Heavier weighted tasks
-+        have more dependencies and hence should be executed sooner for maximum speed.
-+
-+        This function also sanity checks the task list finding tasks that are not
-+        possible to execute due to circular dependencies.
-+        """
-+
-+        numTasks = len(self.runtaskentries)
-+
+     def calculate_task_weights(self, endpoints):
+         """
+         Calculate a number representing the "weight" of each task. Heavier weighted tasks
+@@ -603,14 +648,9 @@ class RunQueueData:
+         """
+ 
+         numTasks = len(self.runtaskentries)
+-        weight = {}
+-        deps_left = {}
+-        task_done = {}
+ 
+-        for tid in self.runtaskentries:
+-            task_done[tid] = False
+-            weight[tid] = 1
+-            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
 +        task_children = self.get_task_children()
 +        weight, task_done, deps_left = self.change_weight(task_children)
  
