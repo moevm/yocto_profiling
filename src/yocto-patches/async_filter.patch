@@ -1,8 +1,6 @@
-diff --git a/bitbake/lib/bb/cookerdata.py b/bitbake/lib/bb/cookerdata.py
-index 0649e40995..7b60f009c8 100644
 --- a/bitbake/lib/bb/cookerdata.py
 +++ b/bitbake/lib/bb/cookerdata.py
-@@ -300,6 +300,69 @@ class CookerDataBuilder(object):
+@@ -305,6 +305,69 @@ class CookerDataBuilder(object):
  
          bb.codeparser.update_module_dependencies(self.data)
  
@@ -24,7 +22,7 @@ index 0649e40995..7b60f009c8 100644
 +                elif scheme == 'ftps':
 +                    return 990
 +                else:
-+                    return 8888 # TODO:  выбрать какое-то дефолтное значение
++                    return 8888  # Default value for unknown schemes
 +
 +            async def is_port_open(address, port, timeout=5):
 +                try:
@@ -64,28 +62,11 @@ index 0649e40995..7b60f009c8 100644
 +                    output_string = ' '.join(filtered_result)
 +                    data.setVar('SSTATE_MIRRORS', output_string)
 +
-+
 +            asyncio.run(async_mirrors_filter(mirrors_list, self.data))
-+        except:
-+            logger.warning("Something wrong with checking SSTATE_MIRRORS availability")
++            
++        except Exception as e:
++            logger.error(f"Error checking SSTATE_MIRRORS availability: {e}")
 +
          # Handle obsolete variable names
          d = self.data
          renamedvars = d.getVarFlags('BB_RENAMED_VARIABLES') or {}
-diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
-index 96655ff24f..b0be5572e8 100644
---- a/meta/classes-global/sstate.bbclass
-+++ b/meta/classes-global/sstate.bbclass
-@@ -1086,6 +1086,12 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
- 
-             if progress:
-                 bb.event.fire(bb.event.ProcessFinished(msg), d)
-+                pid = os.getpid()
-+                def parse_etime(etime):
-+                    return int(etime)
-+                proc_info = os.popen(f'ps -o etimes= -p {pid}').read().strip()
-+                elapsed_time = 'Time from the start to end of checking sstate availability == ' + str(parse_etime(proc_info))
-+                bb.note(elapsed_time)
- 
-     inheritlist = d.getVar("INHERIT")
-     if "toaster" in inheritlist:
