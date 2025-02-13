@@ -1,25 +1,20 @@
-diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index bc7e18175d..95d6e35eb6 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -1619,6 +1619,8 @@ class RunQueue:
+@@ -1640,6 +1640,7 @@ class RunQueue:
                      logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and %d failed.", self.rqexe.stats.completed + self.rqexe.stats.failed, self.rqexe.stats.skipped, self.rqexe.stats.failed)
                  else:
                      # Let's avoid the word "failed" if nothing actually did
-+                    logger.info("Start building index file of sstate-cache")
 +                    self.write_indexfile()
                      logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and all succeeded.", self.rqexe.stats.completed, self.rqexe.stats.skipped)
  
          if self.state is runQueueFailed:
-@@ -1817,7 +1819,16 @@ class RunQueue:
-                 prevh = __find_sha256__.search(latestmatch).group(0)
+@@ -1848,6 +1849,15 @@ class RunQueue:
                  output = bb.siggen.compare_sigfiles(latestmatch, match, recursecb)
                  bb.plain("\nTask %s:%s couldn't be used from the cache because:\n  We need hash %s, most recent matching task was %s\n  " % (pn, taskname, h, prevh) + '\n  '.join(output))
--
-+    
-+    def write_indexfile(self):
+ 
++    def write_indexfile(self, indexfile_name='index.txt'):
 +        directory = self.cfgData.getVar("SSTATE_DIR")
-+        output_file = os.path.join(directory, 'index.txt')
++        output_file = os.path.join(directory, indexfile_name)
 +        with open(output_file, 'w') as f:
 +            for root, dirs, files in os.walk(directory):
 +                for file in files:
