@@ -1,6 +1,6 @@
---- buildstats.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ buildstats.py	(date 1727794002950)
-@@ -16,9 +16,10 @@
+--- a/meta/lib/oe/buildstats.py
++++ b/meta/lib/oe/buildstats.py
+@@ -16,9 +16,10 @@ class SystemStats:
          bn = d.getVar('BUILDNAME')
          bsdir = os.path.join(d.getVar('BUILDSTATS_BASE'), bn)
          bb.utils.mkdirhier(bsdir)
@@ -14,7 +14,7 @@
  
          # Some hosts like openSUSE have readable /proc/pressure files
          # but throw errors when these files are opened. Catch these error
-@@ -47,7 +48,10 @@
+@@ -47,7 +48,10 @@ class SystemStats:
                  # not strictly necessary, but using it makes the class
                  # more robust should two processes ever write
                  # concurrently.
@@ -26,7 +26,7 @@
                  self.proc_files.append((filename, open(destfile, 'ab'), handler))
          self.monitor_disk = open(os.path.join(bsdir, 'monitor_disk.log'), 'ab')
          # Last time that we sampled /proc data resp. recorded disk monitoring data.
-@@ -72,6 +76,7 @@
+@@ -72,6 +76,7 @@ class SystemStats:
          self.stat_ltimes = None
          # Last time we sampled /proc/pressure. All resources stored in a single dict with the key as filename
          self.last_pressure = {"pressure/cpu": None, "pressure/io": None, "pressure/memory": None}
@@ -34,10 +34,11 @@
  
      def close(self):
          self.monitor_disk.close()
-@@ -93,6 +98,43 @@
+@@ -92,6 +97,43 @@ class SystemStats:
+             return (time,
                      b' '.join([values[x] for x in
                                 (b'MemTotal', b'MemFree', b'Buffers', b'Cached', b'SwapTotal', b'SwapFree')]) + b'\n')
- 
++    
 +    def _reduce_net(self, time, data, filename):
 +        data = data.split(b'\n')
 +        max_receive_diff, max_transmit_diff = 0, 0
@@ -74,7 +75,6 @@
 +        result_str = "\n".join(result_parts) + "\n"
 +
 +        return time, result_str.encode('ascii')
-+
+ 
      def _diskstats_is_relevant_line(self, linetokens):
          if len(linetokens) != 14:
-             return False
