@@ -26,6 +26,7 @@ git clone https://github.com/moevm/os_profiling.git
               [ by | build-yocto ]
                   --only-poky -- only clones poky repo
                   --no-layers -- build yocto image without layers and dependencies
+                  --tracing <tool> -- enables tracing of the build with one of the tools (perf, ftrace, strace)
                   --conf-file <path> -- config file to use (works only for --no-layers)
 
               *required cloned poky*
@@ -44,11 +45,11 @@ git clone https://github.com/moevm/os_profiling.git
     ```
    
 2. Проверка установки всех необходимых зависимостей:
-    ```
+    ```shell
     ./entrypoint.sh check
     ```
     После выполнения команды произойдёт проверка всех необходимых зависимостей, для каждой из которых будет выведен статус, а далее общий результат. Пример:
-    ```
+    ```text
     SUCCESS: docker is installed.
     SUCCESS: docker compose (v2.25.0) is installed.
     
@@ -56,12 +57,12 @@ git clone https://github.com/moevm/os_profiling.git
     ```
     
 3. Образ среды для проекта:
-    ```
+    ```shell
     ./entrypoint.sh env
     ```
     После выполнения команды начнётся сборка образа с помощью Docker. 
     При необходимости можно отключить утилиту `perf`, для этого к предыдущей команде необходимо добавить флаг `--no-perf`. Как это примерно должно выглядеть:
-    ```
+    ```text
     [+] Building (12/12) FINISHED                                                                  docker:default
      => [yocto_project internal] load build definition from Dockerfile                                     
      => => transferring dockerfile: 2.24kB                                                                 
@@ -75,11 +76,11 @@ git clone https://github.com/moevm/os_profiling.git
     ```
 
 4. Командная строка контейнера:
-    ```
+    ```shell
     ./entrypoint.sh shell
     ```
     После выполнения команды будет запущен контейнер и открыт терминал. Должно получиться следующее:
-    ```
+    ```text
     [+] Running 1/1
      ✔ Container yocto_project  Started 
     To run a command as administrator (user "root"), use "sudo <command>".
@@ -90,13 +91,13 @@ git clone https://github.com/moevm/os_profiling.git
     ```
 
 5. Сборка образа Yocto:
-    ```
+    ```shell
     ./entrypoint.sh by
     ```
     После выполнения команды начнётся сборка образа `Yocto` внутри контейнера, когда произойдет автоматическое закрытие контейнера (с кодом 0) -- всё будет установлено. При необходимости можно только склонировать `poky`, для этого к предыдущей команде необходимо добавить флаг `--only-poky`.
     
     Пример удачной сборки:
-    ```
+    ```text
     [+] Running 1/1
     Attaching to yocto-container
     ...
@@ -128,13 +129,26 @@ git clone https://github.com/moevm/os_profiling.git
     yocto-container  | NOTE: Tasks Summary: Attempted 4099 tasks of which 4099 didn't need to be rerun and all succeeded.
     yocto-container exited with code 0
     ```
+   
+    Для запуска сборки с инструментом трассировки нужно использовать опцию `--tracing <tool>`.
+    Конфигурация трассировки опциями происходит через переменную среды `TRACING_OPTIONS`, установка её значения:
+    ```shell
+    export TRACING_OPTIONS="your_options"
+    ```
+   
+    При выборе инструмента `ftrace` стоит учитывать, что используется трассировщик и файлы ядра, поэтому необходимо, при возникновении ошибок доступа, раскомментировать команды в [файле](src/yocto-build/assembly/scripts/building.sh):  
+    ```shell
+    sudo mount -t debugfs none /sys/kernel/debug
+    sudo chmod -R 777 /sys/kernel/debug/tracing
+    ```
+    **_Важно, что при изменении прав доступа к этим файлам в Docker-контейнере, они также изменяться на хосте!_**
 
 6. Запуск образа Yocto:
-    ```
+    ```shell
     ./entrypoint.sh sy
     ```
     После выполнения будет открыта авторизация в системе `Yocto`, которая будет выглядеть так:
-    ```
+    ```text
     ...
     Poky (Yocto Project Reference Distro) 4.3+snapshot-1fb353995c7fbfaa9f1614ed52a4a6aa04ccae5a qemux86-64 /dev/ttyS0
 
@@ -175,14 +189,17 @@ git clone https://github.com/moevm/os_profiling.git
 Для анализа был разработан [набор скриптов](src/common/analysis). 
 
 Для их корректной работы необходимо:
-- Предустановленый пакет python3-venv
+- Предустановленный пакет `python3-venv`
+  ```shell
+  sudo apt install python3-venv
+  ```    
 - Установить зависимости (скрипт полностью автоматизирован только для систем Linux):
-```
-./entrypoint.sh deps
-```
-После выполнения команды произойдёт создание виртуального окружения `venv`, его активация и установка всех необходимых зависимостей.
+  ```shell
+  ./entrypoint.sh deps
+  ```
+После выполнения команды произойдёт создание виртуального окружения `venv` в директории проекта (`os_profiling`), его активация и установка всех необходимых зависимостей.
 
-Если у вас уже есть виртуальное окружение:
+Если у вас уже есть виртуальное окружение, активация и установка зависимостей:
 ```shell
 source <path-to-venv>/bin/activate
 pip3 install -r <project-path>/requirements.txt

@@ -19,6 +19,7 @@ function help() {
                   [ by | build-yocto ]
                       --only-poky -- only clones poky repo
                       --no-layers -- build yocto image without layers and dependencies
+                      --tracing <tool> -- enables tracing of the build with one of the tools (perf, ftrace, strace)
                       --conf-file <path> -- config file to use (works only for --no-layers)
 
                   *required cloned poky*
@@ -83,6 +84,7 @@ function build_env_stage() {
 }
 
 function build_yocto_stage() {
+  TTOOL="none"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 
@@ -108,19 +110,35 @@ function build_yocto_stage() {
         echo "USING CONF $CONFIG_FILE"
         shift 2
         ;;
-      --)
+      --tracing )
+        check_ttool $2
+        TTOOL="$2"
+        shift 2
+        ;;
+      -- )
         break
         ;;
-      *)
+      * )
         echo "Unexpected option for command \`build-yocto\`: $1"
         exit 2
         ;;
     esac
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
-
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG
+  
+  echo ""
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL
   EXIT_CODE=$?
+}
+
+function check_ttool() {
+  LIST="strace ftrace perf"
+  VALUE=$1
+  IS_VALUE_IN_LIST=$(echo $LIST | tr " " "\n" | grep -F -x "$VALUE")
+  if [ -z $IS_VALUE_IN_LIST ]; then
+    echo "Unexpected tracing tool: $1"
+    exit 2
+  fi
 }
 
 function clean_docker() {
@@ -175,7 +193,7 @@ function clean_build() {
 function install_analysis_deps() {
   deactivate 2> /dev/null
   cd $ENTRYPOINT_DIR && python3 -m venv venv
-  
+
   unameOut="$(uname -s)"
   case "${unameOut}" in
     Linux*)     MACHINE=Linux;;
