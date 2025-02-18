@@ -66,7 +66,7 @@ function main() {
     $ENTRYPOINT_DIR/entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch 
 
     start_time=$(date +%s)
-    $ENTRYPOINT_DIR/entrypoint.sh build-yocto
+    $ENTRYPOINT_DIR/entrypoint.sh build-yocto --no-layers
     end_time=$(date +%s)
 
     elapsed_time=$((end_time - start_time))
