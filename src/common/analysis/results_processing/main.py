@@ -99,12 +99,11 @@ def get_chart_data(data: dict[int, dict[str, float]], argname: str, chartname: s
 
 def plot_charts(title: str, ylabel: str, xlabel: str, logscale: bool, *args: tuple[float, float, str]) -> None:
     plt.figure(figsize=(10, 6))
-
     for i, (x, y, chartname) in enumerate(args):
         plt.plot(x, y, label=chartname, marker='o')
 
     if logscale:
-        plt.yscale('log')
+        plt.yscale('symlog', linthresh=0.001)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -124,10 +123,10 @@ if __name__ == "__main__":
     avg_results_after = get_avg(results_after)
     avg_results_before = get_avg(results_before)
 
-    chart_data_after = get_chart_data(avg_results_after, 'avg_sstate_checking', 'result after')
-    chart_data_before = get_chart_data(avg_results_before, 'avg_sstate_checking', 'result before')
-    plot_charts('Sstate checking times', 'average_sstate_checking, s', 'servers num', False,
-                chart_data_after, chart_data_before)
+    chart_data_after = get_chart_data(avg_results_after, 'avg_time', 'result after')
+    chart_data_before = get_chart_data(avg_results_before, 'avg_time', 'result before')
+    plot_charts('Dependency of time on the number of servers', 'Build time, s', 'servers num', True,
+                chart_data_before, chart_data_after)
 
     # Таблица с результатами
     # df = pd.DataFrame(avg_results_after)
