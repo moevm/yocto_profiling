@@ -1,4 +1,4 @@
-### [NEW] This is net patch stats ###
+### This is net patch stats ###
 
 run 2: 2895
 

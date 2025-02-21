@@ -1,63 +1,60 @@
-### This is no patches stats ###
+### [NEW] [Merged] This is no patches stats ###
 
-run 1: 3737
+run 1: 3229
 
-run 2: 3663
+run 3: 3298
 
-run 3: 3785
+run 4: 3530
 
-run 4: 3596
+run 6: 3409
 
-run 5: 6489
+run 7: 3384
 
-run 6: 3497
+run 8: 3357
 
-run 7: 3805
+run 10: 3255
 
-run 8: 3801
+run 11: 3490
 
-run 9: 3792
+run 12: 3341
 
-run 10: 3678
+run 13: 3622
 
-run 11: 3759
+run 16: 3263
 
-run 12: 3724
+run 17: 3428
 
-run 13: 3165
+run 18: 3437
 
-run 14: 2881
+run 19: 3446
 
-run 15: 2902
+run 20: 3538
 
-run 16: 2917
+run 1: 3304
 
-run 17: 2966
+run 2: 3408
 
-run 18: 2982
+run 3: 3586
 
-run 19: 3013
+run 4: 3574
 
-run 20: 2964
+run 5: 3346
 
-run 21: 3040
+run 7: 3543
 
-run 22: 3021
+run 8: 3415
 
-run 23: 3078
+run 9: 3396
 
-run 24: 3098
+run 10: 3605
 
-run 25: 3206
+run 11: 3598
 
-run 26: 3253
+run 16: 3282
 
-run 27: 3296
+run 1: 3388
 
-run 28: 3267
+run 2: 3559
 
-run 29: 3388
+run 5: 3160
 
-run 30: 3421
-
-average time: 3439

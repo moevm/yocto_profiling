@@ -66,7 +66,8 @@ def plot_custom_boxplot(data_list, plot_name, save, show, standard_boxplot):
     plt.xticks(positions, ['No patches', 'Net patch', 'Task-childrens patch', 'All patches'])
 
     if save:
-        plt.savefig(plot_name)
+        path = './speeding_up_results/' + plot_name
+        plt.savefig(path)
 
     if show:
         plt.show()

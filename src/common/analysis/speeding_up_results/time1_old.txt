@@ -1,0 +1,31 @@
+### This is no patches stats ###
+
+run 1: 3229
+
+run 3: 3298
+
+run 4: 3530
+
+run 6: 3409
+
+run 7: 3384
+
+run 8: 3357
+
+run 10: 3255
+
+run 11: 3490
+
+run 12: 3341
+
+run 13: 3622
+
+run 16: 3263
+
+run 17: 3428
+
+run 18: 3437
+
+run 19: 3446
+
+run 20: 3538
