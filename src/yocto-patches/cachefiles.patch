@@ -1,8 +1,78 @@
+diff --git a/bitbake/bin/bitbake-worker b/bitbake/bin/bitbake-worker
+index 88217182fb..e0281a5345 100755
+--- a/bitbake/bin/bitbake-worker
++++ b/bitbake/bin/bitbake-worker
+@@ -7,6 +7,7 @@
+ 
+ import os
+ import sys
++import json
+ import warnings
+ warnings.simplefilter("default")
+ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'lib'))
+@@ -164,6 +165,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+     layername = runtask['layername']
+     taskdepdata = runtask['taskdepdata']
+     quieterrors = runtask['quieterrors']
++    filemirror = json.dumps(runtask.get('filemirror', {}))
++
+     # We need to setup the environment BEFORE the fork, since
+     # a fork() or exec*() activates PSEUDO...
+ 
+@@ -278,6 +281,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+                 the_data = databuilder.parseRecipe(fn, appends, layername)
+                 the_data.setVar('BB_TASKHASH', taskhash)
+                 the_data.setVar('BB_UNIHASH', unihash)
++                the_data.setVar('FILE_MIRROR_MAP', filemirror)
++
+                 bb.parse.siggen.setup_datacache_from_datastore(fn, the_data)
+ 
+                 bb.utils.set_process_name("%s:%s" % (the_data.getVar("PN"), taskname.replace("do_", "")))
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..bb8b4942f3 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -1350,6 +1350,7 @@ class RunQueue:
+         self.rqexe = None
+         self.worker = {}
+         self.fakeworker = {}
++        self.file_mirror_map = None
+ 
+     @staticmethod
+     def send_pickled_data(worker, data, name):
+@@ -1534,7 +1535,8 @@ class RunQueue:
+                 sq_data['hashfn'][tid] = self.rqdata.dataCaches[mc].hashfn[taskfn]
+                 sq_data['unihash'][tid] = self.rqdata.runtaskentries[tid].unihash
+ 
+-            valid = self.validate_hash(sq_data, data, siginfo, currentcount, summary)
++            valid, file_mirror_map = self.validate_hash(sq_data, data, siginfo, currentcount, summary)
++            self.file_mirror_map = file_mirror_map
+ 
+         return valid
+ 
+@@ -2306,7 +2308,8 @@ class RunQueueExecute:
+                 'taskdep': taskdep,
+                 'fakerootenv' : self.rqdata.dataCaches[mc].fakerootenv[taskfn],
+                 'fakerootdirs' : self.rqdata.dataCaches[mc].fakerootdirs[taskfn],
+-                'fakerootnoenv' : self.rqdata.dataCaches[mc].fakerootnoenv[taskfn]
++                'fakerootnoenv' : self.rqdata.dataCaches[mc].fakerootnoenv[taskfn],
++                'filemirror': self.rq.file_mirror_map
+             }
+ 
+             if 'fakeroot' in taskdep and taskname in taskdep['fakeroot'] and not self.cooker.configuration.dry_run:
 diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
-index 2c259a6657..d6fee3f966 100644
+index 2c259a6657..45981fe4dd 100644
 --- a/meta/classes-global/sstate.bbclass
 +++ b/meta/classes-global/sstate.bbclass
-@@ -716,6 +716,7 @@ sstate_package[vardepsexclude] += "SSTATE_SIG_KEY SSTATE_PKG"
+@@ -168,6 +168,7 @@ python () {
+         d.setVarFlag(task + "_setscene", 'network', '1')
+ }
+ 
++
+ def sstate_init(task, d):
+     ss = {}
+     ss['task'] = task
+@@ -716,6 +717,7 @@ sstate_package[vardepsexclude] += "SSTATE_SIG_KEY SSTATE_PKG"
  
  def pstaging_fetch(sstatefetch, d):
      import bb.fetch2
@@ -10,18 +80,13 @@ index 2c259a6657..d6fee3f966 100644
  
      # Only try and fetch if the user has configured a mirror
      mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -725,6 +726,18 @@ def pstaging_fetch(sstatefetch, d):
+@@ -725,6 +727,13 @@ def pstaging_fetch(sstatefetch, d):
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
-+    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует
-+    try:
-+        with open('./file_mirror_map', 'r') as mapping_file:
-+            file_mirror_map = json.load(mapping_file)
-+    except FileNotFoundError:
-+        file_mirror_map = None
-+
++    file_mirror_map = d.getVar('FILE_MIRROR_MAP')
 +    if file_mirror_map:
++        file_mirror_map = json.loads(file_mirror_map)
 +        relevant_mirror = file_mirror_map[sstatefetch]
 +        if relevant_mirror:
 +            mirrors = 'file://.* ' + relevant_mirror
@@ -29,13 +94,12 @@ index 2c259a6657..d6fee3f966 100644
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -937,9 +950,13 @@ BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
+@@ -937,9 +946,12 @@ BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
  
  def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
      import itertools
 +    import requests
 +    from ftplib import FTP
-+    import json
  
      found = set()
      missed = set()
@@ -43,7 +107,7 @@ index 2c259a6657..d6fee3f966 100644
  
      def gethash(task):
          return sq_data['unihash'][task]
-@@ -1041,28 +1058,97 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+@@ -1041,28 +1053,91 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
  
@@ -127,12 +191,6 @@ index 2c259a6657..d6fee3f966 100644
 +                        if progress:
 +                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
 +
-+
-+            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
-+
-+            with open('./file_mirror_map', 'w') as mapping_file:
-+                json.dump(file_mirror_map, mapping_file, indent=4)
-+
 +            if mirrors_missed:
 +                mirrors_new = ''
 +                for i in range(len(mirrors_missed)):
@@ -158,3 +216,12 @@ index 2c259a6657..d6fee3f966 100644
  
              if progress:
                  bb.event.fire(bb.event.ProcessFinished(msg), d)
+@@ -1094,7 +1169,7 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+     if hasattr(bb.parse.siggen, "checkhashes"):
+         bb.parse.siggen.checkhashes(sq_data, missed, found, d)
+ 
+-    return found
++    return found, file_mirror_map
+ setscene_depvalid[vardepsexclude] = "SSTATE_EXCLUDEDEPS_SYSROOT _SSTATE_EXCLUDEDEPS_SYSROOT"
+ 
+ BB_SETSCENE_DEPVALID = "setscene_depvalid"
