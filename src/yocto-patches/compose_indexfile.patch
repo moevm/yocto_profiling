@@ -1,14 +1,25 @@
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -1640,6 +1640,7 @@ class RunQueue:
+@@ -1336,6 +1336,9 @@ class RunQueue:
+         self.hashvalidate = cfgData.getVar("BB_HASHCHECK_FUNCTION") or None
+         self.depvalidate = cfgData.getVar("BB_SETSCENE_DEPVALID") or None
+ 
++        self.compose_index = self.cfgData.getVar("BB_COMPOSE_INDEX") or None
++        self.compose_index = True if self.compose_index == "True" else False
++
+         self.state = runQueuePrepare
+ 
+         # For disk space monitor
+@@ -1640,6 +1643,8 @@ class RunQueue:
                      logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and %d failed.", self.rqexe.stats.completed + self.rqexe.stats.failed, self.rqexe.stats.skipped, self.rqexe.stats.failed)
                  else:
                      # Let's avoid the word "failed" if nothing actually did
-+                    self.write_indexfile()
++                    if self.compose_index:
++                        self.write_indexfile()
                      logger.info("Tasks Summary: Attempted %d tasks of which %d didn't need to be rerun and all succeeded.", self.rqexe.stats.completed, self.rqexe.stats.skipped)
  
          if self.state is runQueueFailed:
-@@ -1848,6 +1849,15 @@ class RunQueue:
+@@ -1848,6 +1853,15 @@ class RunQueue:
                  output = bb.siggen.compare_sigfiles(latestmatch, match, recursecb)
                  bb.plain("\nTask %s:%s couldn't be used from the cache because:\n  We need hash %s, most recent matching task was %s\n  " % (pn, taskname, h, prevh) + '\n  '.join(output))
  
