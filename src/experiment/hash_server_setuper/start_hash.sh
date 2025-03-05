@@ -3,7 +3,7 @@
 PORT=8888
 
 branch_name=my-upstream_5.0.1
-commit_hash=4b07a5316ed4b858863dfdb7cab63859d46d1810
+commit_hash=59db27de565fb33f9e4326e76ebd6fa3935557b9
 
 cd ../poky
 

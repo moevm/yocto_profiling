@@ -51,8 +51,37 @@ function create_saving_dir() {
   echo "" > $SAVING_TIME_FILE
 }
 
+function setup_patches () {
+	if [[ "$PATCHES_ARG" -eq 0 ]]; then
+    return 0
+  fi
+	patches_count=${#CUSTOM_PATCHES_ARR[@]}
+	if [[ "$patches_count" -eq 0 ]]; then
+		for((i=0; i < ${#ALL_PATCHES_ARR[@]}; i++)); do
+			../entrypoint.sh patch "${ALL_PATCHES_ARR[i]}"
+		done
+		return 0
+	fi
+	for ((i=0; i<patches_count; i++)); do
+		../entrypoint.sh patch "${CUSTOM_PATCHES_ARR[i]}"
+	done
+}
+
 function main() {
   ARGS=("$@")
+  args_length=${#ARGS[@]}
+  PATCHES_ARG=0
+  CUSTOM_PATCHES_ARR=()
+  ALL_PATCHES_ARR=("add_net_limit.patch" "add_net_buildstats.patch" "add_task_children_to_weight.patch")
+
+  for((i=0; i < args_length; i++)); do
+    if [[ "${ARGS[i]}" == "--patches" || "${ARGS[i]}" == "-p" ]]; then
+      PATCHES_ARG=1
+    fi
+    if [[ "${ARGS[i]}" == *".patch"*  ]]; then
+      CUSTOM_PATCHES_ARR+=("${ARGS[i]}")
+    fi
+  done
 
   get_count_of_runs ${ARGS[0]}
   create_saving_dir
@@ -61,6 +90,7 @@ function main() {
 
   total_time=0
   for ((i=1; i<=num_runs; i++)); do
+
     $ENTRYPOINT_DIR/entrypoint.sh clean-build
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
     $ENTRYPOINT_DIR/entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
@@ -76,6 +106,7 @@ function main() {
 
     cp -r $BUILDSTATS_DIR "$SAVE_DIR/run_$i"
   done
+
 
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
 
