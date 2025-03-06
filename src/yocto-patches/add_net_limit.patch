@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..ce292f2c4e 100644
+index ffb2d28494..3cf66f952c 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,86 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,89 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -11,22 +11,25 @@ index ffb2d28494..ce292f2c4e 100644
 +                with open("/proc/net/dev") as net_pressure_fds:
 +                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
 +                    self.prev_net_pressure_time = time.time()
++                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
++                    st = f'[try]U set cringe var: {self.iface_limit}\n'
++                    with open(os.path.expanduser('~/cringe'), 'a') as f:
++                        f.write(st)
++                    self.iface_limit = None
++                    return
 +                self.check_net_pressure = True
 +                self.countdown_net_limit = 40
 +                st = f'Us set: {self.prev_received_bytes} // {self.prev_transmitted_bytes} \n'
 +                with open(os.path.expanduser('~/US'), 'a') as f:
 +                    f.write(st)
 +            except:
-+                bb.note("The /proc/net/dev files can't be read. Continuing build without monitoring pressure")
-+                self.check_net_pressure = False
-+                st = f'Err in Us set: {self.prev_received_bytes} // {self.prev_transmitted_bytes}\n'
-+                with open(os.path.expanduser('~/ER_us'), 'a') as f:
-+                    f.write(st)
++                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
++                self.iface_limit = None
 +
 +
 +
 +    def take_net_pressure(self, iface):
-+        if not hasattr(self, 'check_net_pressure'):
++        if  self.iface_limit and not hasattr(self, 'check_net_pressure'):
 +            self.is_net_pressure_usable(iface)
 +            return
 +
@@ -89,27 +92,34 @@ index ffb2d28494..ce292f2c4e 100644
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +332,8 @@ class RunQueueScheduler(object):
+@@ -252,6 +335,15 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
-+        self.take_net_pressure("wlo1")
++        if not hasattr(self, "iface_limit"):
++            self.iface_limit = self.rq.cfgData.getVar("BB_IFACE_LIMIT") or None
++            st = f'read BB_IFACE_LIMIT with value: {self.iface_limit}\n'
++            with open(os.path.expanduser('~/BB_IFACE_LIMIT'), 'a') as f:
++                f.write(st)
++
++        if self.iface_limit:
++            self.take_net_pressure(self.iface_limit)
 +
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -285,8 +367,35 @@ class RunQueueScheduler(object):
+@@ -285,8 +377,35 @@ class RunQueueScheduler(object):
              prio = self.rev_prio_map[tid]
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
 +                ### Отсчитываем countdown_net_limit запусков задач do_fetch до установки лимита на сеть ###
-+                if self.countdown_net_limit > 0 and not hasattr(self, 'max_net_pressure'):
++                if hasattr(self, 'countdown_net_limit') and self.countdown_net_limit > 0 and not hasattr(self, 'max_net_pressure'):
 +                    if taskname == "do_fetch":
 +                        self.countdown_net_limit -= 1
 +                        st = f'reset countdown_net_limit : {self.countdown_net_limit}\n'
 +                        with open(os.path.expanduser('~/r_cd'), 'a') as f:
 +                            f.write(st)
-+                elif not hasattr(self, 'max_net_pressure'):
++                elif self.iface_limit and not hasattr(self, 'max_net_pressure'):
 +                    self.max_net_pressure = (self.max_net_received_pressure, self.max_net_transmitted_pressure)
 +                    st = f'SET limit as : {self.max_net_pressure}\n'
 +                    with open(os.path.expanduser('~/set_lim'), 'a') as f:
@@ -117,7 +127,7 @@ index ffb2d28494..ce292f2c4e 100644
 +
                  if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
                      continue
-+                if self.net_excess():
++                if self.iface_limit and self.net_excess():
 +                    st = f'net_excess with {taskname} _ {tid}\n'
 +                    with open(os.path.expanduser('~/exc'), 'a') as f:
 +                        f.write(st)
@@ -126,11 +136,11 @@ index ffb2d28494..ce292f2c4e 100644
 +                        with open(os.path.expanduser('~/df'), 'a') as f:
 +                            f.write(st)
 +                        continue
-+                    if taskname == "do_compile":
-+                        st = f'take do_compile: {tid}\n'
-+                        with open(os.path.expanduser('~/dc'), 'a') as f:
-+                            f.write(st)
-+                        return tid
++                    # if taskname == "do_compile":
++                    #     st = f'take do_compile: {tid}\n'
++                    #     with open(os.path.expanduser('~/dc'), 'a') as f:
++                    #         f.write(st)
++                    #     return tid
                  stamp = self.stamps[tid]
                  if stamp in self.rq.build_stamps.values():
                      continue
