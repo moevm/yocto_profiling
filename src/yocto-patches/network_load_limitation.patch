@@ -1,0 +1,113 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..4aa4141327 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -187,6 +187,62 @@ class RunQueueScheduler(object):
+         else:
+             self.check_pressure = False
+ 
++    def is_net_pressure_usable(self, iface):
++            try:
++                with open("/proc/net/dev") as net_pressure_fds:
++                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
++                    self.prev_net_pressure_time = time.time()
++                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
++                    st = f'[try]U set bad var: {self.iface_limit}\n'
++                    with open(os.path.expanduser('~/bad_var'), 'a') as f:
++                        f.write(st)
++                    self.iface_limit = None
++                    return
++                self.check_net_pressure = True
++                st = f'Us set: {self.prev_received_bytes} // {self.prev_transmitted_bytes} \n'
++                with open(os.path.expanduser('~/US'), 'a') as f:
++                    f.write(st)
++            except:
++                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
++                self.iface_limit = None
++
++
++
++    def take_net_pressure(self, iface):
++        if  self.iface_limit and not hasattr(self, 'check_net_pressure'):
++            self.is_net_pressure_usable(iface)
++            return
++
++        if not self.check_net_pressure:
++            return
++
++        with open("/proc/net/dev", "r") as net_pressure_fds:
++            curr_received_bytes, curr_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
++            now = time.time()
++            tdiff = now - self.prev_net_pressure_time
++            self.net_received_pressure = (float(curr_received_bytes) - float(self.prev_received_bytes)) / tdiff
++            self.net_transmitted_pressure = (float(curr_transmitted_bytes) - float(self.prev_transmitted_bytes)) / tdiff
++            if tdiff < 1:
++                self.prev_received_bytes = curr_received_bytes
++                self.prev_transmitted_bytes = curr_transmitted_bytes
++                self.prev_net_pressure_time = now
++
++            with open(os.path.expanduser('~/net_received_pressure'), 'a') as f:
++                    st = str(self.net_received_pressure)  + "\n"
++                    f.write(st)
++
++            with open(os.path.expanduser('~/net_transmitted_pressure'), 'a') as f:
++                    st = str(self.net_transmitted_pressure)  + "\n"
++                    f.write(st)
++
++    def net_excess(self):
++        if not hasattr(self, "net_received_pressure") or not hasattr(self, "net_transmitted_pressure"):
++            return False
++        if self.net_received_pressure > self.iface_limit_received or self.net_transmitted_pressure > self.iface_limit_transmitted:
++            return False
++        return True
++
++
+     def exceeds_max_pressure(self):
+         """
+         Monitor the difference in total pressure at least once per second, if
+@@ -252,6 +308,27 @@ class RunQueueScheduler(object):
+         if self.rq.stats.active and self.exceeds_max_pressure():
+             return None
+ 
++        if not hasattr(self, "iface_limit"):
++            self.iface_limit = self.rq.cfgData.getVar("BB_IFACE_LIMIT") or None
++            if not self.iface_limit or len(self.iface_limit.split()) != 3:
++                bb.note('BB_IFACE_LIMIT must be set to "<IFACE> <VALUE_received> <VALUE_transmitted>". Continuing build without monitoring pressure')
++                self.iface_limit, self.iface_limit_received, self.iface_limit_transmitted = None, None, None
++            elif self.iface_limit:
++                self.iface_limit, self.iface_limit_received, self.iface_limit_transmitted = self.iface_limit.split()
++                try:
++                    self.iface_limit_received = int(self.iface_limit_received)
++                    self.iface_limit_transmitted = int(self.iface_limit_transmitted)
++                except:
++                    bb.note('The second and the third values in BB_IFACE_LIMIT must be int. Continuing build without monitoring pressure')
++                    self.iface_limit, self.iface_limit_received, self.iface_limit_transmitted = None, None, None
++
++            st = f'read BB_IFACE_LIMIT with value: {self.iface_limit} {self.iface_limit_received} {self.iface_limit_transmitted}\n'
++            with open(os.path.expanduser('~/BB_IFACE_LIMIT'), 'a') as f:
++                f.write(st)
++
++        if self.iface_limit:
++            self.take_net_pressure(self.iface_limit)
++
+         # Filter out tasks that have a max number of threads that have been exceeded
+         skip_buildable = {}
+         for running in self.rq.runq_running.difference(self.rq.runq_complete):
+@@ -287,6 +364,17 @@ class RunQueueScheduler(object):
+                 taskname = taskname_from_tid(tid)
+                 if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
+                     continue
++
++                if self.iface_limit and self.net_excess():
++                    st = f'net_excess with {taskname} _ {tid}\n'
++                    with open(os.path.expanduser('~/exc'), 'a') as f:
++                        f.write(st)
++                    if taskname == "do_fetch":
++                        st = f'drop do_fetch: {tid}\n'
++                        with open(os.path.expanduser('~/df'), 'a') as f:
++                            f.write(st)
++                        continue
++
+                 stamp = self.stamps[tid]
+                 if stamp in self.rq.build_stamps.values():
+                     continue
