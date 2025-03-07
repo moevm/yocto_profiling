@@ -12,8 +12,8 @@ index ffb2d28494..3cf66f952c 100644
 +                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
 +                    self.prev_net_pressure_time = time.time()
 +                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
-+                    st = f'[try]U set cringe var: {self.iface_limit}\n'
-+                    with open(os.path.expanduser('~/cringe'), 'a') as f:
++                    st = f'[try]U set bad var: {self.iface_limit}\n'
++                    with open(os.path.expanduser('~/bad_var'), 'a') as f:
 +                        f.write(st)
 +                    self.iface_limit = None
 +                    return
