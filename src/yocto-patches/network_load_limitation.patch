@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..4aa4141327 100644
+index ffb2d28494..cf05dc39b1 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,62 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,61 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -24,7 +24,6 @@ index ffb2d28494..4aa4141327 100644
 +            except:
 +                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
 +                self.iface_limit = None
-+
 +
 +
 +    def take_net_pressure(self, iface):
@@ -65,7 +64,7 @@ index ffb2d28494..4aa4141327 100644
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +308,27 @@ class RunQueueScheduler(object):
+@@ -252,6 +307,27 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
@@ -93,21 +92,28 @@ index ffb2d28494..4aa4141327 100644
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -287,6 +364,17 @@ class RunQueueScheduler(object):
-                 taskname = taskname_from_tid(tid)
-                 if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
-                     continue
+@@ -279,9 +355,24 @@ class RunQueueScheduler(object):
+             for tid in self.rqdata.runtaskentries:
+                 self.rev_prio_map[tid] = self.prio_map.index(tid)
+ 
++        does_not_contain_do_fetch = any("do_fetch" not in task for task in buildable)
++        net_excess = self.net_excess()
 +
-+                if self.iface_limit and self.net_excess():
-+                    st = f'net_excess with {taskname} _ {tid}\n'
-+                    with open(os.path.expanduser('~/exc'), 'a') as f:
+         best = None
+         bestprio = None
+         for tid in buildable:
++
++            if self.iface_limit and does_not_contain_do_fetch and net_excess:
++                taskname = taskname_from_tid(tid)
++                st = f'net_excess with {taskname} _ {tid}\n'
++                with open(os.path.expanduser('~/exc'), 'a') as f:
++                    f.write(st)
++                if taskname == "do_fetch":
++                    st = f'drop do_fetch: {tid}\n'
++                    with open(os.path.expanduser('~/df'), 'a') as f:
 +                        f.write(st)
-+                    if taskname == "do_fetch":
-+                        st = f'drop do_fetch: {tid}\n'
-+                        with open(os.path.expanduser('~/df'), 'a') as f:
-+                            f.write(st)
-+                        continue
-+
-                 stamp = self.stamps[tid]
-                 if stamp in self.rq.build_stamps.values():
-                     continue
++                    continue
++ 
+             prio = self.rev_prio_map[tid]
+             if bestprio is None or bestprio > prio:
+                 taskname = taskname_from_tid(tid)
