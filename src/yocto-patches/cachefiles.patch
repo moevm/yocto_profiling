@@ -29,7 +29,7 @@ index 88217182fb..4544685a0f 100755
  
                  bb.utils.set_process_name("%s:%s" % (the_data.getVar("PN"), taskname.replace("do_", "")))
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..7712df75c3 100644
+index ffb2d28494..7ff9b8bdc6 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -1335,6 +1335,7 @@ class RunQueue:
@@ -108,12 +108,16 @@ index ffb2d28494..7712df75c3 100644
              }
  
              if 'fakeroot' in taskdep and taskname in taskdep['fakeroot'] and not self.cooker.configuration.dry_run:
-@@ -3168,7 +3184,9 @@ def update_scenequeue_data(tids, sqdata, rqdata, rq, cooker, stampcache, sqrq, s
+@@ -3168,7 +3184,13 @@ def update_scenequeue_data(tids, sqdata, rqdata, rq, cooker, stampcache, sqrq, s
  
          tocheck.add(tid)
  
 -    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary)
-+    cacheinfo = rq.compose_indexes(cooker.data)
++    compose_indexes = cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES")
++    compose_indexes = compose_indexes == "True"
++    cacheinfo = {}
++    if compose_indexes:
++        cacheinfo = rq.compose_indexes(cooker.data)
 +    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary, cacheinfo=cacheinfo)
 +    
  
