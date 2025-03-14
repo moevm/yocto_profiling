@@ -120,7 +120,7 @@ index ffb2d28494..7712df75c3 100644
      for tid in tids:
          if tid in sqdata.stamppresent:
 diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
-index 2c259a6657..3f458d62dd 100644
+index 2c259a6657..dbeacda8c6 100644
 --- a/meta/classes-global/sstate.bbclass
 +++ b/meta/classes-global/sstate.bbclass
 @@ -168,6 +168,7 @@ python () {
@@ -147,7 +147,7 @@ index 2c259a6657..3f458d62dd 100644
 +    if file_mirror_map:
 +        relevant_mirror = file_mirror_map[sstatefetch]
 +        if relevant_mirror:
-+            mirrors = 'file://.* ' + relevant_mirror + mirrors
++            mirrors = 'file://.* ' + relevant_mirror + ' ' + mirrors
 +
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
@@ -183,7 +183,7 @@ index 2c259a6657..3f458d62dd 100644
 +            response = requests.get(f'{url}/index.txt')
 +
 +            if response.status_code == 200:
-+                cache_tasks.update({mirror: response.text.split('\n')})
++                cache_tasks.update({mirror: set(response.text.split('\n'))})
 +                mirrors_missed.remove(mirror)
 +
 +
@@ -200,7 +200,7 @@ index 2c259a6657..3f458d62dd 100644
 +                ftp.quit()
 +
 +                with open('index.txt', 'r') as local_file:
-+                    content = local_file.read().split('\n')
++                    content = set(local_file.read().split('\n'))
 +                    cache_tasks.update({mirror: content})
 +                mirrors_missed.remove(mirror)
 +
@@ -233,7 +233,7 @@ index 2c259a6657..3f458d62dd 100644
              ## thread-safe counter
              cnt_tasks_done = itertools.count(start = 1)
              progress = len(tasklist) >= 100
-@@ -1051,18 +1113,56 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+@@ -1051,18 +1113,65 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
                  msg = "Checking sstate mirror object availability"
                  bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
  
@@ -252,6 +252,7 @@ index 2c259a6657..3f458d62dd 100644
 +            cache_tasks = {}
 +
 +            mirrors = (mirrors or '').replace('\n', ' ').split()
++            mirrors_copy = mirrors.copy()
 +
 +            if len(mirrors) % 2 != 0:
 +                bb.warn('Invalid mirror data %s, should have paired members.' % mirrors)
@@ -277,13 +278,21 @@ index 2c259a6657..3f458d62dd 100644
 +                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
 +
 +            d.setVar("FILE_MIRROR_MAP", file_mirror_map)
-+            if mirrors_missed:
++            is_index_reliable = d.getVar("RELY_ON_INDEX_FILES") 
++            is_index_reliable = is_index_reliable == "True"
++
++            if is_index_reliable:
++                criteria = mirrors_missed
 +                mirrors_new = ''
 +                for i in range(len(mirrors_missed)):
-+                    index = mirrors.index(mirrors_missed[i])
-+                    mirrors_new += mirrors[index - 1] + ' '
-+                    mirrors_new += mirrors[index] + ' '
++                    index = mirrors_copy.index(mirrors_missed[i])
++                    mirrors_new += mirrors_copy[index - 1] + ' '
++                    mirrors_new += mirrors_copy[index] + ' '
++            else:
++                criteria = missed
++                mirrors_new = d.getVar("SSTATE_MIRRORS") or ''
 +
++            if criteria:
 +                localdata.setVar('PREMIRRORS', mirrors_new)
 +                nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist_copy))
 +
@@ -302,7 +311,7 @@ index 2c259a6657..3f458d62dd 100644
  
              if progress:
                  bb.event.fire(bb.event.ProcessFinished(msg), d)
-@@ -1093,7 +1193,6 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+@@ -1093,7 +1202,6 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
  
      if hasattr(bb.parse.siggen, "checkhashes"):
          bb.parse.siggen.checkhashes(sq_data, missed, found, d)
