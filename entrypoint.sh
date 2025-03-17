@@ -103,7 +103,7 @@ function build_yocto_stage() {
         ;;
       --conf-file )
         CONFIG_FILE="$2"
-        if [ ! -s "$file" ]; then
+        if [ ! -s "$CONFIG_FILE" ]; then
            echo -e "$CONFIG_FILE does not exist, or is empty!"
            exit 2
         fi
