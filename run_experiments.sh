@@ -123,8 +123,8 @@ if [ "$EXPERIMENT_NAME" == "main" ]; then
         echo "Running with --patches"
         ./main.sh --patches
     else
-        ./main.sh
         echo "Running without --patches"
+        ./main.sh
     fi
     exit 0
 fi
