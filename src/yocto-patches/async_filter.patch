@@ -1,14 +1,12 @@
 diff --git a/bitbake/lib/bb/cookerdata.py b/bitbake/lib/bb/cookerdata.py
-index 1f447d30c2..3f65c2c5dc 100644
+index 1f447d30c2..792f717af5 100644
 --- a/bitbake/lib/bb/cookerdata.py
 +++ b/bitbake/lib/bb/cookerdata.py
-@@ -305,6 +305,74 @@ class CookerDataBuilder(object):
+@@ -305,6 +305,73 @@ class CookerDataBuilder(object):
  
          bb.codeparser.update_module_dependencies(self.data)
  
-+        filter_sstate_mirrors = self.data.getVar('FILTER_SSTATE_MIRRORS') or None
-+        filter_sstate_mirrors = True if filter_sstate_mirrors == 'True' else False
-+        if filter_sstate_mirrors:
++        if self.data.getVar('FILTER_SSTATE_MIRRORS') == 'True':
 +            try:
 +                import asyncio
 +                from urllib.parse import urlparse
@@ -47,7 +45,6 @@ index 1f447d30c2..3f65c2c5dc 100644
 +
 +
 +                async def async_mirrors_filter(mirrors_list, data):
-+                    filtered_result = []
 +                    tasks = []
 +
 +                    for item in mirrors_list:
@@ -59,13 +56,15 @@ index 1f447d30c2..3f65c2c5dc 100644
 +                    results = await asyncio.gather(*tasks)
 +
 +                    if False in results:
-+                        for i, result in enumerate(results):
-+                            if result:
-+                                filtered_result.append(mirrors_list[i])
-+
-+                        log_string = f'Several SSTATE_MIRRORS are not available, using: {str(filtered_result)}!'
-+                        logger.warning(log_string)
-+                        output_string = ' '.join(filtered_result)
++                        output_string = " ".join(
++                            mirror 
++                            for mirror, result in zip(mirrors_list, results) 
++                            if result
++                            )
++                        if not output_string:
++                            logger.warning("All SSTATE_MIRRORS are not available")
++                        else:
++                            logger.warning(f'Several SSTATE_MIRRORS are not available, using: {str(output_string)}!')
 +                        data.setVar('SSTATE_MIRRORS', output_string)
 +
 +                if mirrors:
