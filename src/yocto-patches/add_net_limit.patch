@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..699eddf3be 100644
+index ffb2d28494..848ac2dba7 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,59 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,64 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -15,7 +15,12 @@ index ffb2d28494..699eddf3be 100644
 +                    self.iface_limit = None
 +                    return
 +                self.check_net_pressure = True
-+                self.countdown_net_limit = 40
++                try:
++                    self.countdown_net_limit = int(self.rq.cfgData.getVar("NET_TASKS_BEFORE_LIMIT"))
++                    bb.note(f"Set num net task before limit = {self.countdown_net_limit}")
++                except:
++                    self.countdown_net_limit = 40
++                    bb.warn(f"Wrong NET_TASKS_BEFORE_LIMIT value! Set default num net task before limit = {self.countdown_net_limit}")
 +            except:
 +                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
 +                self.iface_limit = None
@@ -62,7 +67,7 @@ index ffb2d28494..699eddf3be 100644
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +305,12 @@ class RunQueueScheduler(object):
+@@ -252,6 +310,12 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
@@ -75,7 +80,7 @@ index ffb2d28494..699eddf3be 100644
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -285,8 +344,19 @@ class RunQueueScheduler(object):
+@@ -285,8 +349,19 @@ class RunQueueScheduler(object):
              prio = self.rev_prio_map[tid]
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
