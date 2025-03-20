@@ -1,5 +1,5 @@
 diff --git a/meta/lib/oe/buildstats.py b/meta/lib/oe/buildstats.py
-index 1ffe679801..571504da4a 100644
+index 1ffe679801..e636635e2c 100644
 --- a/meta/lib/oe/buildstats.py
 +++ b/meta/lib/oe/buildstats.py
 @@ -18,7 +18,8 @@ class SystemStats:
@@ -32,35 +32,34 @@ index 1ffe679801..571504da4a 100644
  
      def close(self):
          self.monitor_disk.close()
-@@ -93,6 +98,34 @@ class SystemStats:
+@@ -93,6 +98,33 @@ class SystemStats:
                      b' '.join([values[x] for x in
                                 (b'MemTotal', b'MemFree', b'Buffers', b'Cached', b'SwapTotal', b'SwapFree')]) + b'\n')
  
 +    def _reduce_net(self, time, data, filename):
 +        data = data.split(b'\n')
-+        max_receive_diff, max_transmit_diff = 0, 0
 +        for line in data[2:]:
 +            if b":" not in line:
 +                continue
-+            parts = line.split()
-+            iface = (parts[0].strip(b':')).decode('ascii')
-+            receive_bytes = int(parts[1])
-+            transmit_bytes = int(parts[9])
++            try:
++                parts = line.split()
++                iface = (parts[0].strip(b':')).decode('ascii')
++                receive_bytes = int(parts[1])
++                transmit_bytes = int(parts[9])
++            except Exception:
++                return None
++
 +            if iface in self.net_stats:
 +                receive_diff = receive_bytes - self.net_stats[iface][-1][0]
 +                transmit_diff = transmit_bytes - self.net_stats[iface][-1][1]
-+                max_receive_diff, max_transmit_diff = max(receive_diff, max_receive_diff), max(transmit_diff, max_transmit_diff)
 +                self.net_stats[iface].append((receive_bytes, transmit_bytes, receive_diff, transmit_diff))
 +            else:
-+                receive_diff, transmit_diff = 0, 0
-+                self.net_stats[iface] = [(receive_bytes, transmit_bytes, receive_diff, transmit_diff)]
++                self.net_stats[iface] = [(receive_bytes, transmit_bytes, 0, 0)]
 +
-+        result_parts = []
-+        for iface, net_data in self.net_stats.items():
-+            result_parts.append(
-+                f"{iface}: {net_data[-1][0]} {net_data[-1][1]} {net_data[-1][2]} {net_data[-1][3]}")
-+
-+        result_str = "\n".join(result_parts) + "\n"
++        result_str = "\n".join(
++            f"{iface}: {net_data[-1][0]} {net_data[-1][1]} {net_data[-1][2]} {net_data[-1][3]}"
++            for iface, net_data in self.net_stats.items()
++        ) + "\n"
 +
 +        return time, result_str.encode('ascii')
 +
