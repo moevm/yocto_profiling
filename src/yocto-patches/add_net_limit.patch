@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..3cf66f952c 100644
+index ffb2d28494..699eddf3be 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,89 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,59 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -12,16 +12,10 @@ index ffb2d28494..3cf66f952c 100644
 +                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
 +                    self.prev_net_pressure_time = time.time()
 +                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
-+                    st = f'[try]U set bad var: {self.iface_limit}\n'
-+                    with open(os.path.expanduser('~/bad_var'), 'a') as f:
-+                        f.write(st)
 +                    self.iface_limit = None
 +                    return
 +                self.check_net_pressure = True
 +                self.countdown_net_limit = 40
-+                st = f'Us set: {self.prev_received_bytes} // {self.prev_transmitted_bytes} \n'
-+                with open(os.path.expanduser('~/US'), 'a') as f:
-+                    f.write(st)
 +            except:
 +                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
 +                self.iface_limit = None
@@ -47,60 +41,33 @@ index ffb2d28494..3cf66f952c 100644
 +                self.prev_transmitted_bytes = curr_transmitted_bytes
 +                self.prev_net_pressure_time = now
 +
-+            with open(os.path.expanduser('~/net_received_pressure'), 'a') as f:
-+                    st = str(self.net_received_pressure)  + "\n"
-+                    f.write(st)
-+
-+            with open(os.path.expanduser('~/net_transmitted_pressure'), 'a') as f:
-+                    st = str(self.net_transmitted_pressure)  + "\n"
-+                    f.write(st)
-+
 +            if hasattr(self, "net_pressure_limit"):
 +                return
 +
 +            if hasattr(self, "max_net_received_pressure"):
 +                self.max_net_received_pressure = max(self.max_net_received_pressure, self.net_received_pressure)
 +                self.max_net_transmitted_pressure = max(self.max_net_transmitted_pressure, self.net_transmitted_pressure)
-+                st = f'reset max: {self.max_net_received_pressure} // {self.max_net_transmitted_pressure}\n'
-+                with open(os.path.expanduser('~/res_max'), 'a') as f:
-+                    f.write(st)
 +
 +            else:
 +                self.max_net_received_pressure = self.net_received_pressure
 +                self.max_net_transmitted_pressure = self.net_transmitted_pressure
-+                st = f'init max: {self.max_net_received_pressure} // {self.max_net_transmitted_pressure}\n'
-+                with open(os.path.expanduser('~/ini_max'), 'a') as f:
-+                    f.write(st)
-+
 +
 +    def net_excess(self):
 +        if not hasattr(self, "max_net_pressure"):
-+            st = f'no max_net_pressure\n'
-+            with open(os.path.expanduser('~/nex_no1'), 'a') as f:
-+                f.write(st)
 +            return False
 +        if self.net_received_pressure > self.max_net_pressure[0] or self.net_transmitted_pressure > self.max_net_pressure[1]:
-+            st = f'True: {self.max_net_pressure}; {self.net_received_pressure} _ {self.net_transmitted_pressure}\n'
-+            with open(os.path.expanduser('~/nex_tru'), 'a') as f:
-+                f.write(st)
 +            return True
-+        st = f'False: {self.max_net_pressure}; {self.net_received_pressure} _ {self.net_transmitted_pressure}\n'
-+        with open(os.path.expanduser('~/nex_fal'), 'a') as f:
-+            f.write(st)
 +        return False
 +
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +335,15 @@ class RunQueueScheduler(object):
+@@ -252,6 +305,12 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
 +        if not hasattr(self, "iface_limit"):
 +            self.iface_limit = self.rq.cfgData.getVar("BB_IFACE_LIMIT") or None
-+            st = f'read BB_IFACE_LIMIT with value: {self.iface_limit}\n'
-+            with open(os.path.expanduser('~/BB_IFACE_LIMIT'), 'a') as f:
-+                f.write(st)
 +
 +        if self.iface_limit:
 +            self.take_net_pressure(self.iface_limit)
@@ -108,39 +75,23 @@ index ffb2d28494..3cf66f952c 100644
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -285,8 +377,35 @@ class RunQueueScheduler(object):
+@@ -285,8 +344,19 @@ class RunQueueScheduler(object):
              prio = self.rev_prio_map[tid]
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
-+                ### Отсчитываем countdown_net_limit запусков задач do_fetch до установки лимита на сеть ###
++                ### Countdown_net_limit do_fetch task launches before setting the network limit ###
 +                if hasattr(self, 'countdown_net_limit') and self.countdown_net_limit > 0 and not hasattr(self, 'max_net_pressure'):
 +                    if taskname == "do_fetch":
 +                        self.countdown_net_limit -= 1
-+                        st = f'reset countdown_net_limit : {self.countdown_net_limit}\n'
-+                        with open(os.path.expanduser('~/r_cd'), 'a') as f:
-+                            f.write(st)
 +                elif self.iface_limit and not hasattr(self, 'max_net_pressure'):
 +                    self.max_net_pressure = (self.max_net_received_pressure, self.max_net_transmitted_pressure)
-+                    st = f'SET limit as : {self.max_net_pressure}\n'
-+                    with open(os.path.expanduser('~/set_lim'), 'a') as f:
-+                        f.write(st)
 +
                  if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
                      continue
 +                if self.iface_limit and self.net_excess():
-+                    st = f'net_excess with {taskname} _ {tid}\n'
-+                    with open(os.path.expanduser('~/exc'), 'a') as f:
-+                        f.write(st)
 +                    if taskname == "do_fetch":
-+                        st = f'drop do_fetch: {tid}\n'
-+                        with open(os.path.expanduser('~/df'), 'a') as f:
-+                            f.write(st)
 +                        continue
-+                    # if taskname == "do_compile":
-+                    #     st = f'take do_compile: {tid}\n'
-+                    #     with open(os.path.expanduser('~/dc'), 'a') as f:
-+                    #         f.write(st)
-+                    #     return tid
++
                  stamp = self.stamps[tid]
                  if stamp in self.rq.build_stamps.values():
                      continue
