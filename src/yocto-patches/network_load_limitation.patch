@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..cf05dc39b1 100644
+index ffb2d28494..e090a468d1 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,61 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,45 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -12,19 +12,12 @@ index ffb2d28494..cf05dc39b1 100644
 +                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
 +                    self.prev_net_pressure_time = time.time()
 +                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
-+                    st = f'[try]U set bad var: {self.iface_limit}\n'
-+                    with open(os.path.expanduser('~/bad_var'), 'a') as f:
-+                        f.write(st)
 +                    self.iface_limit = None
 +                    return
 +                self.check_net_pressure = True
-+                st = f'Us set: {self.prev_received_bytes} // {self.prev_transmitted_bytes} \n'
-+                with open(os.path.expanduser('~/US'), 'a') as f:
-+                    f.write(st)
 +            except:
 +                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
 +                self.iface_limit = None
-+
 +
 +    def take_net_pressure(self, iface):
 +        if  self.iface_limit and not hasattr(self, 'check_net_pressure'):
@@ -45,14 +38,6 @@ index ffb2d28494..cf05dc39b1 100644
 +                self.prev_transmitted_bytes = curr_transmitted_bytes
 +                self.prev_net_pressure_time = now
 +
-+            with open(os.path.expanduser('~/net_received_pressure'), 'a') as f:
-+                    st = str(self.net_received_pressure)  + "\n"
-+                    f.write(st)
-+
-+            with open(os.path.expanduser('~/net_transmitted_pressure'), 'a') as f:
-+                    st = str(self.net_transmitted_pressure)  + "\n"
-+                    f.write(st)
-+
 +    def net_excess(self):
 +        if not hasattr(self, "net_received_pressure") or not hasattr(self, "net_transmitted_pressure"):
 +            return False
@@ -60,11 +45,10 @@ index ffb2d28494..cf05dc39b1 100644
 +            return False
 +        return True
 +
-+
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +307,27 @@ class RunQueueScheduler(object):
+@@ -252,6 +291,23 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
@@ -82,17 +66,13 @@ index ffb2d28494..cf05dc39b1 100644
 +                    bb.note('The second and the third values in BB_IFACE_LIMIT must be int. Continuing build without monitoring pressure')
 +                    self.iface_limit, self.iface_limit_received, self.iface_limit_transmitted = None, None, None
 +
-+            st = f'read BB_IFACE_LIMIT with value: {self.iface_limit} {self.iface_limit_received} {self.iface_limit_transmitted}\n'
-+            with open(os.path.expanduser('~/BB_IFACE_LIMIT'), 'a') as f:
-+                f.write(st)
-+
 +        if self.iface_limit:
 +            self.take_net_pressure(self.iface_limit)
 +
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -279,9 +355,24 @@ class RunQueueScheduler(object):
+@@ -279,9 +335,16 @@ class RunQueueScheduler(object):
              for tid in self.rqdata.runtaskentries:
                  self.rev_prio_map[tid] = self.prio_map.index(tid)
  
@@ -102,18 +82,10 @@ index ffb2d28494..cf05dc39b1 100644
          best = None
          bestprio = None
          for tid in buildable:
-+
 +            if self.iface_limit and does_not_contain_do_fetch and net_excess:
 +                taskname = taskname_from_tid(tid)
-+                st = f'net_excess with {taskname} _ {tid}\n'
-+                with open(os.path.expanduser('~/exc'), 'a') as f:
-+                    f.write(st)
 +                if taskname == "do_fetch":
-+                    st = f'drop do_fetch: {tid}\n'
-+                    with open(os.path.expanduser('~/df'), 'a') as f:
-+                        f.write(st)
 +                    continue
-+ 
              prio = self.rev_prio_map[tid]
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
