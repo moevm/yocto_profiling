@@ -1,0 +1,52 @@
+### This is net patch stats ###
+### Results of correct experiment on wp4 ###
+
+run 1: 2667
+
+run 2: 3377
+
+run 4: 2536
+
+run 5: 2522
+
+run 6: 2551
+
+run 7: 2590
+
+run 8: 2610
+
+run 10: 2618
+
+run 11: 2689
+
+run 12: 2679
+
+run 13: 2719
+
+run 14: 2746
+
+run 16: 2823
+
+run 17: 2856
+
+run 18: 2857
+
+run 19: 2866
+
+run 20: 2858
+
+run 22: 2902
+
+run 23: 2931
+
+run 24: 2873
+
+run 25: 2889
+
+run 26: 2914
+
+run 28: 2949
+
+run 29: 3012
+
+run 30: 2924

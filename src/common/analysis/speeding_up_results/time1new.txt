@@ -1,0 +1,61 @@
+### This is no patches stats ###
+### Results of correct experiment on wp4 ###
+run 1: 2974
+
+run 2: 2930
+
+run 3: 2951
+
+run 4: 2948
+
+run 5: 2959
+
+run 6: 3086
+
+run 7: 3086
+
+run 8: 2904
+
+run 9: 3003
+
+run 10: 3051
+
+run 11: 2964
+
+run 12: 2951
+
+run 13: 2931
+
+run 14: 3029
+
+run 15: 3008
+
+run 16: 2973
+
+run 17: 3000
+
+run 18: 3012
+
+run 19: 3092
+
+run 20: 3138
+
+run 21: 3074
+
+run 22: 3032
+
+run 23: 2962
+
+run 24: 2973
+
+run 25: 2942
+
+run 26: 3027
+
+run 27: 2979
+
+run 28: 2919
+
+run 29: 2935
+
+run 30: 2946
