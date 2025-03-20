@@ -1,16 +1,8 @@
 diff --git a/bitbake/bin/bitbake-worker b/bitbake/bin/bitbake-worker
-index 88217182fb..4544685a0f 100755
+index 88217182fb..901ab9003e 100755
 --- a/bitbake/bin/bitbake-worker
 +++ b/bitbake/bin/bitbake-worker
-@@ -7,6 +7,7 @@
- 
- import os
- import sys
-+import json
- import warnings
- warnings.simplefilter("default")
- sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'lib'))
-@@ -164,6 +165,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+@@ -164,6 +164,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
      layername = runtask['layername']
      taskdepdata = runtask['taskdepdata']
      quieterrors = runtask['quieterrors']
@@ -19,7 +11,7 @@ index 88217182fb..4544685a0f 100755
      # We need to setup the environment BEFORE the fork, since
      # a fork() or exec*() activates PSEUDO...
  
-@@ -278,6 +281,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+@@ -278,6 +280,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
                  the_data = databuilder.parseRecipe(fn, appends, layername)
                  the_data.setVar('BB_TASKHASH', taskhash)
                  the_data.setVar('BB_UNIHASH', unihash)
@@ -29,7 +21,7 @@ index 88217182fb..4544685a0f 100755
  
                  bb.utils.set_process_name("%s:%s" % (the_data.getVar("PN"), taskname.replace("do_", "")))
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..7ff9b8bdc6 100644
+index ffb2d28494..9ac8118489 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -1335,6 +1335,7 @@ class RunQueue:
@@ -48,23 +40,22 @@ index ffb2d28494..7ff9b8bdc6 100644
  
      @staticmethod
      def send_pickled_data(worker, data, name):
-@@ -1520,8 +1522,19 @@ class RunQueue:
-         if recurse:
+@@ -1521,7 +1523,18 @@ class RunQueue:
              cache[tid] = iscurrent
          return iscurrent
-+    
+ 
+-    def validate_hashes(self, tocheck, data, currentcount=0, siginfo=False, summary=True):
 +    def compose_indexes(self, d):
 +        indexfile = {}
 +        if self.composeindex:
 +            indexfile = self.compose_index(d)
 +        return indexfile
-+    
++
 +    def compose_index(self, d):
 +        locs = {"d": d}
 +        call = self.composeindex + "(d)"
 +        return bb.utils.better_eval(call, locs)
- 
--    def validate_hashes(self, tocheck, data, currentcount=0, siginfo=False, summary=True):
++
 +    def validate_hashes(self, tocheck, data, currentcount=0, siginfo=False, summary=True, cacheinfo=None):
          valid = set()
          if self.hashvalidate:
@@ -108,23 +99,21 @@ index ffb2d28494..7ff9b8bdc6 100644
              }
  
              if 'fakeroot' in taskdep and taskname in taskdep['fakeroot'] and not self.cooker.configuration.dry_run:
-@@ -3168,7 +3184,13 @@ def update_scenequeue_data(tids, sqdata, rqdata, rq, cooker, stampcache, sqrq, s
+@@ -3168,7 +3184,11 @@ def update_scenequeue_data(tids, sqdata, rqdata, rq, cooker, stampcache, sqrq, s
  
          tocheck.add(tid)
  
 -    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary)
-+    compose_indexes = cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES")
-+    compose_indexes = compose_indexes == "True"
 +    cacheinfo = {}
-+    if compose_indexes:
++    if cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES") == "True":
 +        cacheinfo = rq.compose_indexes(cooker.data)
 +    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary, cacheinfo=cacheinfo)
-+    
++
  
      for tid in tids:
          if tid in sqdata.stamppresent:
 diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
-index 2c259a6657..dbeacda8c6 100644
+index 2c259a6657..d35af9f6e4 100644
 --- a/meta/classes-global/sstate.bbclass
 +++ b/meta/classes-global/sstate.bbclass
 @@ -168,6 +168,7 @@ python () {
@@ -135,15 +124,7 @@ index 2c259a6657..dbeacda8c6 100644
  def sstate_init(task, d):
      ss = {}
      ss['task'] = task
-@@ -716,6 +717,7 @@ sstate_package[vardepsexclude] += "SSTATE_SIG_KEY SSTATE_PKG"
- 
- def pstaging_fetch(sstatefetch, d):
-     import bb.fetch2
-+    import json
- 
-     # Only try and fetch if the user has configured a mirror
-     mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -725,6 +727,12 @@ def pstaging_fetch(sstatefetch, d):
+@@ -725,6 +726,12 @@ def pstaging_fetch(sstatefetch, d):
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
@@ -156,7 +137,7 @@ index 2c259a6657..dbeacda8c6 100644
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -933,13 +941,68 @@ sstate_unpack_package () {
+@@ -933,13 +940,67 @@ sstate_unpack_package () {
  	[ ! -e ${SSTATE_PKG}.siginfo ] || touch --no-dereference ${SSTATE_PKG}.siginfo 2>/dev/null || true
  }
  
@@ -178,7 +159,7 @@ index 2c259a6657..dbeacda8c6 100644
 +
 +    mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
 +    mirrors_missed = mirrors.copy()
-+    
++
 +    cache_tasks = {}
 +
 +    for mirror in mirrors:
@@ -211,7 +192,6 @@ index 2c259a6657..dbeacda8c6 100644
 +            except:
 +                pass
 +    return {'mirrors_missed': mirrors_missed, 'cache_tasks': cache_tasks}
-+    
 +
 +
  BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
@@ -226,7 +206,7 @@ index 2c259a6657..dbeacda8c6 100644
  
      def gethash(task):
          return sq_data['unihash'][task]
-@@ -1041,9 +1104,8 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+@@ -1041,9 +1102,8 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
  
@@ -237,7 +217,7 @@ index 2c259a6657..dbeacda8c6 100644
              ## thread-safe counter
              cnt_tasks_done = itertools.count(start = 1)
              progress = len(tasklist) >= 100
-@@ -1051,18 +1113,65 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
+@@ -1051,18 +1111,63 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
                  msg = "Checking sstate mirror object availability"
                  bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
  
@@ -282,10 +262,8 @@ index 2c259a6657..dbeacda8c6 100644
 +                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
 +
 +            d.setVar("FILE_MIRROR_MAP", file_mirror_map)
-+            is_index_reliable = d.getVar("RELY_ON_INDEX_FILES") 
-+            is_index_reliable = is_index_reliable == "True"
 +
-+            if is_index_reliable:
++            if d.getVar("RELY_ON_INDEX_FILES") == "True":
 +                criteria = mirrors_missed
 +                mirrors_new = ''
 +                for i in range(len(mirrors_missed)):
@@ -315,11 +293,3 @@ index 2c259a6657..dbeacda8c6 100644
  
              if progress:
                  bb.event.fire(bb.event.ProcessFinished(msg), d)
-@@ -1093,7 +1202,6 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
- 
-     if hasattr(bb.parse.siggen, "checkhashes"):
-         bb.parse.siggen.checkhashes(sq_data, missed, found, d)
--
-     return found
- setscene_depvalid[vardepsexclude] = "SSTATE_EXCLUDEDEPS_SYSROOT _SSTATE_EXCLUDEDEPS_SYSROOT"
- 
