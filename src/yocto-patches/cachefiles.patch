@@ -105,7 +105,7 @@ index ffb2d28494..9ac8118489 100644
  
 -    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary)
 +    cacheinfo = {}
-+    if cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES") == "True":
++    if cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES") == "1":
 +        cacheinfo = rq.compose_indexes(cooker.data)
 +    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary, cacheinfo=cacheinfo)
 +
@@ -263,7 +263,7 @@ index 2c259a6657..d35af9f6e4 100644
 +
 +            d.setVar("FILE_MIRROR_MAP", file_mirror_map)
 +
-+            if d.getVar("RELY_ON_INDEX_FILES") == "True":
++            if d.getVar("RELY_ON_INDEX_FILES") == "1":
 +                criteria = mirrors_missed
 +                mirrors_new = ''
 +                for i in range(len(mirrors_missed)):
