@@ -4,7 +4,7 @@
          self.hashvalidate = cfgData.getVar("BB_HASHCHECK_FUNCTION") or None
          self.depvalidate = cfgData.getVar("BB_SETSCENE_DEPVALID") or None
  
-+        self.compose_index = self.cfgData.getVar("BB_COMPOSE_INDEX") == "True"
++        self.compose_index = self.cfgData.getVar("BB_COMPOSE_INDEX") == "1"
          self.state = runQueuePrepare
  
          # For disk space monitor
