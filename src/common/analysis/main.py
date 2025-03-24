@@ -20,7 +20,7 @@ def create_args():
     parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
     parser.add_argument("-p", "--poky_path", type=str, help="poky directory path")
     parser.add_argument("-g", "--goal", type=str, help="choose one of ranking/graph/tests/task_children",
-                        choices=["ranking", "graph", "tests", "task_children"], required=True)
+                        choices=["timeline", "ranking", "graph", "tests", "task_children"], required=True)
     parser.add_argument("-d", "--dot_file", type=str, help='path to .dot file to analyze')
     parser.add_argument("--border", type=float, help='border for ranking (0, 1], default=1')
     parser.add_argument("--metric", type=str, help='metric to ranking, default="Elapsed time"')
