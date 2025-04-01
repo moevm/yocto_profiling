@@ -22,10 +22,10 @@ def calculate_percentiles(data):
     p99 = np.percentile(values, 99)
     return p1, p25, p50, p75, p99
 
-def plot_custom_boxplot(data_list, plot_name, save, show, standard_boxplot):
+def plot_custom_boxplot(data_list, labels, plot_name, save, show, standard_boxplot):
     fig, ax = plt.subplots()
 
-    positions = [1, 2, 3, 4]
+    positions = list(range(1, len(data_list) + 1))  
     for i, data in enumerate(data_list):
         values = [item[1] / 60 for item in data]
 
@@ -63,8 +63,7 @@ def plot_custom_boxplot(data_list, plot_name, save, show, standard_boxplot):
     title_text = f"{plot_name}. Numbers of runs: {', '.join(map(str, [len(sublist) for sublist in data_list]))}"
     plt.title(title_text)
     plt.ylabel('Values (minutes)')
-    plt.xticks(positions, ['No patches', 'Net patch', 'Task-childrens patch', 'All patches'])
-
+    plt.xticks(positions, labels)
     if save:
         path = './speeding_up_results/' + plot_name
         plt.savefig(path)
@@ -84,6 +83,25 @@ if __name__ == "__main__":
     parser.add_argument('--standard_boxplot', action=argparse.BooleanOptionalAction, default=False, help='Use standard box plot')
 
     args = parser.parse_args()
-    file_paths = [args.file_path_no_pathes, args.file_path_net_patch, args.file_path_childrens_patch, args.file_path_all_patches]
+
+    args.file_path_no_pathes = None if args.file_path_no_pathes == 'None' else args.file_path_no_pathes
+    args.file_path_net_patch = None if args.file_path_net_patch == 'None' else args.file_path_net_patch
+    args.file_path_childrens_patch = None if args.file_path_childrens_patch == 'None' else args.file_path_childrens_patch
+    args.file_path_all_patches = None if args.file_path_all_patches == 'None' else args.file_path_all_patches
+    file_paths = []
+    labels = []
+    if args.file_path_no_pathes is not None:
+        file_paths.append(args.file_path_no_pathes)
+        labels.append('No patches')
+    if args.file_path_net_patch is not None:
+        file_paths.append(args.file_path_net_patch)
+        labels.append('Net patch')
+    if args.file_path_childrens_patch is not None:
+        file_paths.append(args.file_path_childrens_patch)
+        labels.append('Task-childrens patch')
+    if args.file_path_all_patches is not None:
+        file_paths.append(args.file_path_all_patches)
+        labels.append('All patches')
+    
     data_list = [read_data(file_path) for file_path in file_paths]
-    plot_custom_boxplot(data_list, args.plot_name, args.save, args.show, args.standard_boxplot)
+    plot_custom_boxplot(data_list, labels, args.plot_name, args.save, args.show, args.standard_boxplot)
