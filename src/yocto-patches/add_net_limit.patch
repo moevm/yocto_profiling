@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..848ac2dba7 100644
+index ffb2d28494..f28954dbbc 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -187,6 +187,64 @@ class RunQueueScheduler(object):
+@@ -187,6 +187,62 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
@@ -36,18 +36,16 @@ index ffb2d28494..848ac2dba7 100644
 +            return
 +
 +        with open("/proc/net/dev", "r") as net_pressure_fds:
-+            curr_received_bytes, curr_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
++            curr_received_bytes, curr_transmitted_bytes = map(float, next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line))
 +            now = time.time()
 +            tdiff = now - self.prev_net_pressure_time
-+            self.net_received_pressure = (float(curr_received_bytes) - float(self.prev_received_bytes)) / tdiff
-+            self.net_transmitted_pressure = (float(curr_transmitted_bytes) - float(self.prev_transmitted_bytes)) / tdiff
-+            if tdiff < 1:
++            self.net_received_pressure = (curr_received_bytes - float(self.prev_received_bytes)) / tdiff
++            self.net_transmitted_pressure = (curr_transmitted_bytes - float(self.prev_transmitted_bytes)) / tdiff
++
++            if tdiff > 1:
 +                self.prev_received_bytes = curr_received_bytes
 +                self.prev_transmitted_bytes = curr_transmitted_bytes
 +                self.prev_net_pressure_time = now
-+
-+            if hasattr(self, "net_pressure_limit"):
-+                return
 +
 +            if hasattr(self, "max_net_received_pressure"):
 +                self.max_net_received_pressure = max(self.max_net_received_pressure, self.net_received_pressure)
@@ -67,7 +65,7 @@ index ffb2d28494..848ac2dba7 100644
      def exceeds_max_pressure(self):
          """
          Monitor the difference in total pressure at least once per second, if
-@@ -252,6 +310,12 @@ class RunQueueScheduler(object):
+@@ -252,6 +308,12 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
@@ -80,7 +78,7 @@ index ffb2d28494..848ac2dba7 100644
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -285,8 +349,19 @@ class RunQueueScheduler(object):
+@@ -285,8 +347,19 @@ class RunQueueScheduler(object):
              prio = self.rev_prio_map[tid]
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
