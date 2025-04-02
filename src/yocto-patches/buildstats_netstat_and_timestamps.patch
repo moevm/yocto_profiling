@@ -26,10 +26,11 @@
  
  def get_cputime():
      with open("/proc/stat", "r") as f:
-@@ -92,6 +107,10 @@ def write_task_data(status, logfile, e, d):
+@@ -91,7 +106,10 @@ def write_task_data(status, logfile, e, d):
+         if elapsedtime:
              f.write(d.expand("${PF}: %s\n" % e.task))
              f.write(d.expand("Elapsed time: %0.2f seconds\n" % elapsedtime))
-             cpu, iostats, resources, childres = get_process_cputime(os.getpid())
+-            cpu, iostats, resources, childres = get_process_cputime(os.getpid())
 +            pid = os.getpid()
 +            cpu, iostats, resources, childres, memory_stats, netstats = get_process_cputime(pid)
 +            sum_net_bytes = 0
@@ -37,7 +38,7 @@
              if cpu:
                  f.write("utime: %s\n" % cpu['utime'])
                  f.write("stime: %s\n" % cpu['stime'])
-@@ -104,6 +123,9 @@ def write_task_data(status, logfile, e, d):
+@@ -104,6 +122,9 @@ def write_task_data(status, logfile, e, d):
                  f.write("rusage %s: %s\n" % (i, getattr(resources, i)))
              for i in rusages:
                  f.write("Child rusage %s: %s\n" % (i, getattr(childres, i)))
@@ -47,7 +48,7 @@
          if status == "passed":
              f.write("Status: PASSED \n")
          else:
-@@ -178,10 +200,28 @@ def write_host_data(logfile, e, d, type):
+@@ -178,10 +199,28 @@ def write_host_data(logfile, e, d, type):
      # reset the environment
      os.environ['PATH'] = ospath
  
@@ -77,7 +78,7 @@
  
      bn = d.getVar('BUILDNAME')
      ########################################################################
-@@ -219,6 +259,7 @@ python run_buildstats () {
+@@ -219,6 +258,7 @@ python run_buildstats () {
                      f.write(x + " ")
              f.write("\n")
              f.write("Build Started: %0.2f \n" % d.getVar('__timedata_build', False)[0])
@@ -85,7 +86,7 @@
  
      elif isinstance(e, bb.event.BuildCompleted):
          build_time = os.path.join(bsdir, "build_stats")
-@@ -241,8 +282,10 @@ python run_buildstats () {
+@@ -241,8 +281,10 @@ python run_buildstats () {
          with open(os.path.join(taskdir, e.task), "a") as f:
              f.write("Event: %s \n" % bb.event.getName(e))
              f.write("Started: %0.2f \n" % e.time)
@@ -96,7 +97,7 @@
          write_task_data("passed", os.path.join(taskdir, e.task), e, d)
          if e.task == "do_rootfs":
              bs = os.path.join(bsdir, "build_stats")
-@@ -268,6 +311,7 @@ python run_buildstats () {
+@@ -268,6 +310,7 @@ python run_buildstats () {
          build_status = os.path.join(bsdir, "build_stats")
          with open(build_status, "a") as f:
              f.write(d.expand("Failed at: ${PF} at task: %s \n" % e.task))
