@@ -28,12 +28,12 @@ index ffb2d28494..e090a468d1 100644
 +            return
 +
 +        with open("/proc/net/dev", "r") as net_pressure_fds:
-+            curr_received_bytes, curr_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
++            curr_received_bytes, curr_transmitted_bytes = map(float, next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line))
 +            now = time.time()
 +            tdiff = now - self.prev_net_pressure_time
-+            self.net_received_pressure = (float(curr_received_bytes) - float(self.prev_received_bytes)) / tdiff
-+            self.net_transmitted_pressure = (float(curr_transmitted_bytes) - float(self.prev_transmitted_bytes)) / tdiff
-+            if tdiff < 1:
++            self.net_received_pressure = (curr_received_bytes - float(self.prev_received_bytes)) / tdiff
++            self.net_transmitted_pressure = (curr_transmitted_bytes - float(self.prev_transmitted_bytes)) / tdiff
++            if tdiff > 1:
 +                self.prev_received_bytes = curr_received_bytes
 +                self.prev_transmitted_bytes = curr_transmitted_bytes
 +                self.prev_net_pressure_time = now
