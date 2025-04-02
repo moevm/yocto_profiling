@@ -1,21 +1,42 @@
 ## Тестирование патчей при помощи patchtest
 Шаги по тестированию патчей при помощи утилиты patchtest:
-0) Предподготовка
-    0.1 Создание патча: чтобы патч возможно было протестировать при помощи patchtest, он должен быть создан при помощи git format-patch:
-        0.1.1. Создаете новую ветку от основной в репозитории poky
-        0.1.2. Добавляете описание ветки с помощью ` git branch --edit-description ` (это нужно для прохождения какого-то из тестов) 
-        0.1.3. В созданной ветке делаете изменения по патчу
-        0.1.4. Создаете коммит следующим образом ` git commit --amend -s -m "<commit_message>" ` (какой правильный формат commit_message я пока не поняла)
-        0.1.5. Создаете патч при помощи ` git format-patch <ref-branch> `. После этого у вас создастся файл с патчем
-    0.2. Подготовка patchtest 
-        0.2.1. Устанавливаем зависимости ` pip install -r meta/lib/patchtest/requirements.txt `
-        0.2.2. Настраиваем среду ` source oe-init-build-env `
-        0.2.3. Добавляем слой ` bitbake-layers add-layer ../meta-selftest `
-        ВАЖНО: чтобы patchtest заработал необходима версия Python3.9 и выше
-1) Запуск тестов
-    1.1. Чтобы протестировать патч, вводим команду ` patchtest --patch <patch_name> `, можно указать флаг ` --log-results `, чтобы результаты тестирования залоггировались в файл, 
-    1.2. Если необходимо протестировать директорию с патчами, то можно использовать ` patchtest --directory <directory_name> `
+- 0) Предподготовка
+    - 0.1 Создание патча: чтобы патч возможно было протестировать при помощи patchtest, он должен быть создан при помощи git format-patch:
+        - 0.1.1. Создаете новую ветку от основной в репозитории poky
+        - 0.1.2. Добавляете описание ветки с помощью ` git branch --edit-description ` (это нужно для прохождения какого-то из тестов) 
+        - 0.1.3. В созданной ветке делаете изменения по патчу
+        - 0.1.4. Создаете коммит следующим образом ` git commit --amend -s -m "<commit_message>" ` (какой правильный формат commit_message я пока не поняла)
+        - 0.1.5. Создаете патч при помощи ` git format-patch --relative=<path> <ref-branch> `. После этого у вас создастся файл с патчем
+    - 0.2. Подготовка patchtest 
+        - 0.2.1. Устанавливаем зависимости ` pip install -r meta/lib/patchtest/requirements.txt `
+        - 0.2.2. Настраиваем среду ` source oe-init-build-env `
+        - 0.2.3. Добавляем слой ` bitbake-layers add-layer ../meta-selftest `
+- 1) Запуск тестов
+    - 1.1. Чтобы протестировать патч, вводим команду ` patchtest --patch <patch_name> `, можно указать флаг ` --log-results `, чтобы результаты тестирования залоггировались в файл, 
+    - 1.2. Если необходимо протестировать директорию с патчами, то можно использовать ` patchtest --directory <directory_name> `
+ 
+## Создание патчей и mailing_lists
+Каждый патч должен относиться к определенному компоненту проекта, а именно:
+    `
+    # base paths of main yocto project sub-projects
+    paths = {
+        'oe-core': ['meta-selftest', 'meta-skeleton', 'meta', 'scripts'],
+        'bitbake': ['bitbake'],
+        'documentation': ['documentation'],
+        'poky': ['meta-poky','meta-yocto-bsp'],
+        'oe': ['meta-gpe', 'meta-gnome', 'meta-efl', 'meta-networking', 'meta-multimedia','meta-initramfs', 'meta-ruby', 'contrib', 'meta-xfce', 'meta-filesystems', 'meta-perl', 'meta-webserver', 'meta-systemd', 'meta-oe', 'meta-python']
+        }
+    `
+Здесь представлены пути, относительно которых можно и нужно патчить изменения. То есть, например, если патч относится к bitbake, то при создании патча (пункт 0.1.5) необходимо написать следующее: ` git format-patch --relative=bitbake master `.
 
+Затем, при отправке патча необхоидмо указать корректный mailing_list:
+` git send-email --to <mailing-list-address> *.patch `
+
+Mailing_lists для компонентов:
+    - bitbake: 'bitbake-devel@lists.openembedded.org'
+    - doc: 'yocto@yoctoproject.org'
+    - poky: 'poky@yoctoproject.org'
+    - oe: 'openembedded-devel@lists.openembedded.org'
 
 
 ## Результат проверки патчей при помощи patchtest
