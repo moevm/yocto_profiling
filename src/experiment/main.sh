@@ -11,6 +11,7 @@ CURRENT_DIR=$(dirname "$(realpath $0)")
 
 RESULTS_DIR=$CURRENT_DIR/results
 rm -rf $RESULTS_DIR
+N_RUNS=3
 
 . $CURRENT_DIR/auto_conf/read_config.sh
 DEFAULT_CONFIG_FILE=$CURRENT_DIR/auto_conf/experiment.conf
@@ -34,10 +35,8 @@ echo -e "\n"
 # Paths are broken, because currently entire os_profiling directory is copied,
 # so path should include it. Fix it later
 CACHE_DESKTOP_PATH="/home/$cache_usr/Desktop"
-CACHE_TEST_DIR="/home/$cache_usr/Desktop/test"
-CACHE_SRC_DIR=$CACHE_TEST_DIR
-CACHE_SERVER_SETUPER_DIR=$CACHE_SRC_DIR/experiment/cache_server_setuper
-
+CACHE_SERVER_WORKDIR=$CACHE_DESKTOP_PATH/test
+CACHE_SERVER_SETUPER_DIR=$CACHE_SERVER_WORKDIR/experiment/cache_server_setuper
 HASH_DESKTOP_PATH="/home/$hash_usr/Desktop"
 HASH_TEST_DIR="/home/$hash_usr/Desktop/test"
 HASH_SERVER_SETUPER_DIR=$HASH_TEST_DIR/hash_server_setuper
@@ -182,10 +181,10 @@ do
 	cd $CURRENT_DIR/auto_conf && python3 set_num_ports.py --cache_num_port $i
 	echo -e "Building Yocto on host with $i servers: START.\n"
 
-  cp -f $SRC_DIR/conf/experiment.conf $CURRENT_DIR/auto_conf/conf/local.conf
-  python3 $CURRENT_DIR/auto_conf/auto_compose_local_conf.py
-	echo -e "[CACHE SERVERS $i]" >> $RESULTS_DIR/"times"
-	for j in 1 2
+	cp -f $SRC_DIR/conf/experiment.conf $CURRENT_DIR/auto_conf/conf/local.conf
+	cd $CURRENT_DIR/auto_conf && python3 auto_compose_local_conf.py
+	echo -e "[CACHE SERVERS $i]" >> $RESULT_DIR/"times"
+	for j in $(seq 1 $N_RUNS)
 	do
 		filename="test_${i}_${j}"
 		start=`date +%s`
@@ -200,7 +199,6 @@ do
 		echo -e "Remove build folder\n"
 		cd $ASSEMBLY_DIR && rm -rf ./build
 
-		sleep 15
 	done
 	echo -e "" >> $RESULTS_DIR/"times"
 	echo -e "Building Yocto on host: DONE.\n"
