@@ -16,7 +16,9 @@ rm -rf $RESULTS_DIR
 DEFAULT_CONFIG_FILE=$CURRENT_DIR/auto_conf/experiment.conf
 process_config $DEFAULT_CONFIG_FILE
 
-echo "USING $1"
+PATCHES=$1
+
+echo "USING $PATCHES"
 echo "cache_ip = $cache_ip"
 echo "cache_usr = $cache_usr"
 echo "hash_ip = $hash_ip"
@@ -29,9 +31,11 @@ echo "step = $step"
 echo "max_servers = $max_servers"
 echo -e "\n"
 
+# Paths are broken, because currently entire os_profiling directory is copied,
+# so path should include it. Fix it later
 CACHE_DESKTOP_PATH="/home/$cache_usr/Desktop"
 CACHE_TEST_DIR="/home/$cache_usr/Desktop/test"
-CACHE_SRC_DIR=$CACHE_TEST_DIR/src
+CACHE_SRC_DIR=$CACHE_TEST_DIR
 CACHE_SERVER_SETUPER_DIR=$CACHE_SRC_DIR/experiment/cache_server_setuper
 
 HASH_DESKTOP_PATH="/home/$hash_usr/Desktop"
@@ -139,7 +143,7 @@ function prepare_host () {
 	echo "Prepare host for build:"
 	cd $ENTRYPOINT_DIR
 	
-	echo "Buildint ENV: start"
+	echo "Building ENV: start"
 	$ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf > /dev/null
 	echo -e "Buildint ENV: done\n"
 	
@@ -147,6 +151,12 @@ function prepare_host () {
 	$ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky > /dev/null
 	echo "Cloning POKY: done"
 	
+	if [ "$PATCHES" == "--patches" ]; then
+		echo "Applying patches: start"
+		$ENTRYPOINT_DIR/entrypoint.sh patch cachefiles.patch
+		echo "Applying patches: done"
+	fi
+
 	echo -e "\n"
 }
 
@@ -161,6 +171,7 @@ prepare_host
 
 # LOOP
 cd $CURRENT_DIR
+mkdir -p $RESULTS_DIR
 for (( i=2; i<$max_servers; i+=$step ))
 do
 	# подъём серверов

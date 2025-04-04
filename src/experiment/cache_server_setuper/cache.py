@@ -102,7 +102,6 @@ def container_creator(*, image: str, name: str, port: int, volume: Union[List[st
                 "PORT": PORT_INSIDE_CONTAINER
                 },
             volumes=volume,
-            read_only=True,
             detach=True
         )
     except APIError as e:
