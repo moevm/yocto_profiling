@@ -6,7 +6,7 @@ index 1f447d30c2..792f717af5 100644
  
          bb.codeparser.update_module_dependencies(self.data)
  
-+        if self.data.getVar('FILTER_SSTATE_MIRRORS') == 'True':
++        if self.data.getVar('FILTER_SSTATE_MIRRORS') == '1':
 +            try:
 +                import asyncio
 +                from urllib.parse import urlparse
