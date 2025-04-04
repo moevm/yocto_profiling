@@ -7,7 +7,8 @@ RUN apk --no-cache update && \
 
 WORKDIR /app
 COPY get_ip.py /app/
+COPY make_index.py /app/
 
 
 ENTRYPOINT ["sh", "-c"]
-CMD ["python3 -m http.server -b $(python3 get_ip.py) $PORT; sleep infinity"]
+CMD ["python3 make_index.py /app/sstate-cache; python3 -m http.server -b $(python3 get_ip.py) $PORT; sleep infinity"]

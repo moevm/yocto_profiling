@@ -9,13 +9,18 @@ from statistics_analyzer.src.timeline_analyze import write_to_excel, get_tasks, 
 from dep_graph.src.analyze_graph import analyze_graph, graph_task_children
 
 
+ANALYSIS_DIR = Path(__file__).parent.absolute()
+STATISTICS_ANALYSER_DIR = ANALYSIS_DIR / "statistics_analyzer"
+OUTPUT_DIR = STATISTICS_ANALYSER_DIR / "output"
+
+
 def create_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--timestamp", type=str, help="time stamp for log files")
     parser.add_argument("-b", "--build_index", type=int, help="add specified build index")
     parser.add_argument("-p", "--poky_path", type=str, help="poky directory path")
     parser.add_argument("-g", "--goal", type=str, help="choose one of ranking/graph/tests/task_children",
-                        choices=["ranking", "graph", "tests", "task_children"], required=True)
+                        choices=["timeline", "ranking", "graph", "tests", "task_children"], required=True)
     parser.add_argument("-d", "--dot_file", type=str, help='path to .dot file to analyze')
     parser.add_argument("--border", type=float, help='border for ranking (0, 1], default=1')
     parser.add_argument("--metric", type=str, help='metric to ranking, default="Elapsed time"')
@@ -80,7 +85,7 @@ def start_ranking(args):
 
 
     data = get_ranked_data_for_all_tasks(parser.info, border=border, metric=metric, reverse=reverse)
-    write_ranked_data(data, './statistics_analyzer/output/ranking_output.txt')
+    write_ranked_data(data, str(OUTPUT_DIR / "ranking_output.txt"))
 
 
 def start_graph_analyze(args):
@@ -116,15 +121,26 @@ def start_timeline_analyze(args):
 
     cpu_intervals, cpu_sum_time = find_free_intervals(parser, 'cpu', 0.9)
     get_tasks_for_intervals(parser, cpu_intervals)
-    write_to_json(cpu_intervals, cpu_sum_time, './statistics_analyzer/output/cpu_intervals.json')
+    write_to_json(
+        cpu_intervals,
+        cpu_sum_time,
+        str(OUTPUT_DIR / "cpu_intervals.json"))
 
     io_intervals, io_sum_time = find_free_intervals(parser, 'io', 0.1)
     get_tasks_for_intervals(parser, io_intervals)
-    write_to_json(io_intervals, io_sum_time, './statistics_analyzer/output/io_intervals.json')
+    write_to_json(
+        io_intervals,
+        io_sum_time,
+        str(OUTPUT_DIR / "io_intervals.json")
+    )
 
     ram_intervals, ram_sum_time = find_free_intervals(parser, 'ram', 0.9)
     get_tasks_for_intervals(parser, ram_intervals)
-    write_to_json(ram_intervals, ram_sum_time, './statistics_analyzer/output/ram_intervals.json')
+    write_to_json(
+        ram_intervals,
+        ram_sum_time,
+        str(OUTPUT_DIR / "ram_intervals.json")
+    )
 
 
 

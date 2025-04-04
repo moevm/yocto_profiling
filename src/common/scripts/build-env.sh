@@ -7,6 +7,8 @@ NO_CACHE=$3
 
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
+CORE=$(uname -r)
+CODENAME=$(cat /etc/lsb-release | grep CODENAME | cut -d = -f 2)
 
 if [[ ($USER_ID -eq 0) && ($GROUP_ID -eq 0) ]]; then
 	echo -e "Perform this action as a non-root user, otherwise problems may arise with access rights to volume files."
@@ -14,10 +16,18 @@ if [[ ($USER_ID -eq 0) && ($GROUP_ID -eq 0) ]]; then
 	exit 1
 fi
 
+VARS="--build-arg UID=$USER_ID \
+	--build-arg GID=$GROUP_ID \
+	--build-arg CORE=$CORE \
+	--build-arg CODENAME=$CODENAME \
+	--build-arg REQS_ARG=$REQS"
+
 cd $DOCKERFILE_DIR
 if [[ -z "$NO_CACHE" ]]; then
-	docker compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg CORE=$(uname -r) --build-arg CODENAME=$(cat /etc/lsb-release | grep CODENAME | cut -d = -f 2) --build-arg REQS_ARG="$REQS"
+	docker compose build \
+	$VARS
 else
-	docker compose build $NO_CACHE --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg CORE=$(uname -r) --build-arg CODENAME=$(cat /etc/lsb-release | grep CODENAME | cut -d = -f 2) --build-arg REQS_ARG="$REQS"
+	docker compose build $NO_CACHE \
+	$VARS
 fi
 

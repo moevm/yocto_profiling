@@ -1,17 +1,12 @@
 #! /bin/bash
 
-SRC_DIR=$(dirname "$(realpath $0)")
-CONFIGS_DIR=$SRC_DIR/conf
-PATCHES_DIR=$SRC_DIR/yocto-patches
-DOCKERFILE_DIR=$SRC_DIR/yocto-build
-
-POKY_DIR=$DOCKERFILE_DIR/assembly/poky
-
-SCRIPTS_DIR=$SRC_DIR/common/scripts
-CHECKS_DIR=$SCRIPTS_DIR/checks
-
-CONTAINER_NAME=yocto-container
-IMAGE_NAME=yocto-image
+ENTRYPOINT_DIR=$(git rev-parse --show-toplevel 2> /dev/null)
+if [ -z $ENTRYPOINT_DIR ] || [ "os_profiling" != $(basename -s .git `git config --get remote.origin.url`) ]; then
+  echo -e "You are not in the os_profiling cloned repo!"
+  exit 2
+fi
+. $ENTRYPOINT_DIR/src/common/scripts/vars.sh
+CURRENT_DIR=$(dirname "$(realpath $0)")
 
 
 function help() {
@@ -24,6 +19,7 @@ function help() {
                   [ by | build-yocto ]
                       --only-poky -- only clones poky repo
                       --no-layers -- build yocto image without layers and dependencies
+                      --tracing <tool> -- enables tracing of the build with one of the tools (perf, ftrace, strace)
                       --conf-file <path> -- config file to use (works only for --no-layers)
 
                   *required cloned poky*
@@ -36,6 +32,8 @@ function help() {
 
                   [ cd | clean-docker ]
                   [ cb | clean-build ]
+                      -o, --orig -- also cleans original poky dir
+                  [ deps | install-deps ]
                   [ check ]"
 
   exit 2
@@ -86,6 +84,7 @@ function build_env_stage() {
 }
 
 function build_yocto_stage() {
+  TTOOL="none"
   STAGE_ARG="full"
   CONFIG_FILE=$CONFIGS_DIR/default.conf
 
@@ -93,38 +92,58 @@ function build_yocto_stage() {
   do
     case "$1" in
       --only-poky )
-        echo "Only clones poky repo"
+        echo "CLONING POKY REPO ONLY"
         STAGE_ARG="only-poky"
-        break
+        shift 1
         ;;
       --no-layers )
-        echo "Enable no-layers mode"
+        echo "ENABLE no-layers MODE"
         STAGE_ARG="no-layers"
         shift 1
         ;;
       --conf-file )
         CONFIG_FILE="$2"
-        echo "Using conf $CONFIG_FILE"
+        if [ ! -s "$CONFIG_FILE" ]; then
+           echo -e "$CONFIG_FILE does not exist, or is empty!"
+           exit 2
+        fi
+        echo "USING CONF $CONFIG_FILE"
         shift 2
         ;;
-      --)
+      --tracing )
+        check_ttool $2
+        TTOOL="$2"
+        shift 2
+        ;;
+      -- )
         break
         ;;
-      *)
+      * )
         echo "Unexpected option for command \`build-yocto\`: $1"
         exit 2
         ;;
     esac
   done
   cp $CONFIG_FILE $CONFIGS_DIR/local.conf
-
-  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $STAGE_ARG $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME
+  
+  echo ""
+  $SCRIPTS_DIR/build-yocto.sh $DOCKERFILE_DIR $CHECKS_DIR $CONTAINER_NAME $IMAGE_NAME $STAGE_ARG $TTOOL
   EXIT_CODE=$?
+}
+
+function check_ttool() {
+  LIST="strace ftrace perf"
+  VALUE=$1
+  IS_VALUE_IN_LIST=$(echo $LIST | tr " " "\n" | grep -F -x "$VALUE")
+  if [ -z $IS_VALUE_IN_LIST ]; then
+    echo "Unexpected tracing tool: $1"
+    exit 2
+  fi
 }
 
 function clean_docker() {
   CONTAINER_ID=$(docker inspect --format="{{.Id}}" $CONTAINER_NAME 2> /dev/null)
-  if [ ! -z "${CONTCONTAINER_ID+x}" ]; then
+  if [[ "$CONTAINER_ID" =~ ^[[:xdigit:]]+$ ]]; then
     docker rm -f $CONTAINER_ID
   fi
 
@@ -135,8 +154,66 @@ function clean_docker() {
     docker rmi $IMAGE_ID
   fi
 
-  $SRC_DIR/entrypoint.sh build-env --no-perf --no-cache
   EXIT_CODE=$?
+}
+
+function clean_build() {
+  CLEANING_ORIG_POKY=0
+  while :
+  do
+    case "$1" in
+      -o | --orig )
+        CLEANING_ORIG_POKY=1
+        shift 1
+        break
+        ;;
+      --)
+        break
+        ;;
+      *)
+        echo "Unexpected option for command \`clean-build\`: $1"
+        exit 2
+        ;;
+    esac
+  done
+
+  echo "DELETING POKY, BUILD, LOCAL.CONF"
+  rm -rf $ASSEMBLY_DIR/poky
+  rm -rf $ASSEMBLY_DIR/build
+  rm -f $CONFIGS_DIR/local.conf
+
+  if [ $CLEANING_ORIG_POKY -eq 1 ]; then
+    echo "DELETING ORIG POKY"
+    rm -rf $ASSEMBLY_DIR/original_poky
+  fi
+
+  EXIT_CODE=$?
+}
+
+function install_analysis_deps() {
+  deactivate 2> /dev/null
+  cd $ENTRYPOINT_DIR && python3 -m venv venv
+
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    CYGWIN*)    MACHINE=Cygwin;;
+    MINGW*)     MACHINE=MinGw;;
+    MSYS_NT*)   MACHINE=MSys;;
+    *)          MACHINE="UNKNOWN:${unameOut}"
+  esac
+
+  if [[ "$MACHINE" != "Linux" ]]; then
+    echo -e "Machine: $MACHINE"
+    echo -e "Activate venv and install dependencies from requirements.txt file"
+    echo -e "Command for installing: pip3 install -r $ENTRYPOINT_DIR/requirements.txt"
+    exit 0
+  fi
+
+  # Doesn't work for Windows systems (path = $ENTRYPOINT_DIR/venv/Scripts/activate)
+  source $ENTRYPOINT_DIR/venv/bin/activate
+  pip3 install -r $ENTRYPOINT_DIR/requirements.txt
 }
 
 
@@ -177,11 +254,10 @@ case "$COMMAND" in
     clean_docker
     ;;
   cb | clean-build )
-    echo "Remove poky, build dir, conf"
-		rm -rf $DOCKERFILE_DIR/assembly/original_poky
-		rm -rf $DOCKERFILE_DIR/assembly/poky
-		rm -rf $DOCKERFILE_DIR/assembly/build
-    rm -f $CONFIGS_DIR/local.conf
+    clean_build $@ --
+    ;;
+  deps | install-deps )
+    install_analysis_deps
     ;;
   check )
     docker_check

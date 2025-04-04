@@ -1,48 +1,204 @@
---- sstate.bbclass	2024-11-13 16:30:35.255789000 +0300
-+++ sstate.bbclass	2024-11-13 17:22:37.995697512 +0300
-@@ -732,6 +732,7 @@
+diff --git a/bitbake/bin/bitbake-worker b/bitbake/bin/bitbake-worker
+index 88217182fb..901ab9003e 100755
+--- a/bitbake/bin/bitbake-worker
++++ b/bitbake/bin/bitbake-worker
+@@ -164,6 +164,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+     layername = runtask['layername']
+     taskdepdata = runtask['taskdepdata']
+     quieterrors = runtask['quieterrors']
++    filemirror = runtask.get('filemirror', {})
++
+     # We need to setup the environment BEFORE the fork, since
+     # a fork() or exec*() activates PSEUDO...
  
- def pstaging_fetch(sstatefetch, d):
-     import bb.fetch2
-+    import json
+@@ -278,6 +280,8 @@ def fork_off_task(cfg, data, databuilder, workerdata, extraconfigdata, runtask):
+                 the_data = databuilder.parseRecipe(fn, appends, layername)
+                 the_data.setVar('BB_TASKHASH', taskhash)
+                 the_data.setVar('BB_UNIHASH', unihash)
++                the_data.setVar('FILE_MIRROR_MAP', filemirror)
++
+                 bb.parse.siggen.setup_datacache_from_datastore(fn, the_data)
  
-     # Only try and fetch if the user has configured a mirror
-     mirrors = d.getVar('SSTATE_MIRRORS')
-@@ -741,6 +742,18 @@
+                 bb.utils.set_process_name("%s:%s" % (the_data.getVar("PN"), taskname.replace("do_", "")))
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..9ac8118489 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -1335,6 +1335,7 @@ class RunQueue:
+ 
+         self.hashvalidate = cfgData.getVar("BB_HASHCHECK_FUNCTION") or None
+         self.depvalidate = cfgData.getVar("BB_SETSCENE_DEPVALID") or None
++        self.composeindex = cfgData.getVar("BB_COMPOSE_INDEXES_FUNCTION") or None
+ 
+         self.state = runQueuePrepare
+ 
+@@ -1350,6 +1351,7 @@ class RunQueue:
+         self.rqexe = None
+         self.worker = {}
+         self.fakeworker = {}
++        self.file_mirror_map = None
+ 
+     @staticmethod
+     def send_pickled_data(worker, data, name):
+@@ -1521,7 +1523,18 @@ class RunQueue:
+             cache[tid] = iscurrent
+         return iscurrent
+ 
+-    def validate_hashes(self, tocheck, data, currentcount=0, siginfo=False, summary=True):
++    def compose_indexes(self, d):
++        indexfile = {}
++        if self.composeindex:
++            indexfile = self.compose_index(d)
++        return indexfile
++
++    def compose_index(self, d):
++        locs = {"d": d}
++        call = self.composeindex + "(d)"
++        return bb.utils.better_eval(call, locs)
++
++    def validate_hashes(self, tocheck, data, currentcount=0, siginfo=False, summary=True, cacheinfo=None):
+         valid = set()
+         if self.hashvalidate:
+             sq_data = {}
+@@ -1534,15 +1547,16 @@ class RunQueue:
+                 sq_data['hashfn'][tid] = self.rqdata.dataCaches[mc].hashfn[taskfn]
+                 sq_data['unihash'][tid] = self.rqdata.runtaskentries[tid].unihash
+ 
+-            valid = self.validate_hash(sq_data, data, siginfo, currentcount, summary)
++            valid = self.validate_hash(sq_data, data, siginfo, currentcount, summary, cacheinfo)
++            self.file_mirror_map = self.cfgData.getVar("FILE_MIRROR_MAP")
+ 
+         return valid
+ 
+-    def validate_hash(self, sq_data, d, siginfo, currentcount, summary):
+-        locs = {"sq_data" : sq_data, "d" : d, "siginfo" : siginfo, "currentcount" : currentcount, "summary" : summary}
++    def validate_hash(self, sq_data, d, siginfo, currentcount, summary, cacheinfo):
++        locs = {"sq_data" : sq_data, "d" : d, "siginfo" : siginfo, "currentcount" : currentcount, "summary" : summary, "cacheinfo": cacheinfo}
+ 
+         # Metadata has **kwargs so args can be added, sq_data can also gain new fields
+-        call = self.hashvalidate + "(sq_data, d, siginfo=siginfo, currentcount=currentcount, summary=summary)"
++        call = self.hashvalidate + "(sq_data, d, siginfo=siginfo, currentcount=currentcount, summary=summary, cacheinfo=cacheinfo)"
+ 
+         return bb.utils.better_eval(call, locs)
+ 
+@@ -2264,6 +2278,7 @@ class RunQueueExecute:
+                         logger.debug2("Setscene task %s is unskippable" % nexttask)
+                     task = nexttask
+                     break
++
+         if task is not None:
+             (mc, fn, taskname, taskfn) = split_tid_mcfn(task)
+             taskname = taskname + "_setscene"
+@@ -2306,7 +2321,8 @@ class RunQueueExecute:
+                 'taskdep': taskdep,
+                 'fakerootenv' : self.rqdata.dataCaches[mc].fakerootenv[taskfn],
+                 'fakerootdirs' : self.rqdata.dataCaches[mc].fakerootdirs[taskfn],
+-                'fakerootnoenv' : self.rqdata.dataCaches[mc].fakerootnoenv[taskfn]
++                'fakerootnoenv' : self.rqdata.dataCaches[mc].fakerootnoenv[taskfn],
++                'filemirror': self.rq.file_mirror_map
+             }
+ 
+             if 'fakeroot' in taskdep and taskname in taskdep['fakeroot'] and not self.cooker.configuration.dry_run:
+@@ -3168,7 +3184,11 @@ def update_scenequeue_data(tids, sqdata, rqdata, rq, cooker, stampcache, sqrq, s
+ 
+         tocheck.add(tid)
+ 
+-    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary)
++    cacheinfo = {}
++    if cooker.data.getVar("SSTATE_MIRRORS_INDEX_FILES") == "1":
++        cacheinfo = rq.compose_indexes(cooker.data)
++    sqdata.valid |= rq.validate_hashes(tocheck, cooker.data, len(sqdata.stamppresent), False, summary=summary, cacheinfo=cacheinfo)
++
+ 
+     for tid in tids:
+         if tid in sqdata.stamppresent:
+diff --git a/meta/classes-global/sstate.bbclass b/meta/classes-global/sstate.bbclass
+index 2c259a6657..d35af9f6e4 100644
+--- a/meta/classes-global/sstate.bbclass
++++ b/meta/classes-global/sstate.bbclass
+@@ -168,6 +168,7 @@ python () {
+         d.setVarFlag(task + "_setscene", 'network', '1')
+ }
+ 
++
+ def sstate_init(task, d):
+     ss = {}
+     ss['task'] = task
+@@ -725,6 +726,12 @@ def pstaging_fetch(sstatefetch, d):
      # Copy the data object and override DL_DIR and SRC_URI
      localdata = bb.data.createCopy(d)
  
-+    #file_mirror_map = json.loads(d.getVar('FILE_MIRROR_MAP')) не действует 
-+    try:
-+        with open('./file_mirror_map', 'r') as mapping_file:
-+            file_mirror_map = json.load(mapping_file)
-+    except FileNotFoundError:
-+        file_mirror_map = None
-+
++    file_mirror_map = d.getVar('FILE_MIRROR_MAP')
 +    if file_mirror_map:
 +        relevant_mirror = file_mirror_map[sstatefetch]
 +        if relevant_mirror:
-+            mirrors = 'file://.* ' + relevant_mirror
++            mirrors = 'file://.* ' + relevant_mirror + ' ' + mirrors
 +
      dldir = localdata.expand("${SSTATE_DIR}")
      bb.utils.mkdirhier(dldir)
  
-@@ -767,7 +780,7 @@
-         localdata.setVar('SRC_URI', srcuri)
-         try:
-             fetcher = bb.fetch2.Fetch([srcuri], localdata, cache=False)
--            fetcher.checkstatus()
-+            #fetcher.checkstatus()
-             fetcher.download()
+@@ -933,13 +940,67 @@ sstate_unpack_package () {
+ 	[ ! -e ${SSTATE_PKG}.siginfo ] || touch --no-dereference ${SSTATE_PKG}.siginfo 2>/dev/null || true
+ }
  
-         except bb.fetch2.BBFetchException:
-@@ -957,9 +970,13 @@
- 
- def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
-     import itertools
++
++BB_COMPOSE_INDEXES_FUNCTION = "compose_index_files"
++
++def compose_index_files(d):
 +    import requests
 +    from ftplib import FTP
-+    import json
++
++    mirrors = d.getVar("SSTATE_MIRRORS")
++    if not mirrors:
++        return None
++
++    mirrors = (mirrors or '').replace('\n', ' ').split()
++    if len(mirrors) % 2 != 0:
++        bb.warn('Invalid mirror data %s, should have paired members.' % mirrors)
++        return None
++
++    mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
++    mirrors_missed = mirrors.copy()
++
++    cache_tasks = {}
++
++    for mirror in mirrors:
++        if 'http' in mirror:
++            url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
++            response = requests.get(f'{url}/index.txt')
++
++            if response.status_code == 200:
++                cache_tasks.update({mirror: set(response.text.split('\n'))})
++                mirrors_missed.remove(mirror)
++
++
++        if 'ftp' in mirror:
++            try:
++                ftp = FTP()
++                ip, port = str(str(mirror.split('//')[1]).split('/')[0]).split(':')
++                port = int(port)
++                ftp.connect(ip, port)
++                ftp.login()
++
++                with open('index.txt', 'wb') as local_file:
++                    ftp.retrbinary('RETR /sstate-cache/index.txt', local_file.write)
++                ftp.quit()
++
++                with open('index.txt', 'r') as local_file:
++                    content = set(local_file.read().split('\n'))
++                    cache_tasks.update({mirror: content})
++                mirrors_missed.remove(mirror)
++
++            except:
++                pass
++    return {'mirrors_missed': mirrors_missed, 'cache_tasks': cache_tasks}
++
++
+ BB_HASHCHECK_FUNCTION = "sstate_checkhashes"
+ 
+-def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, **kwargs):
++def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True, cacheinfo=None, **kwargs):
+     import itertools
  
      found = set()
      missed = set()
@@ -50,40 +206,21 @@
  
      def gethash(task):
          return sq_data['unihash'][task]
-@@ -1000,6 +1017,12 @@
-     foundLocal = len(found)
-     mirrors = d.getVar("SSTATE_MIRRORS")
-     if mirrors:
-+        mirrors_copy = mirrors[:]
-+        mirrors_copy = (mirrors_copy or "").replace('\\n',' ').split()
-+        if len(mirrors_copy) % 2 != 0:
-+            bb.warn('Invalid mirror data %s, should have paired members.' % data)
-+        mirrors_missed = [mirrors_copy[i] for i in range(len(mirrors_copy)) if i % 2]
-+
-         # Copy the data object and override DL_DIR and SRC_URI
-         localdata = bb.data.createCopy(d)
- 
-@@ -1060,29 +1083,98 @@
-         for tid in missed:
+@@ -1041,9 +1102,8 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
              sstatefile = d.expand(getsstatefile(tid, siginfo, d))
              tasklist.append((tid, sstatefile))
-+        tasklist_copy = tasklist.copy()
  
 -        if tasklist:
 -            nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist))
  
--            ## thread-safe counter
--            cnt_tasks_done = itertools.count(start = 1)
--            progress = len(tasklist) >= 100
-+        ## thread-safe counter
-+        cnt_tasks_done = itertools.count(start = 1)
-+        progress = len(tasklist) >= 100
-+
 +        if tasklist:
-             if progress:
+             ## thread-safe counter
+             cnt_tasks_done = itertools.count(start = 1)
+             progress = len(tasklist) >= 100
+@@ -1051,18 +1111,63 @@ def sstate_checkhashes(sq_data, d, siginfo=False, currentcount=0, summary=True,
                  msg = "Checking sstate mirror object availability"
                  bb.event.fire(bb.event.ProcessStarted(msg, len(tasklist)), d)
--
+ 
 -            # Have to setup the fetcher environment here rather than in each thread as it would race
 -            fetcherenv = bb.fetch2.get_fetcher_environment(d)
 -            with bb.utils.environment(**fetcherenv):
@@ -96,46 +233,22 @@
 -                    executor.map(checkstatus, tasklist.copy())
 -                checkstatus_end()
 -                bb.event.disable_threadlock()
-+            
 +            cache_tasks = {}
-+            mirrors = (mirrors or "").replace('\\n',' ').split()
++
++            mirrors = (mirrors or '').replace('\n', ' ').split()
++            mirrors_copy = mirrors.copy()
++
 +            if len(mirrors) % 2 != 0:
-+                bb.warn('Invalid mirror data %s, should have paired members.' % data)
++                bb.warn('Invalid mirror data %s, should have paired members.' % mirrors)
++
 +            mirrors = [mirrors[i] for i in range(len(mirrors)) if i % 2]
++            mirrors_missed = mirrors.copy()
 +
-+            for mirror in mirrors:
-+                if 'http' in mirror:
-+                    url = 'http://' +  str(str(mirror.split('//')[1]).split('/')[0]) + '/sstate-cache'
-+                    response = requests.get(f'{url}/index.txt')
++            if cacheinfo:
++                cache_tasks = cacheinfo["cache_tasks"]
++                mirrors_missed = cacheinfo["mirrors_missed"]
 +
-+                    # Проверка успешности запроса
-+                    if response.status_code == 200:
-+                        cache_tasks.update({mirror: response.text.split('\n')})
-+                        mirrors_missed.remove(mirror)
-+                        
-+
-+                if 'ftp' in mirror:
-+                    try:
-+                        ftp = FTP() # Подключение к FTP серверу
-+                        ip, port = str(str(mirror.split('//')[1]).split('/')[0]).split(':')
-+                        port = int(port)
-+                        ftp.connect(ip, port)  
-+                        ftp.login()  
-+                    
-+                        with open('index.txt', 'wb') as local_file:
-+                            ftp.retrbinary('RETR /sstate-cache/index.txt', local_file.write)
-+
-+                        # Закрытие соединения
-+                        #ftp.quit()
-+
-+
-+                        with open('index.txt', 'r') as local_file:
-+                            content = local_file.read().split('\n')
-+                            cache_tasks.update({mirror: content})
-+                        mirrors_missed.remove(mirror)
-+                    except:
-+                        pass
-+
++            tasklist_copy = tasklist.copy()
 +            for arg in tasklist:
 +                (tid, sstatefile) = arg
 +                srcuri = sstatefile
@@ -143,25 +256,25 @@
 +                    if srcuri in files:
 +                        found.add(tid)
 +                        missed.remove(tid)
-+                        file_mirror_map.update({srcuri: m}) #таким образом будет только одно зеркало, можно сделать чтобы здесь был список из всех зеркал, на которых есть этот файл
++                        file_mirror_map.update({srcuri: m})
 +                        tasklist_copy.remove(arg)
 +                        if progress:
 +                            bb.event.fire(bb.event.ProcessProgress(msg, next(cnt_tasks_done)), d)
 +
-+                        
++            d.setVar("FILE_MIRROR_MAP", file_mirror_map)
 +
-+            #d.setVar('FILE_MIRROR_MAP', json.dumps(file_mirror_map)) так не работает
-+
-+            with open('./file_mirror_map', 'w') as mapping_file:
-+                json.dump(file_mirror_map, mapping_file, indent=4)
-+
-+            if mirrors_missed:
++            if d.getVar("RELY_ON_INDEX_FILES") == "1":
++                criteria = mirrors_missed
 +                mirrors_new = ''
 +                for i in range(len(mirrors_missed)):
 +                    index = mirrors_copy.index(mirrors_missed[i])
 +                    mirrors_new += mirrors_copy[index - 1] + ' '
 +                    mirrors_new += mirrors_copy[index] + ' '
++            else:
++                criteria = missed
++                mirrors_new = d.getVar("SSTATE_MIRRORS") or ''
 +
++            if criteria:
 +                localdata.setVar('PREMIRRORS', mirrors_new)
 +                nproc = min(int(d.getVar("BB_NUMBER_THREADS")), len(tasklist_copy))
 +

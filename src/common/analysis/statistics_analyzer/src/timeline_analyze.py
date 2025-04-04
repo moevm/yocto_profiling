@@ -1,7 +1,11 @@
 import json
+from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Color, PatternFill, Font
+
+
+STATISTICS_ANALYSER_DIR = Path(__file__).parent.parent.absolute()
 
 
 def get_tasks(parser, border, resource):
@@ -128,4 +132,4 @@ def write_to_excel(parser):
         for i in range(1, 9):
             ws.cell(row=index+2, column=i).alignment = Alignment(wrap_text=True)
 
-    wb.save('./statistics_analyzer/output/sources.xlsx')
+    wb.save(str(STATISTICS_ANALYSER_DIR / "output" / "sources.xlsx"))
