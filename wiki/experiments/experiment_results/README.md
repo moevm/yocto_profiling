@@ -118,13 +118,13 @@
 
 
 ### Графики
-![avg_build_time](graphics/avg_build_time.png)
+![build_time](graphics/build_time.png)
 
-![avg_build_time_no_sstate](graphics/avg_build_time_no_sstate.png)
+![build_time_excluding_verification](graphics/build_time_excluding_verification.png)
 
-![avg_sstate_time](graphics/avg_sstate_time.png)
+![signature_verification_time](graphics/signature_verification_time.png)
 
-![all](graphics/all.png)
+![combined_time](graphics/combined_time.png)
 
 Из графиков ясно видно, что время сборки без сверки начинает изменяться на отличные от погрешности минимальные значения только при большом кол-ве кэш серверов (от 32). Это наводит на вывод, что основное время при сборке занимает именно сверка сигнатур, а не сама сборка.
 Сделанный вывод подтверждается приведёнными графиками, так как коэффициенты линейных функций (или углы) соответствующие графикам сверки сигнатур и сборки со сверкой отличаются на пренебрегаемое значение.
