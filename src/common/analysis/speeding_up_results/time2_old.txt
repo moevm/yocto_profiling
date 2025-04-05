@@ -1,5 +1,5 @@
-### [NEW] This is net patch stats ###
-### Results of a correctly conducted experiment in a laboratory ###
+### This is net patch stats ###
+### Results of incorrectly conducted experiment ###
 
 run 2: 2895
 
