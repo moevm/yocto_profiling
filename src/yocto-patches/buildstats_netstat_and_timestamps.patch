@@ -1,6 +1,6 @@
---- buildstats.bbclass
-+++ buildstats.bbclass
-@@ -44,9 +44,25 @@ def get_process_cputime(pid):
+--- a/meta/classes-global/buildstats.bbclass
++++ b/meta/classes-global/buildstats.bbclass
+@@ -44,9 +44,24 @@ def get_process_cputime(pid):
                      break
                  i = i.split(": ")
                  iostats[i[0]] = i[1]
@@ -19,7 +19,6 @@
 +                line = line.split(":")
 +                line[1] = (' '.join(line[1].split())).split()
 +                netstats[line[0]] = float(line[1][0])
-+
      resources = resource.getrusage(resource.RUSAGE_SELF)
      childres = resource.getrusage(resource.RUSAGE_CHILDREN)
 -    return stats, iostats, resources, childres
@@ -27,7 +26,7 @@
  
  def get_cputime():
      with open("/proc/stat", "r") as f:
-@@ -91,7 +107,10 @@ def write_task_data(status, logfile, e, d):
+@@ -91,7 +106,10 @@ def write_task_data(status, logfile, e, d):
          if elapsedtime:
              f.write(d.expand("${PF}: %s\n" % e.task))
              f.write(d.expand("Elapsed time: %0.2f seconds\n" % elapsedtime))
@@ -39,21 +38,20 @@
              if cpu:
                  f.write("utime: %s\n" % cpu['utime'])
                  f.write("stime: %s\n" % cpu['stime'])
-@@ -104,6 +123,9 @@ def write_task_data(status, logfile, e, d):
+@@ -104,6 +122,9 @@ def write_task_data(status, logfile, e, d):
                  f.write("rusage %s: %s\n" % (i, getattr(resources, i)))
              for i in rusages:
                  f.write("Child rusage %s: %s\n" % (i, getattr(childres, i)))
 +            for i in netstats:
-+                sum_net_bytes += float(netstats[i]);
++                sum_net_bytes += float(netstats[i])
 +            f.write("recieve_speed: %0.2f B\sec \n" % (sum_net_bytes / float(elapsedtime)))
          if status == "passed":
              f.write("Status: PASSED \n")
          else:
-@@ -178,10 +200,29 @@ def write_host_data(logfile, e, d, type):
+@@ -178,10 +199,28 @@ def write_host_data(logfile, e, d, type):
      # reset the environment
      os.environ['PATH'] = ospath
  
-+# New Function to Collect and Log Process Data Periodically
 +def collect_process_data(logfile, pid, interval=1):
 +    import threading
 +    def log_data():
@@ -65,7 +63,7 @@
 +                f.write("RAM: " + ", ".join([f"{key}: {value}" for key, value in memory_stats.items()]) + "\n")
 +                f.write("IO Stats: " + ", ".join([f"{key}: {value}" for key, value in iostats.items()]) + "\n\n")
 +            time.sleep(interval)
-+    
++
 +    collect_process_data.running = True
 +    threading.Thread(target=log_data).start()
 +
@@ -80,38 +78,30 @@
  
      bn = d.getVar('BUILDNAME')
      ########################################################################
-@@ -219,6 +260,9 @@ python run_buildstats () {
+@@ -219,6 +258,7 @@ python run_buildstats () {
                      f.write(x + " ")
              f.write("\n")
              f.write("Build Started: %0.2f \n" % d.getVar('__timedata_build', False)[0])
-+        
-+        # Start collecting process data periodically
 +        collect_process_data(os.path.join(bsdir, "process_data.log"), os.getpid())
  
      elif isinstance(e, bb.event.BuildCompleted):
          build_time = os.path.join(bsdir, "build_stats")
-@@ -241,8 +285,12 @@ python run_buildstats () {
+@@ -241,8 +281,10 @@ python run_buildstats () {
          with open(os.path.join(taskdir, e.task), "a") as f:
              f.write("Event: %s \n" % bb.event.getName(e))
              f.write("Started: %0.2f \n" % e.time)
--
 +        collect_process_data(f"{os.path.join(taskdir, e.task)}_timestamps", os.getpid())
-+        
-+        
+ 
      elif isinstance(e, bb.build.TaskSucceeded):
-+        # Stop collecting process data
 +        stop_collecting_process_data()
          write_task_data("passed", os.path.join(taskdir, e.task), e, d)
          if e.task == "do_rootfs":
              bs = os.path.join(bsdir, "build_stats")
-@@ -268,6 +316,10 @@ python run_buildstats () {
+@@ -268,6 +310,7 @@ python run_buildstats () {
          build_status = os.path.join(bsdir, "build_stats")
          with open(build_status, "a") as f:
              f.write(d.expand("Failed at: ${PF} at task: %s \n" % e.task))
-+        
-+        # Stop collecting process data
 +        stop_collecting_process_data()
-+        
          if bb.utils.to_boolean(d.getVar("BB_LOG_HOST_STAT_ON_FAILURE")):
              write_host_data(os.path.join(bsdir, "host_stats_%s_failure" % e.task), e, d, "failure")
  }
