@@ -24,10 +24,10 @@ class SchedulableTask:
         }
 
     def from_dict(self, d: dict):
-        self.num_id = d["number"]
-        self.pred = d["pred"]
-        self.duration = d["duration"]
-        self.name = d["name"]
-        self.res_cpu = d["res_cpu"]
-        self.res_io = d["res_io"]
-        self.res_net = d["res_net"]
+        self.num_id: int = d["number"]
+        self.pred: list[int] = d["pred"]
+        self.duration: int = d["duration"]
+        self.name: int = d["name"]
+        self.res_cpu: int = d["res_cpu"]
+        self.res_io: int = d["res_io"]
+        self.res_net: int = d["res_net"]

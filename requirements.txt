@@ -4,3 +4,5 @@ pydot==3.0.2
 matplotlib==3.7.5
 plotly==5.24.1
 scipy==1.10.1
+alns==7.0.0
+pyjobshop==0.0.4

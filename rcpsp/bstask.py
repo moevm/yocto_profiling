@@ -108,7 +108,7 @@ class BSTask(dict):
             return 0
         ret = (self.read_bytes + self.write_bytes) / self["elapsed_time"]
         if self["elapsed_time"] < 5:
-            ret = 10 * 2 ** 20
+            ret = min(ret, 10 * 2 ** 20)
         return ret
 
     @property
@@ -128,5 +128,5 @@ class BSTask(dict):
             return 0
         ret = (self["iostat"]["rchar"] + self["iostat"]["wchar"] - self.read_bytes - self.write_bytes - self["iostat"]["cancelled_write_bytes"]) / self["elapsed_time"]
         if self["elapsed_time"] < 10:
-            ret = 10 * 2 ** 20
+            ret = min(ret, 10 * 2 ** 20)
         return ret

@@ -1,17 +1,21 @@
 # Copied from https://github.com/yoctoproject/poky/blob/master/scripts/lib/buildstats.py
+import json
 import os
 import argparse
-from bstask import BSTask
-from task import SchedulableTask
-import json
+from typing import Iterable
+
 import numpy as np
 import networkx as nx
+
+from bstask import BSTask
+from task import SchedulableTask
+
 
 
 PARSE_ALL = False
 
 
-def make_mapping(g: nx.DiGraph, dirpath: str) -> tuple[dict[str, str], dict[str, str]]:
+def make_mapping(g: nx.DiGraph, task_names: Iterable[str]) -> tuple[dict[str, str], dict[str, str]]:
     mapping_from = {}
     mapping_to = {}
 
@@ -19,33 +23,30 @@ def make_mapping(g: nx.DiGraph, dirpath: str) -> tuple[dict[str, str], dict[str,
     for node in g.nodes:
         node_names.add(node)
 
-    for root, dirs, files in os.walk(dirpath):
-        for fname in files:
-            if not fname.startswith("do_"):
-                continue
-            reciept = os.path.basename(root)
-            subtask = fname
-            fullname = reciept + "." + subtask
-            if fullname in mapping_to:
-                continue
-            for i in range(1, len(reciept)):
-                pname = reciept[:-i] + "." + subtask
-                if pname in node_names:
-                    if pname in mapping_from:
-                        print(f"Found duplicate: r={reciept} pname={pname} origin={mapping_from.get(pname)}")
-                    else:
-                        # print(f"New {fullname} -> {pname}")
-                        mapping_to[fullname] = pname
-                        mapping_from[pname] = fullname
-                    break
-            else:
-                print(f"No mapping for {reciept}!")
+    for fullname in task_names:
+        reciept, subtask = fullname.rsplit(".", 1)
+        # subtask = fname
+        # fullname = reciept + "." + subtask
+        if fullname in mapping_to:
+            continue
+        for i in range(1, len(reciept)):
+            pname = reciept[:-i] + "." + subtask
+            if pname in node_names:
+                if pname in mapping_from:
+                    print(f"Found duplicate: r={reciept} pname={pname} origin={mapping_from.get(pname)}")
+                else:
+                    # print(f"New {fullname} -> {pname}")
+                    mapping_to[fullname] = pname
+                    mapping_from[pname] = fullname
+                break
+        else:
+            print(f"No mapping for {reciept}!")
 
     return mapping_to, mapping_from
 
 
 def parse_dir(dirpath: str, bstasks: dict[str, list[BSTask]]):
-    for root, dirs, files in os.walk(dirpath):
+    for root, _, files in os.walk(dirpath):
         for fname in files:
             if not fname.startswith("do_"):
                 continue
@@ -55,6 +56,13 @@ def parse_dir(dirpath: str, bstasks: dict[str, list[BSTask]]):
             else:
                 bstasks[task.name].append(task)
 
+
+def to_sec(t: float) -> int:
+    t = int(t)
+    return t if t > 0 else 1
+
+def to_msec(t: float) -> int:
+    return int(t * 1000)
 
 def main2():
     parser = argparse.ArgumentParser()
@@ -68,22 +76,28 @@ def main2():
         d = os.path.join(args.runs_dir, f"run_{i}")
         parse_dir(os.path.join(d, os.listdir(d)[0]), bs_tasks)
 
+    g = nx.DiGraph(nx.nx_pydot.read_dot(args.graph))
+    task_to_node, node_to_task = make_mapping(g, bs_tasks.keys())
+
     tasks: dict[str, SchedulableTask] = {}
-    for index, (name, bss) in enumerate(bs_tasks.items()):
-        assert len(bss) == args.run_num
+    index_offset = 0
+    for index, node_name in enumerate(nx.topological_sort(g)):
+        task_name = node_to_task.get(node_name)
+        if task_name is None:
+            index_offset += 1
+            continue
+        bss = bs_tasks[task_name]
+        assert len(bss) == args.run_num, f"Found only {len(bss)} BSTask for {task_name}"
         t = SchedulableTask(
-            index,
-            [],
-            np.mean([b["elapsed_time"] for b in bss]),
-            bss[0].name,
-            np.mean([b.proc_time for b in bss]),
-            np.mean([b.io_bytes for b in bss]),
-            np.mean([b.net_bytes for b in bss]),
+            num_id=index - index_offset,
+            pred=[],
+            duration=to_sec(np.mean([b["elapsed_time"] for b in bss])),
+            name=bss[0].name,
+            res_cpu=to_msec(np.max([b.proc_time for b in bss])),
+            res_io=int(np.max([b.io_bytes for b in bss])),
+            res_net=int(np.max([b.net_bytes for b in bss])),
         )
         tasks[t.name] = t
-
-    g = nx.DiGraph(nx.nx_pydot.read_dot(args.graph))
-    task_to_node, node_to_task = make_mapping(g, os.path.join(args.runs_dir, "run_1"))
 
     for task in tasks.values():
         task.pred = [
@@ -92,13 +106,15 @@ def main2():
             if successor in node_to_task
         ]
 
+    print("Parsed", len(tasks), "tasks from", len(g.nodes), "in graph")
+
     with open(args.output, "w") as f:
         json.dump([t.to_dict() for t in tasks.values()], f)
 
 
 def main(dirpath: str):
     tasks: list[BSTask] = []
-    for root, dirs, files in os.walk(dirpath):
+    for root, _, files in os.walk(dirpath):
         for fname in files:
             if not fname.startswith("do_"):
                 continue
