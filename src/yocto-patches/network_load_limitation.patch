@@ -1,5 +1,5 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..e090a468d1 100644
+index ffb2d28494..2d1d48d074 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -187,6 +187,45 @@ class RunQueueScheduler(object):
@@ -41,7 +41,7 @@ index ffb2d28494..e090a468d1 100644
 +    def net_excess(self):
 +        if not hasattr(self, "net_received_pressure") or not hasattr(self, "net_transmitted_pressure"):
 +            return False
-+        if self.net_received_pressure > self.iface_limit_received or self.net_transmitted_pressure > self.iface_limit_transmitted:
++        if self.net_received_pressure < self.iface_limit_received or self.net_transmitted_pressure < self.iface_limit_transmitted:
 +            return False
 +        return True
 +
@@ -76,13 +76,13 @@ index ffb2d28494..e090a468d1 100644
              for tid in self.rqdata.runtaskentries:
                  self.rev_prio_map[tid] = self.prio_map.index(tid)
  
-+        does_not_contain_do_fetch = any("do_fetch" not in task for task in buildable)
++        contain_not_only_do_fetch = any("do_fetch" not in task for task in buildable)
 +        net_excess = self.net_excess()
 +
          best = None
          bestprio = None
          for tid in buildable:
-+            if self.iface_limit and does_not_contain_do_fetch and net_excess:
++            if self.iface_limit and contain_not_only_do_fetch and net_excess:
 +                taskname = taskname_from_tid(tid)
 +                if taskname == "do_fetch":
 +                    continue
