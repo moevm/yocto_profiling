@@ -1,8 +1,14 @@
-diff --git a/meta/lib/oe/buildstats.py b/meta/lib/oe/buildstats.py
-index 1ffe679801..e636635e2c 100644
 --- a/meta/lib/oe/buildstats.py
 +++ b/meta/lib/oe/buildstats.py
-@@ -18,7 +18,8 @@ class SystemStats:
+@@ -10,6 +10,7 @@
+ import time
+ import re
+ import bb.event
++from collections import deque
+ 
+ class SystemStats:
+     def __init__(self, d):
+@@ -18,7 +19,8 @@ class SystemStats:
          bb.utils.mkdirhier(bsdir)
          file_handlers =  [('diskstats', self._reduce_diskstats),
                              ('meminfo', self._reduce_meminfo),
@@ -12,7 +18,7 @@ index 1ffe679801..e636635e2c 100644
  
          # Some hosts like openSUSE have readable /proc/pressure files
          # but throw errors when these files are opened. Catch these error
-@@ -47,7 +48,10 @@ class SystemStats:
+@@ -47,7 +49,10 @@ class SystemStats:
                  # not strictly necessary, but using it makes the class
                  # more robust should two processes ever write
                  # concurrently.
@@ -24,7 +30,7 @@ index 1ffe679801..e636635e2c 100644
                  self.proc_files.append((filename, open(destfile, 'ab'), handler))
          self.monitor_disk = open(os.path.join(bsdir, 'monitor_disk.log'), 'ab')
          # Last time that we sampled /proc data resp. recorded disk monitoring data.
-@@ -72,6 +76,7 @@ class SystemStats:
+@@ -72,6 +77,7 @@ class SystemStats:
          self.stat_ltimes = None
          # Last time we sampled /proc/pressure. All resources stored in a single dict with the key as filename
          self.last_pressure = {"pressure/cpu": None, "pressure/io": None, "pressure/memory": None}
@@ -32,7 +38,7 @@ index 1ffe679801..e636635e2c 100644
  
      def close(self):
          self.monitor_disk.close()
-@@ -93,6 +98,33 @@ class SystemStats:
+@@ -93,6 +99,39 @@ class SystemStats:
                      b' '.join([values[x] for x in
                                 (b'MemTotal', b'MemFree', b'Buffers', b'Cached', b'SwapTotal', b'SwapFree')]) + b'\n')
  
@@ -47,14 +53,20 @@ index 1ffe679801..e636635e2c 100644
 +                receive_bytes = int(parts[1])
 +                transmit_bytes = int(parts[9])
 +            except Exception:
-+                return None
++                continue
 +
-+            if iface in self.net_stats:
-+                receive_diff = receive_bytes - self.net_stats[iface][-1][0]
-+                transmit_diff = transmit_bytes - self.net_stats[iface][-1][1]
-+                self.net_stats[iface].append((receive_bytes, transmit_bytes, receive_diff, transmit_diff))
-+            else:
-+                self.net_stats[iface] = [(receive_bytes, transmit_bytes, 0, 0)]
++            if iface not in self.net_stats:
++                self.net_stats[iface] = deque(maxlen=2)
++                self.net_stats[iface].append((receive_bytes, transmit_bytes, 0, 0))
++            prev = self.net_stats[iface][-1] if self.net_stats[iface] else (0, 0, 0, 0)            
++            receive_diff = receive_bytes - prev[0]
++            transmit_diff = transmit_bytes - prev[1]
++            self.net_stats[iface].append((
++                receive_bytes,
++                transmit_bytes,
++                receive_diff,
++                transmit_diff
++            ))
 +
 +        result_str = "\n".join(
 +            f"{iface}: {net_data[-1][0]} {net_data[-1][1]} {net_data[-1][2]} {net_data[-1][3]}"
