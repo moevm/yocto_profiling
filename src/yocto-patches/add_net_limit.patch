@@ -1,5 +1,3 @@
-diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..f28954dbbc 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -187,6 +187,62 @@ class RunQueueScheduler(object):
@@ -9,7 +7,7 @@ index ffb2d28494..f28954dbbc 100644
 +    def is_net_pressure_usable(self, iface):
 +            try:
 +                with open("/proc/net/dev") as net_pressure_fds:
-+                    self.prev_received_bytes, self.prev_transmitted_bytes = next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line)
++                    self.prev_received_bytes, self.prev_transmitted_bytes = map(float, next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line))
 +                    self.prev_net_pressure_time = time.time()
 +                if not hasattr(self, "prev_received_bytes") or not hasattr(self, "prev_transmitted_bytes"):
 +                    self.iface_limit = None
@@ -20,7 +18,7 @@ index ffb2d28494..f28954dbbc 100644
 +                    bb.note(f"Set num net task before limit = {self.countdown_net_limit}")
 +                except:
 +                    self.countdown_net_limit = 40
-+                    bb.warn(f"Wrong NET_TASKS_BEFORE_LIMIT value! Set default num net task before limit = {self.countdown_net_limit}")
++                    bb.warn(f"Wrong NET_TASKS_BEFORE_LIMIT value! NET_TASKS_BEFORE_LIMIT must be int. Set default num net task before limit = {self.countdown_net_limit}")
 +            except:
 +                bb.note("The /proc/net/dev files can't be read or wrong iface. Continuing build without monitoring pressure")
 +                self.iface_limit = None
@@ -39,8 +37,8 @@ index ffb2d28494..f28954dbbc 100644
 +            curr_received_bytes, curr_transmitted_bytes = map(float, next((line.split()[1], line.split()[9]) for line in net_pressure_fds if iface in line))
 +            now = time.time()
 +            tdiff = now - self.prev_net_pressure_time
-+            self.net_received_pressure = (curr_received_bytes - float(self.prev_received_bytes)) / tdiff
-+            self.net_transmitted_pressure = (curr_transmitted_bytes - float(self.prev_transmitted_bytes)) / tdiff
++            self.net_received_pressure = (curr_received_bytes - self.prev_received_bytes) / tdiff
++            self.net_transmitted_pressure = (curr_transmitted_bytes - self.prev_transmitted_bytes) / tdiff
 +
 +            if tdiff > 1:
 +                self.prev_received_bytes = curr_received_bytes
