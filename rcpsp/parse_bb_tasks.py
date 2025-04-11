@@ -61,8 +61,31 @@ def to_sec(t: float) -> int:
     t = int(t)
     return t if t > 0 else 1
 
+
 def to_msec(t: float) -> int:
     return int(t * 1000)
+
+
+def export_to_json(tasks: dict[str, SchedulableTask], output_name: str):
+    with open(output_name, "w") as f:
+        json.dump([t.to_dict() for t in tasks.values()], f)
+
+
+def export_to_dot(tasks: dict[str, SchedulableTask], output_name: str):
+    g = nx.DiGraph()
+
+    # num_to_name = {}
+
+    for task in tasks.values():
+        g.add_node(str(task.num_id + 1), size=f'"{task.duration}"', alpha='"0"')
+        # num_to_name[task.num_id] = task.name
+
+    for task in tasks.values():
+        for p in task.pred:
+            g.add_edge(str(p + 1), str(task.num_id + 1))
+
+    nx.drawing.nx_pydot.write_dot(g, output_name)
+
 
 def main2():
     parser = argparse.ArgumentParser()
@@ -71,6 +94,7 @@ def main2():
     parser.add_argument("-n", "--run-num", type=int, default=30, help="Number of runs")
     parser.add_argument("-g", "--graph", type=str, required=True, help="Graph from bitbake")
     parser.add_argument("--mean-type", type=str, default="mean", choices=["mean", "max", "min"], help="Type of unifaction several runs")
+    parser.add_argument("--export", type=str, default="json", choices=["json", "dot"], help="Output file type")
     args = parser.parse_args()
     bs_tasks: dict[str, list[BSTask]] = {}
     for i in range(1, args.run_num + 1):
@@ -153,8 +177,10 @@ def main2():
 
     print("Parsed", len(tasks), "tasks from", len(g.nodes), "in graph")
 
-    with open(args.output, "w") as f:
-        json.dump([t.to_dict() for t in tasks.values()], f)
+    if args.export == "json":
+        export_to_json(tasks, args.output)
+    elif args.export == "dot":
+        export_to_dot(tasks, args.output)
 
 
 def main(dirpath: str):
