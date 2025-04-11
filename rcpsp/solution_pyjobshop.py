@@ -87,8 +87,8 @@ class Instance:
         return Instance(
             len(durations),
             len(resources),
+            predecessors,  # Swapped!!!
             successors,
-            predecessors,
             modes,
             resources,
             [True for _ in range(len(resources))]
@@ -114,7 +114,7 @@ for idx in range(instance.num_jobs):
     for succ in instance.successors[idx]:
         model.add_end_before_start(task, tasks[succ])
 
-result = model.solve(time_limit=10 * 60, display=False)
+result = model.solve(time_limit=60, display=False, num_workers=6)
 print(result)
 data = model.data()
 fig, axes = plt.subplots(

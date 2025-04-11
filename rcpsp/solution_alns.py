@@ -74,7 +74,7 @@ class ProblemData:
             data = json.load(f)
 
         cpu_cores = 24
-        max_io = 250  # in MB
+        max_io = 270  # in MB
         max_net = 70  # in MB
         resources = [
             cpu_cores,  # Cores in the system, max parallel tasks
@@ -92,11 +92,14 @@ class ProblemData:
             task.from_dict(d)
             tasks.append(task)
 
-        # tasks = sorted(tasks, key=lambda t: t.num_id)
-        print("Max dur:", max(tasks, key=lambda t: t.duration))
-        print("min dur:", min(tasks, key=lambda t: t.duration))
-        print("Max net:", max(tasks, key=lambda t: t.res_net))
-        print("min net:", min(tasks, key=lambda t: t.res_net))
+        tasks = sorted(tasks, key=lambda t: t.num_id)
+        # print("Max dur:", max(tasks, key=lambda t: t.duration))
+        # print("min dur:", min(tasks, key=lambda t: t.duration))
+        # print("Max net:", max(tasks, key=lambda t: t.res_net))
+        # print("min net:", min(tasks, key=lambda t: t.res_net))
+        print("Max cpu_res", max((t.res_cpu for t in tasks)))
+        print("Max cpu_io", max((t.res_io for t in tasks)) / 2 ** 20)
+        print("Max cpu_net", max((t.res_net for t in tasks)) / 2 ** 20)
         for task in tasks:
             successors.append(task.pred.copy())
             durations.append(task.duration)
@@ -119,15 +122,15 @@ class ProblemData:
             len(durations),
             len(resources),
             np.array(durations),
+            predecessors,  # Swapped with successors!!!
             successors,
-            predecessors,
             np.array(needs),
             np.array(resources),
         )
 
-instance = ProblemData.read_instance("output_max.json")
+instance = ProblemData.read_instance("output.json")
 DELTA = 0.9  # resource utilisation threshold
-ITERS = 100
+ITERS = 200
 
 START_TRESH = 5  # start threshold for RRT
 STEP = 20 / ITERS  # step size for RRT
@@ -292,8 +295,17 @@ def most_mobile_removal(state, rng):
     mobility[[instance.first_job, instance.last_job]] = 0
     p = mobility / mobility.sum()
 
-    for job in rng.choice(instance.num_jobs, Q, replace=False, p=p):
-        state.jobs.remove(job)
+    try:
+        q = Q
+        if Q >= len(p):
+            print(f"Rng failed with {instance.num_jobs}, {Q}, {p}")
+            q = len(p) * 0.5
+        for job in rng.choice(instance.num_jobs, q, replace=False, p=p):
+            state.jobs.remove(job)
+    except ValueError as e:
+        print(f"Rng failed with {instance.num_jobs}, {q}, {len(p)}, {p}")
+        raise e
+        pass
 
     return state
 
@@ -425,5 +437,9 @@ sol = result.best_state
 print(f"Heuristic solution has objective {sol.objective()}.")
 result.plot_objectives()
 sol.plot()
-print(len(sol.unscheduled))
 plt.savefig("alns.png")
+print(sol.unscheduled)
+s, _ = schedule(tuple(sol.jobs))
+
+with open("sched_alns.json", "w") as f:
+    json.dump(s.tolist(), f)

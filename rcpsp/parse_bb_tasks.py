@@ -70,6 +70,7 @@ def main2():
     parser.add_argument("-o", "--output", type=str, default="output.json", help="Output filename")
     parser.add_argument("-n", "--run-num", type=int, default=30, help="Number of runs")
     parser.add_argument("-g", "--graph", type=str, required=True, help="Graph from bitbake")
+    parser.add_argument("--mean-type", type=str, default="mean", choices=["mean", "max", "min"], help="Type of unifaction several runs")
     args = parser.parse_args()
     bs_tasks: dict[str, list[BSTask]] = {}
     for i in range(1, args.run_num + 1):
@@ -79,7 +80,23 @@ def main2():
     g = nx.DiGraph(nx.nx_pydot.read_dot(args.graph))
     task_to_node, node_to_task = make_mapping(g, bs_tasks.keys())
 
+    if args.mean_type == "mean":
+        ufunc = np.mean
+    elif args.mean_type == "max":
+        ufunc = np.max
+    elif args.mean_type == "min":
+        ufunc = np.min
+
     tasks: dict[str, SchedulableTask] = {}
+    tasks["dummy_start"] = SchedulableTask(
+        num_id=0,
+        pred=[],
+        duration=0,
+        name="dummy_start",
+        res_cpu=0,
+        res_io=0,
+        res_net=0,
+    )
     index_offset = 0
     for index, node_name in enumerate(nx.topological_sort(g)):
         task_name = node_to_task.get(node_name)
@@ -89,22 +106,50 @@ def main2():
         bss = bs_tasks[task_name]
         assert len(bss) == args.run_num, f"Found only {len(bss)} BSTask for {task_name}"
         t = SchedulableTask(
-            num_id=index - index_offset,
+            num_id=index - index_offset + 1,
             pred=[],
             duration=to_sec(np.mean([b["elapsed_time"] for b in bss])),
             name=bss[0].name,
-            res_cpu=to_msec(np.max([b.proc_time for b in bss])),
-            res_io=int(np.max([b.io_bytes for b in bss])),
-            res_net=int(np.max([b.net_bytes for b in bss])),
+            res_cpu=to_msec(ufunc([b.proc_time for b in bss])),
+            res_io=int(ufunc([b.io_bytes for b in bss])),
+            res_net=int(ufunc([b.net_bytes for b in bss])),
         )
         tasks[t.name] = t
 
+    last_index = index - index_offset + 2
+    tasks["dummy_end"] = SchedulableTask(
+        num_id=last_index,
+        pred=[],
+        duration=0,
+        name="dummy_end",
+        res_cpu=0,
+        res_io=0,
+        res_net=0,
+    )
+
+    # for n in successors(x): there are edges from x->n
     for task in tasks.values():
+        if task.name in {"dummy_start", "dummy_end"}:
+            continue
         task.pred = [
-            tasks[node_to_task[successor]].num_id
-            for successor in g.successors(task_to_node[task.name])
-            if successor in node_to_task
+            tasks[node_to_task[predcessor]].num_id
+            for predcessor in g.predecessors(task_to_node[task.name])
+            if predcessor in node_to_task
         ]
+
+    for node in g.nodes:
+        if node not in node_to_task:
+            continue
+        if len(list(g.successors(node))) == 0:
+            # No output edges, add edge to the dummy_end
+            tasks["dummy_end"].pred.append(tasks[node_to_task[node]].num_id)
+        if len(list(g.predecessors(node))) == 0:
+            # No input edge, add edge from dummy_start to node
+            tasks[node_to_task[node]].pred.append(tasks["dummy_start"].num_id)
+
+    # print(tasks["dummy_end"])
+    for task in tasks.values():
+        task.pred = sorted(task.pred)
 
     print("Parsed", len(tasks), "tasks from", len(g.nodes), "in graph")
 
