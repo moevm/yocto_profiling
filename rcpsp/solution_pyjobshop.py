@@ -95,7 +95,7 @@ class Instance:
         )
 
 
-instance = Instance.read_instance("output_max.json")
+instance = Instance.read_instance("output.json")
 model = Model()
 
 # It's not necessary to define jobs, but it will add coloring to the plot.
@@ -114,7 +114,7 @@ for idx in range(instance.num_jobs):
     for succ in instance.successors[idx]:
         model.add_end_before_start(task, tasks[succ])
 
-result = model.solve(time_limit=60, display=False, num_workers=6)
+result = model.solve(time_limit=10, display=False, num_workers=6)
 print(result)
 data = model.data()
 fig, axes = plt.subplots(
@@ -127,3 +127,8 @@ plot_task_gantt(result.best, model.data(), ax=axes[0])
 plot_resource_usage(result.best, model.data(), axes=axes[1:])
 
 plt.savefig("pyjobshop.png")
+
+t_order = [t.start for t in result.best.tasks]
+
+with open("sched_pjs.json", "w") as f:
+    json.dump(t_order, f)
