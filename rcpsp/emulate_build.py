@@ -68,14 +68,15 @@ def emulate(tasks: dict[int, SchedulableTask], sched: list[int]) -> float:
     return t
 
 
-def compare_res(run_dir: str, sched, task_file):
+def compare_res(run_dir: str, sched, task_file, emu_origin: bool = False):
     bs_tasks: dict[str, list[BSTask]] = {}
     parse_dir(run_dir, bs_tasks)
 
-    start_time = min((bs["start_time"] for bs in bs_tasks.values()))
-    end_time = max((bs["start_time"] + bs.walltime for bs in bs_tasks.values()))
+    if not emu_origin:
+        start_time = min((bs["start_time"] for bs in bs_tasks.values()))
+        end_time = max((bs["start_time"] + bs.walltime for bs in bs_tasks.values()))
 
-    print("Original time:", end_time - start_time, "s")
+        print("Original time:", end_time - start_time, "s")
 
     with open(task_file, "r") as f:
         data = json.load(f)
@@ -87,15 +88,25 @@ def compare_res(run_dir: str, sched, task_file):
         tasks.append(task)
     tasks: dict[int, SchedulableTask] = {t.num_id: t for t in tasks}
 
-    # Update durations for tasks
-    for task in tasks.values():
-        if task.name in ("dummy_start", "dummy_end"):
-            task.duration = 0
-        else:
-            task.duration = bs_tasks[task.name].walltime
+    if not emu_origin:
+        # Update durations for tasks
+        for task in tasks.values():
+            if task.name in ("dummy_start", "dummy_end"):
+                task.duration = 0
+            else:
+                task.duration = bs_tasks[task.name].walltime
 
+    if emu_origin:
+        # Origin schedule
+        print("**** origin ****")
+        orig_sched = [bs["start_time"] for bs in bs_tasks.values()]
+        t_orig = emulate(tasks, orig_sched)
+        print("**** new ****")
+    else:
+        t_orig = end_time - start_time
+    # New schedule
     t = emulate(tasks, sched)
-    print(t < (end_time - start_time), end_time - start_time - t)
+    print(t < t_orig, t_orig - t)
     print("==============")
 
 
@@ -105,6 +116,7 @@ def main():
     parser.add_argument("--sched", type=str, required=True, help="Path to schedule")
     parser.add_argument("-t", "--tasks", type=str, default="output.json", help="Filename with tasks")
     parser.add_argument("-n", "--run-num", type=int, default=30, help="Number of runs")
+    parser.add_argument("--full-emu", action=argparse.BooleanOptionalAction, default=False, help="Emulate both schedules")
     # parser.add_argument("-n", "--run-num", type=int, default=30, help="Number of runs")
     # parser.add_argument("-g", "--graph", type=str, required=True, help="Graph from bitbake")
     # parser.add_argument("--mean-type", type=str, default="mean", choices=["mean", "max", "min"], help="Type of unifaction several runs")
@@ -116,7 +128,7 @@ def main():
     for i in range(1, args.run_num + 1):
         d = os.path.join(args.runs_dir, f"run_{i}")
         print("=====", i, "=====")
-        compare_res(os.path.join(d, os.listdir(d)[0]), sched, args.tasks)
+        compare_res(os.path.join(d, os.listdir(d)[0]), sched, args.tasks, args.full_emu)
 
 
 if __name__ == "__main__":
