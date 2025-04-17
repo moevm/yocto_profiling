@@ -8,7 +8,7 @@
                 "file": ""
         },
         "add_nvme_support.patch": {
-                "path": "/meta/lib/",
+                "path": "/meta/lib/oe/",
                 "file": "buildstats.py"
         },
         "buildstats_netstat_and_timestamps.patch": {
