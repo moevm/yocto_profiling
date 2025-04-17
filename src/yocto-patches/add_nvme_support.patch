@@ -1,6 +1,8 @@
---- buildstats.py	(revision e665be2ad94b736d5a07395303fd71937c021ee8)
-+++ buildstats.py	(date 1722953453810)
-@@ -66,7 +66,7 @@
+diff --git a/meta/lib/oe/buildstats.py b/meta/lib/oe/buildstats.py
+index 1ffe679801..359ad2a460 100644
+--- a/meta/lib/oe/buildstats.py
++++ b/meta/lib/oe/buildstats.py
+@@ -66,7 +66,7 @@ class SystemStats:
          self.min_seconds = 1.0 - self.tolerance
  
          self.meminfo_regex = re.compile(rb'^(MemTotal|MemFree|Buffers|Cached|SwapTotal|SwapFree):\s*(\d+)')
@@ -9,7 +11,7 @@
          self.diskstats_ltime = None
          self.diskstats_data = None
          self.stat_ltimes = None
-@@ -94,7 +94,7 @@
+@@ -94,7 +94,7 @@ class SystemStats:
                                 (b'MemTotal', b'MemFree', b'Buffers', b'Cached', b'SwapTotal', b'SwapFree')]) + b'\n')
  
      def _diskstats_is_relevant_line(self, linetokens):
