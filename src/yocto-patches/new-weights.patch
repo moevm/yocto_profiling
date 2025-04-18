@@ -1,0 +1,89 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..b02d15a184 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -593,6 +593,66 @@ class RunQueueData:
+ 
+         return msgs
+ 
++    def get_task_children(self, filepath='task-children.txt'):
++        try:
++            with open(filepath, 'r') as file:
++                task_children = {}
++                for line in file:
++                    task_name, children = line.split()
++                    task_children[task_name] = int(children)
++                return task_children
++        except OSError as e:
++            raise e
++
++    def change_weight(self, task_children, current_weight_constant=10, initial_weight_constant=200):
++        weight = {}
++        deps_left = {}
++        task_done = {}
++        passed_tasks = set()
++        not_found = set(self.runtaskentries.keys())
++        parsed_tasks = set()
++        for tid in self.runtaskentries:
++            if not task_children:
++                weight[tid] = 1
++            else:
++                full_task_name = tid.split('/')[-1]
++
++                full_task_name, ttype = full_task_name.rsplit(":", 2)
++                #task_name
++                full_task_name = full_task_name.replace(".bb", "")
++                #full_task_name = full_task_name.replace("-r0:", ".")
++                #full_task_name = full_task_name.replace("_", "-")
++                task_name = full_task_name + "." + ttype
++                #match = re.match(r'([^:]+):([^.]+)', full_task_name)
++                #task_name = match.group(1).split('_')[0] + '.' + match.group(2) if match else ""
++                parsed_tasks.add(task_name)
++
++                if task_name in task_children:
++                    passed_tasks.add(task_name)
++                    not_found.remove(tid)
++                    weight[tid] = task_children[task_name] * (current_weight_constant / initial_weight_constant)
++                else:
++                    weight[tid] = 10
++                '''else:
++                    part1, _, part2 = task_name.rpartition('.')
++                    native_name = f"{part1}-native.{part2}"
++                    x86_name = f"{part1}-x86_64.{part2}"
++                    gcc_name = f"{part1}-14.1.0.{part2}"
++
++                    if native_name in task_children:
++                        weight[tid] = task_children[native_name] * (current_weight_constant / initial_weight_constant)
++                    elif x86_name in task_children:
++                        weight[tid] = task_children[x86_name] * (current_weight_constant / initial_weight_constant)
++                    elif gcc_name in task_children:
++                        weight[tid] = task_children[gcc_name] * (current_weight_constant / initial_weight_constant)
++                    else:
++                        weight[tid] = current_weight_constant / initial_weight_constant'''
++
++            task_done[tid] = False
++            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
++        #raise ValueError(f"RunTaskEntries are: {self.runtaskentries}. TMP: {not_found}. {len(passed_tasks)} are found (not found {len(not_found)}).")
++        return weight, task_done, deps_left
++
+     def calculate_task_weights(self, endpoints):
+         """
+         Calculate a number representing the "weight" of each task. Heavier weighted tasks
+@@ -603,14 +663,10 @@ class RunQueueData:
+         """
+ 
+         numTasks = len(self.runtaskentries)
+-        weight = {}
+-        deps_left = {}
+-        task_done = {}
+ 
+-        for tid in self.runtaskentries:
+-            task_done[tid] = False
+-            weight[tid] = 1
+-            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
++        task_children = self.get_task_children("new-sched.txt")
++        weight, task_done, deps_left = self.change_weight(task_children, 1, 1)
++        return weight
+ 
+         for tid in endpoints:
+             weight[tid] = 10

@@ -35,6 +35,10 @@
 		            "path": "/bitbake/lib/bb/",
 		            "file": "runqueue.py"
 	      },
+      "new-weights.patch": {
+                "path": "/bitbake/lib/bb/",
+                "file": "runqueue.py"
+      },
         "cachefiles.patch": {
                 "path": "/",
                 "file": ""
