@@ -175,6 +175,11 @@ def main2():
     for task in tasks.values():
         task.pred = sorted(task.pred)
 
+    for task in tasks.values():
+        if task.name not in task_to_node:
+            continue
+        task.receipt = g.nodes[task_to_node[task.name]]["label"].rsplit("/")[-1]
+
     print("Parsed", len(tasks), "tasks from", len(g.nodes), "in graph")
 
     if args.export == "json":

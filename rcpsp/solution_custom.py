@@ -61,12 +61,17 @@ def main(path: str):
 
     print("order is", order)
 
-    weights = [order / w for w in weights]
+    # weights = [order / w for w in weights]
     # weights = [random.random() * 1000000 for w in weights]
     # weights = [i for i in range(len(weights))]
 
     with open("sched_custom.json", "w") as f:
         json.dump(weights, f)
+
+    with open("new-sched.txt", "w") as f:
+        for t, w in zip(tasks, weights):
+            name = t.receipt.replace('.bb"', "") + "." + t.name.rsplit(".")[-1]
+            f.write(f"{name} {int(w)}\n")
 
 
 if __name__ == "__main__":

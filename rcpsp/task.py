@@ -11,6 +11,7 @@ class SchedulableTask:
     res_io: int = -1
     res_net: int = -1
     res_parallel: int = 1  # Immutable
+    receipt: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -21,6 +22,7 @@ class SchedulableTask:
             "res_cpu": self.res_cpu,
             "res_io": self.res_io,
             "res_net": self.res_net,
+            "receipt": self.receipt,
         }
 
     def from_dict(self, d: dict):
@@ -31,3 +33,4 @@ class SchedulableTask:
         self.res_cpu: int = d["res_cpu"]
         self.res_io: int = d["res_io"]
         self.res_net: int = d["res_net"]
+        self.receipt: str = d["receipt"]
