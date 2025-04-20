@@ -28,9 +28,9 @@ def main():
     tasks = sorted(tasks, key=lambda t: t.num_id)
     max_t = max(sched_origin)
     order = get_order(max_t)
-    weights = [order / max_t for s in sched_origin]
+    weights = [order / (s + 1) for s in sched_origin]
 
-    with open(sys.argv[3], "w'") as f:
+    with open(sys.argv[3], "w") as f:
         for t, w in zip(tasks, weights):
             name = t.receipt.replace('.bb"', "") + "." + t.name.rsplit(".")[-1]
             f.write(f"{name} {int(w)}\n")
