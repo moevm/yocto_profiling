@@ -26,16 +26,16 @@ git config --global sendemail.smtpEncryption tls
  
 ##  Mailing_lists
 Каждый патч должен относиться к определенному компоненту проекта, а именно:
-    ```python
-    # base paths of main yocto project sub-projects
-    paths = {
-        'oe-core': ['meta-selftest', 'meta-skeleton', 'meta', 'scripts'],
-        'bitbake': ['bitbake'],
-        'documentation': ['documentation'],
-        'poky': ['meta-poky','meta-yocto-bsp'],
-        'oe': ['meta-gpe', 'meta-gnome', 'meta-efl', 'meta-networking', 'meta-multimedia','meta-initramfs', 'meta-ruby', 'contrib', 'meta-xfce', 'meta-filesystems', 'meta-perl', 'meta-webserver', 'meta-systemd', 'meta-oe', 'meta-python']
-        }
-    ```
+```python
+# base paths of main yocto project sub-projects
+paths = {
+    'oe-core': ['meta-selftest', 'meta-skeleton', 'meta', 'scripts'],
+    'bitbake': ['bitbake'],
+    'documentation': ['documentation'],
+    'poky': ['meta-poky','meta-yocto-bsp'],
+    'oe': ['meta-gpe', 'meta-gnome', 'meta-efl', 'meta-networking', 'meta-multimedia','meta-initramfs', 'meta-ruby', 'contrib', 'meta-xfce', 'meta-filesystems', 'meta-perl', 'meta-webserver', 'meta-systemd', 'meta-oe', 'meta-python']
+    }
+```
 Здесь представлены пути, относительно которых можно и нужно патчить изменения. То есть, например, если патч относится к bitbake, то при создании патча необходимо написать следующее: ` git format-patch --relative=bitbake master `.
 
 Затем, при отправке патча необхоидмо указать корректный mailing_list:
