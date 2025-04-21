@@ -1,21 +1,27 @@
-## Тестирование патчей при помощи patchtest
-Шаги по тестированию патчей при помощи утилиты patchtest:
-- 0) Предподготовка
-    - 0.1 Создание патча: чтобы патч возможно было протестировать при помощи patchtest, он должен быть создан при помощи git format-patch:
-        - 0.1.1. Создаете новую ветку от основной в репозитории poky
-        - 0.1.2. Добавляете описание ветки с помощью ` git branch --edit-description ` (это нужно для прохождения какого-то из тестов) 
-        - 0.1.3. В созданной ветке делаете изменения по патчу
-        - 0.1.4. Создаете коммит следующим образом ` git commit --amend -s -m "<commit_message>" ` (какой правильный формат commit_message я пока не поняла)
-        - 0.1.5. Создаете патч при помощи ` git format-patch --relative=<path> <ref-branch> `. После этого у вас создастся файл с патчем
-    - 0.2. Подготовка patchtest 
-        - 0.2.1. Устанавливаем зависимости ` pip install -r meta/lib/patchtest/requirements.txt `
-        - 0.2.2. Настраиваем среду ` source oe-init-build-env `
-        - 0.2.3. Добавляем слой ` bitbake-layers add-layer ../meta-selftest `
-- 1) Запуск тестов
-    - 1.1. Чтобы протестировать патч, вводим команду ` patchtest --patch <patch_name> `, можно указать флаг ` --log-results `, чтобы результаты тестирования залоггировались в файл, 
-    - 1.2. Если необходимо протестировать директорию с патчами, то можно использовать ` patchtest --directory <directory_name> `
+## Настройка smtp и отправка патчей
+1. Необходимо установить зависимости:
+`sudo apt update
+sudo apt install git-email
+`
+2. Необходимо настроить пароль приложения (App Passwords), вы можете создать его в настройках своего аккаунта google/яндекс и т.д.
+3. Необходимо настроить конфигурацию smtp, в поле smtpServer указывайте почтовый провайдер, который вы хотите использовать, а в поля smtpUser и smtpPass соответствующие вашему провайдеру email-адрес и настроенный вами пароль приложения, пример:
+`git config --global sendemail.smtpServer smtp.google.com
+git config --global sendemail.smtpUser yourname@google.com
+git config --global sendemail.smtpPass "<your-app-password>"
+git config --global sendemail.smtpServerPort 587
+git config --global sendemail.smtpEncryption tls`
+4. Далее можно отправлять письмо, простейший пример: ` git send-email --to <mailing-list-address> *.patch `, также вы можете указать кого-то в копию письма при помощи флага ` --cc `: `  git send-email --cc="someone@example.com, another@example.com" --to <mailing-list-address> *.patch `
+5. Важно: обратите внимание, что отправка письма может быть заблокирована, если при создании письма в поле `From: ` указана почта не того провайдера, который настроен в вашей конфигурации smtp. По умолчанию поле ` From: ` заполняется из автора коммита. Для явного обозначения, от какой почты вы хотите отправить письмо, вы можете указать флаг ` --from ` при отправке, пример: ` git send-email --from=<yourname@gmail.com> --to <recipient@gmail.com> `.
+
+
+## Создание патчей в соответствии с требуемым в Yocto форматом
+1. Необходимо создать новую ветку от основной в репозитории poky
+2. В созданной ветке необходимо добавить изменения по патчу
+3. Необходимо создать коммит следующим образом: `git commit -s -m "<shortlog>: <description>" -m "<commit body>"` ИЛИ `git commit -s -m $'<shortlog>:  <description>\n\n<commit body>'`. Данные две команды аналогичны.  Добавление тела коммита является обязательным для прохождения проверки патчей. 
+4. Далее необходимо создать файл патча при помощи ` git format-patch --relative=<path> <ref-branch> `. Для правильной настройки `--relative` см. пункт Mailing_lists
+
  
-## Создание патчей и mailing_lists
+##  Mailing_lists
 Каждый патч должен относиться к определенному компоненту проекта, а именно:
     `
     # base paths of main yocto project sub-projects
@@ -27,7 +33,7 @@
         'oe': ['meta-gpe', 'meta-gnome', 'meta-efl', 'meta-networking', 'meta-multimedia','meta-initramfs', 'meta-ruby', 'contrib', 'meta-xfce', 'meta-filesystems', 'meta-perl', 'meta-webserver', 'meta-systemd', 'meta-oe', 'meta-python']
         }
     `
-Здесь представлены пути, относительно которых можно и нужно патчить изменения. То есть, например, если патч относится к bitbake, то при создании патча (пункт 0.1.5) необходимо написать следующее: ` git format-patch --relative=bitbake master `.
+Здесь представлены пути, относительно которых можно и нужно патчить изменения. То есть, например, если патч относится к bitbake, то при создании патча необходимо написать следующее: ` git format-patch --relative=bitbake master `.
 
 Затем, при отправке патча необхоидмо указать корректный mailing_list:
 ` git send-email --to <mailing-list-address> *.patch `
@@ -37,6 +43,17 @@ Mailing_lists для компонентов:
     - doc: 'yocto@yoctoproject.org'
     - poky: 'poky@yoctoproject.org'
     - oe: 'openembedded-devel@lists.openembedded.org'
+
+
+## Тестирование патчей при помощи patchtest
+Шаги по тестированию патчей при помощи утилиты patchtest:
+1. Подготовка patchtest 
+    1) Устанавливаем зависимости ` pip install -r meta/lib/patchtest/requirements.txt `
+    2) Настраиваем среду ` source oe-init-build-env `
+    3) Добавляем слой ` bitbake-layers add-layer ../meta-selftest `
+2. Запуск тестов
+    1) Чтобы протестировать патч, вводим команду ` patchtest --patch <patch_name> `, можно указать флаг ` --log-results `, чтобы результаты тестирования залоггировались в файл
+    2) Если необходимо протестировать директорию с патчами, то можно использовать ` patchtest --directory <directory_name> `
 
 
 ## Результат проверки патчей при помощи patchtest
