@@ -1,3 +1,6 @@
+MAX_IO_BYTES = 100 * 2 ** 20
+MAX_NET_BYTES = 50 * 2 ** 20
+
 class BSTask(dict):
     def __init__(self, *args, **kwargs):
         self['start_time'] = None
@@ -107,8 +110,9 @@ class BSTask(dict):
         if self["elapsed_time"] == 0:
             return 0
         ret = (self.read_bytes + self.write_bytes) / self["elapsed_time"]
-        if self["elapsed_time"] < 5:
-            ret = min(ret, 10 * 2 ** 20)
+        #if self["elapsed_time"] < 5:
+        #    ret = min(ret, 10 * 2 ** 20)
+        ret = min(ret, MAX_IO_BYTES)
         return ret
 
     @property
@@ -127,6 +131,7 @@ class BSTask(dict):
         if self["elapsed_time"] == 0 or self.name.find("do_fetch") == -1:
             return 0
         ret = (self["iostat"]["rchar"] + self["iostat"]["wchar"] - self.read_bytes - self.write_bytes - self["iostat"]["cancelled_write_bytes"]) / self["elapsed_time"]
-        if self["elapsed_time"] < 10:
-            ret = min(ret, 10 * 2 ** 20)
+        #if self["elapsed_time"] < 10:
+        #    ret = min(ret, 10 * 2 ** 20)
+        ret = min(ret, MAX_NET_BYTES)
         return ret

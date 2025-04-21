@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 import json
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -74,8 +75,8 @@ class ProblemData:
             data = json.load(f)
 
         cpu_cores = 24
-        max_io = 270  # in MB
-        max_net = 70  # in MB
+        max_io = 102  # in MB
+        max_net = 52  # in MB
         resources = [
             cpu_cores,  # Cores in the system, max parallel tasks
             cpu_cores * 1000,  # Max cpu consumption in ms
@@ -128,9 +129,9 @@ class ProblemData:
             np.array(resources),
         )
 
-instance = ProblemData.read_instance("output.json")
+instance = ProblemData.read_instance(sys.argv[1])
 DELTA = 0.9  # resource utilisation threshold
-ITERS = 200
+ITERS = 2000
 
 START_TRESH = 5  # start threshold for RRT
 STEP = 20 / ITERS  # step size for RRT

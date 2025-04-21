@@ -7,6 +7,10 @@ from pyjobshop.plot import plot_resource_usage, plot_task_gantt
 import matplotlib.pyplot as plt
 
 from task import SchedulableTask
+import time
+import sys
+
+print(time.time())
 
 
 class Mode(NamedTuple):
@@ -42,8 +46,8 @@ class Instance:
             data = json.load(f)
 
         cpu_cores = 24
-        max_io = 260  # in MB
-        max_net = 70  # in MB
+        max_io = 102  # in MB
+        max_net = 52  # in MB
         resources = [
             cpu_cores,  # Cores in the system, max parallel tasks
             cpu_cores * 1000,  # Max cpu consumption in ms
@@ -82,7 +86,7 @@ class Instance:
                     print(f"Succ {succ} > pred {len(predecessors)}")
                 predecessors[succ].append(job)
 
-        print(tasks[2164])
+        print(tasks[1077])
 
         return Instance(
             len(durations),
@@ -95,7 +99,7 @@ class Instance:
         )
 
 
-instance = Instance.read_instance("output.json")
+instance = Instance.read_instance(sys.argv[1])
 model = Model()
 
 # It's not necessary to define jobs, but it will add coloring to the plot.
@@ -114,7 +118,7 @@ for idx in range(instance.num_jobs):
     for succ in instance.successors[idx]:
         model.add_end_before_start(task, tasks[succ])
 
-result = model.solve(time_limit=10, display=False, num_workers=6)
+result = model.solve(display=False, num_workers=6)
 print(result)
 data = model.data()
 fig, axes = plt.subplots(
@@ -132,3 +136,4 @@ t_order = [t.start for t in result.best.tasks]
 
 with open("sched_pjs.json", "w") as f:
     json.dump(t_order, f)
+print(time.time())

@@ -14,8 +14,8 @@ index ffb2d28494..754f44c15b 100644
 +                    task_name, children = line.split()
 +                    task_children[task_name] = int(children)
 +                return task_children
-+        except OSError:
-+            return None
++        except OSError as e:
++            raise e
 +
 +    def change_weight(self, task_children, current_weight_constant=10, initial_weight_constant=200):
 +        weight = {}
@@ -66,7 +66,7 @@ index ffb2d28494..754f44c15b 100644
 -            task_done[tid] = False
 -            weight[tid] = 1
 -            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
-+        task_children = self.get_task_children()
++        task_children = self.get_task_children("new-sched.txt")
 +        weight, task_done, deps_left = self.change_weight(task_children)
  
          for tid in endpoints:

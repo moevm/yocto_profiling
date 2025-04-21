@@ -1,8 +1,16 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..b02d15a184 100644
+index ffb2d28494..4b0a3f7154 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -593,6 +593,66 @@ class RunQueueData:
+@@ -192,6 +192,7 @@ class RunQueueScheduler(object):
+         Monitor the difference in total pressure at least once per second, if
+         BB_PRESSURE_MAX_{CPU|IO|MEMORY} are set, return True if above threshold.
+         """
++        return False
+         if self.check_pressure:
+             with open("/proc/pressure/cpu") as cpu_pressure_fds, \
+                 open("/proc/pressure/io") as io_pressure_fds, \
+@@ -593,6 +594,66 @@ class RunQueueData:
  
          return msgs
  
@@ -69,7 +77,7 @@ index ffb2d28494..b02d15a184 100644
      def calculate_task_weights(self, endpoints):
          """
          Calculate a number representing the "weight" of each task. Heavier weighted tasks
-@@ -603,14 +663,10 @@ class RunQueueData:
+@@ -603,14 +664,12 @@ class RunQueueData:
          """
  
          numTasks = len(self.runtaskentries)
@@ -77,12 +85,13 @@ index ffb2d28494..b02d15a184 100644
 -        deps_left = {}
 -        task_done = {}
  
--        for tid in self.runtaskentries:
++        task_children = self.get_task_children("new-sched.txt")
++        weight, task_done, deps_left = self.change_weight(task_children, 1, 1)
+         for tid in self.runtaskentries:
 -            task_done[tid] = False
 -            weight[tid] = 1
 -            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
-+        task_children = self.get_task_children("new-sched.txt")
-+        weight, task_done, deps_left = self.change_weight(task_children, 1, 1)
++            self.runtaskentries[tid].weight = weight[tid]
 +        return weight
  
          for tid in endpoints:

@@ -1,0 +1,55 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..61866ee217 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -22,7 +22,7 @@ from bb import msg, event
+ from bb import monitordisk
+ import subprocess
+ import pickle
+-from multiprocessing import Process
++from multiprocessing import Process, cpu_count
+ import shlex
+ import pprint
+ import time
+@@ -187,11 +187,41 @@ class RunQueueScheduler(object):
+         else:
+             self.check_pressure = False
+ 
++    def get_child_count(self, start_value: str = None):
++        if start_value is None:
++            start_value = os.getpid()
++        t = os.listdir(f"/proc/{start_value}/task/")
++        passed = set()
++        count = 0
++        while len(t) > 0:
++            x = t.pop()
++            if x in passed:
++                continue
++            passed.add(x)
++            try:
++                tt = os.listdir(f"/proc/{x}/task/")
++                t.extend(tt)
++                p = f"/proc/{x}/task/{x}/children"
++                if os.path.exists(p):
++                    with open(p, "r") as f:
++                        childs = f.read().split()
++                else:
++                    childs = []
++                if len(childs) == 0:
++                    count += 1
++                else:
++                    t.extend(childs)
++            except:
++                pass
++        return count
++
+     def exceeds_max_pressure(self):
+         """
+         Monitor the difference in total pressure at least once per second, if
+         BB_PRESSURE_MAX_{CPU|IO|MEMORY} are set, return True if above threshold.
+         """
++        if self.get_child_count() >= cpu_count():
++                return True
+         if self.check_pressure:
+             with open("/proc/pressure/cpu") as cpu_pressure_fds, \
+                 open("/proc/pressure/io") as io_pressure_fds, \

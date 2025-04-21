@@ -25,21 +25,22 @@ function get_count_of_runs() {
 }
 
 function make_task_children_file() {
-  $ENTRYPOINT_DIR/entrypoint.sh clean-build --orig
-  $ENTRYPOINT_DIR/entrypoint.sh clean-docker
-  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
-  $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
-  cd $DOCKERFILE_DIR
-  docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
-  cd - > /dev/null
-  python3 $ANALYSIS_DIR/main.py -g task_children -d $ASSEMBLY_DIR/build/task-depends.dot
+  #$ENTRYPOINT_DIR/entrypoint.sh clean-build --orig
+  #$ENTRYPOINT_DIR/entrypoint.sh clean-docker
+  #$ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+  #$ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
+  #cd $DOCKERFILE_DIR
+  #docker compose run --rm --entrypoint /bin/sh $CONTAINER_NAME -c "source assembly/poky/oe-init-build-env assembly/build/ >/dev/null && bitbake -g core-image-minimal"
+  #cd - > /dev/null
+  #python3 $ANALYSIS_DIR/main.py -g task_children -d $ASSEMBLY_DIR/build/task-depends.dot
+  echo "Doing chidlerens (skipped)"
 }
 
 function prepare_build() {
   $ENTRYPOINT_DIR/entrypoint.sh clean-docker
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
   $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
-  cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
+  #cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
 }
 
 function create_saving_dir() {
@@ -93,11 +94,14 @@ function main() {
 
     $ENTRYPOINT_DIR/entrypoint.sh clean-build
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
-    $ENTRYPOINT_DIR/entrypoint.sh patch add_net_limit.patch add_net_buildstats.patch add_task_children_to_weight.patch
+    #$ENTRYPOINT_DIR/entrypoint.sh patch add_task_children_to_weight.patch
+    $ENTRYPOINT_DIR/entrypoint.sh patch new-weights.patch
 
+    mkdir -p $ASSEMBLY_DIR/build
+    cp $ASSEMBLY_DIR/new-sched.txt $ASSEMBLY_DIR/build/new-sched.txt
 
     start_time=$(date +%s)
-    $ENTRYPOINT_DIR/entrypoint.sh build-yocto
+    $ENTRYPOINT_DIR/entrypoint.sh build-yocto --no-layers
     end_time=$(date +%s)
 
     elapsed_time=$((end_time - start_time))

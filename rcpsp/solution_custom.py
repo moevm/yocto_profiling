@@ -70,8 +70,12 @@ def main(path: str):
 
     with open("new-sched.txt", "w") as f:
         for t, w in zip(tasks, weights):
+<<<<<<< Updated upstream
             name = t.receipt.replace('.bb"', "") + "." + t.name.rsplit(".")[-1]
             f.write(f"{name} {int(w)}\n")
+=======
+            f.write(f"{t.name} {int(w)}\n")
+>>>>>>> Stashed changes
 
 
 if __name__ == "__main__":
