@@ -43,6 +43,10 @@
                 "path": "/bitbake/lib/bb/",
                 "file": "runqueue.py"
       },
+      "weigth-with-limit.patch": {
+                "path": "/bitbake/lib/bb/",
+                "file": "runqueue.py"
+      },
         "cachefiles.patch": {
                 "path": "/",
                 "file": ""

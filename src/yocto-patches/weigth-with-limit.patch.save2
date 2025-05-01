@@ -1,0 +1,167 @@
+diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
+index ffb2d28494..ba339eb6de 100644
+--- a/bitbake/lib/bb/runqueue.py
++++ b/bitbake/lib/bb/runqueue.py
+@@ -234,6 +234,35 @@ class RunQueueScheduler(object):
+             return limit
+         return False
+ 
++    def check_exclusive_task(self):
++        for tid in self.rq.runq_running.difference(self.rq.runq_complete):
++            #if tid in self.rq.runq_complete:
++            #    # Task is completed, skip it
++            #    continue
++            full_task_name = tid.split('/')[-1]
++            full_task_name, ttype = full_task_name.rsplit(":", 2)
++            full_task_name = full_task_name.replace(".bb", "")
++            task_name = full_task_name + "." + ttype
++            if task_name in self.rqdata.exclusive_tasks:
++                #bb.note("Run exclusive")
++                return True
++        return False
++
++    def count_task_types(self):
++        counts = {}
++        if not self.rq.stats.active:
++            return counts
++        for tid in self.rq.runq_running.difference(self.rq.runq_complete):
++            full_task_name = tid.split('/')[-1]
++            full_task_name, ttype = full_task_name.rsplit(":", 2)
++            #if ttype.find("do_fetch") != -1:
++            #    counts["do_fetch"] += 1
++            if ttype not in counts:
++                counts[ttype] = 1
++            else:
++                counts[ttype] += 1
++        return counts
++
+     def next_buildable_task(self):
+         """
+         Return the id of the first task we find that is buildable
+@@ -252,6 +281,12 @@ class RunQueueScheduler(object):
+         if self.rq.stats.active and self.exceeds_max_pressure():
+             return None
+ 
++        #if self.rq.stats.active and self.check_exclusive_task():
++        #    return None
++        #skip_compile = self.rq.stats.active and self.check_exclusive_task()
++        task_counts = self.count_task_types()
++        forb_type = {key: val >= 4 for key, val in task_counts.items()}
++
+         # Filter out tasks that have a max number of threads that have been exceeded
+         skip_buildable = {}
+         for running in self.rq.runq_running.difference(self.rq.runq_complete):
+@@ -283,6 +318,14 @@ class RunQueueScheduler(object):
+         bestprio = None
+         for tid in buildable:
+             prio = self.rev_prio_map[tid]
++            full_task_name = tid.split('/')[-1]
++            full_task_name, ttype = full_task_name.rsplit(":", 2)
++            if forb_type.get(ttype, False):
++                continue
++            #if tid.find("do_fetch") != -1 and task_counts["do_fetch"] >= 4:
++            #    continue
++            #if skip_compile and taskname.find("do_compile") != -1:
++            #    continue
+             if bestprio is None or bestprio > prio:
+                 taskname = taskname_from_tid(tid)
+                 if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
+@@ -465,6 +508,8 @@ class RunQueueData:
+         self.rq = rq
+         self.warn_multi_bb = False
+ 
++        self.exclusive_tasks = set()
++
+         self.multi_provider_allowed = (cfgData.getVar("BB_MULTI_PROVIDER_ALLOWED") or "").split()
+         self.setscene_ignore_tasks = get_setscene_enforce_ignore_tasks(cfgData, targets)
+         self.setscene_ignore_tasks_checked = False
+@@ -593,6 +638,76 @@ class RunQueueData:
+ 
+         return msgs
+ 
++    def get_task_children(self, filepath='task-children.txt'):
++        try:
++            with open(filepath, 'r') as file:
++                task_children = {}
++                for line in file:
++                    vals = line.split()
++                    if len(vals) == 2:
++                        task_name, children = vals
++                        exlusive = 0
++                    else:
++                        task_name, children, exlusive = vals
++                        exlusive = int(exlusive)
++                    #task_name, children = line.split()
++                    task_children[task_name] = int(children)
++                    if exlusive == 1:
++                        self.exclusive_tasks.add(task_name)
++            #raise ValueError(f"Exlc count: {len(self.exclusive_tasks)}")
++            return task_children
++        except OSError as e:
++            raise e
++
++    def change_weight(self, task_children, current_weight_constant=10, initial_weight_constant=200):
++        weight = {}
++        deps_left = {}
++        task_done = {}
++        passed_tasks = set()
++        not_found = set(self.runtaskentries.keys())
++        parsed_tasks = set()
++        for tid in self.runtaskentries:
++            if not task_children:
++                weight[tid] = 1
++            else:
++                full_task_name = tid.split('/')[-1]
++
++                full_task_name, ttype = full_task_name.rsplit(":", 2)
++                #task_name
++                full_task_name = full_task_name.replace(".bb", "")
++                #full_task_name = full_task_name.replace("-r0:", ".")
++                #full_task_name = full_task_name.replace("_", "-")
++                task_name = full_task_name + "." + ttype
++                #match = re.match(r'([^:]+):([^.]+)', full_task_name)
++                #task_name = match.group(1).split('_')[0] + '.' + match.group(2) if match else ""
++                parsed_tasks.add(task_name)
++
++                if task_name in task_children:
++                    passed_tasks.add(task_name)
++                    not_found.remove(tid)
++                    weight[tid] = task_children[task_name] * (current_weight_constant / initial_weight_constant)
++                else:
++                    weight[tid] = 10
++                '''else:
++                    part1, _, part2 = task_name.rpartition('.')
++                    native_name = f"{part1}-native.{part2}"
++                    x86_name = f"{part1}-x86_64.{part2}"
++                    gcc_name = f"{part1}-14.1.0.{part2}"
++
++                    if native_name in task_children:
++                        weight[tid] = task_children[native_name] * (current_weight_constant / initial_weight_constant)
++                    elif x86_name in task_children:
++                        weight[tid] = task_children[x86_name] * (current_weight_constant / initial_weight_constant)
++                    elif gcc_name in task_children:
++                        weight[tid] = task_children[gcc_name] * (current_weight_constant / initial_weight_constant)
++                    else:
++                        weight[tid] = current_weight_constant / initial_weight_constant'''
++
++            task_done[tid] = False
++            deps_left[tid] = len(self.runtaskentries[tid].revdeps)
++        #raise ValueError(f"RunTaskEntries are: {self.runtaskentries}. TMP: {not_found}. {len(passed_tasks)} are found (not found {len(not_found)}).")
++        return weight, task_done, deps_left
++
+     def calculate_task_weights(self, endpoints):
+         """
+         Calculate a number representing the "weight" of each task. Heavier weighted tasks
+@@ -612,6 +727,12 @@ class RunQueueData:
+             weight[tid] = 1
+             deps_left[tid] = len(self.runtaskentries[tid].revdeps)
+ 
++        task_children = self.get_task_children("new-sched.txt")
++        #weight, task_done, deps_left = self.change_weight(task_children, 1, 1)
++        #for tid in self.runtaskentries:
++        #    self.runtaskentries[tid].weight = weight[tid]
++        #return weight
++
+         for tid in endpoints:
+             weight[tid] = 10
+             task_done[tid] = True
