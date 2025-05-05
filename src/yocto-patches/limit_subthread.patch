@@ -1,5 +1,5 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..61866ee217 100644
+index ffb2d28494..98410f5d12 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
 @@ -22,7 +22,7 @@ from bb import msg, event
@@ -48,8 +48,25 @@ index ffb2d28494..61866ee217 100644
          Monitor the difference in total pressure at least once per second, if
          BB_PRESSURE_MAX_{CPU|IO|MEMORY} are set, return True if above threshold.
          """
-+        if self.get_child_count() >= cpu_count():
-+                return True
++        #if self.get_child_count() >= cpu_count():
++        #        return True
          if self.check_pressure:
              with open("/proc/pressure/cpu") as cpu_pressure_fds, \
                  open("/proc/pressure/io") as io_pressure_fds, \
+@@ -279,10 +309,16 @@ class RunQueueScheduler(object):
+             for tid in self.rqdata.runtaskentries:
+                 self.rev_prio_map[tid] = self.prio_map.index(tid)
+ 
++        skip_compile = self.rq.stats.active and self.get_child_count() >= cpu_count()
++
+         best = None
+         bestprio = None
+         for tid in buildable:
+             prio = self.rev_prio_map[tid]
++            full_task_name = tid.split('/')[-1]
++            full_task_name, ttype = full_task_name.rsplit(":", 2)
++            if skip_compile and ttype.find("do_compile") != -1:
++                continue
+             if bestprio is None or bestprio > prio:
+                 taskname = taskname_from_tid(tid)
+                 if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):

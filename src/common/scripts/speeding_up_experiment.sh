@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+#set -e
 
 ENTRYPOINT_DIR=$(git rev-parse --show-toplevel 2> /dev/null)
 if [ -z $ENTRYPOINT_DIR ] || [ "os_profiling" != $(basename -s .git `git config --get remote.origin.url`) ]; then
@@ -13,6 +13,7 @@ CURRENT_DIR=$(dirname "$(realpath $0)")
 BUILDSTATS_DIR=$ASSEMBLY_DIR/build/tmp/buildstats
 SAVE_DIR=$SRC_DIR/buildstats_saves
 SAVING_TIME_FILE=$SAVE_DIR/time.txt
+USE_PATCH=$2
 
 
 function get_count_of_runs() {
@@ -37,9 +38,9 @@ function make_task_children_file() {
 }
 
 function prepare_build() {
-  $ENTRYPOINT_DIR/entrypoint.sh clean-docker
+  #$ENTRYPOINT_DIR/entrypoint.sh clean-docker
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
-  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+  #$ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
   #cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
 }
 
@@ -95,11 +96,21 @@ function main() {
     $ENTRYPOINT_DIR/entrypoint.sh clean-build
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto --only-poky
     #$ENTRYPOINT_DIR/entrypoint.sh patch add_task_children_to_weight.patch
-    $ENTRYPOINT_DIR/entrypoint.sh patch new-weights.patch
+    #$ENTRYPOINT_DIR/entrypoint.sh patch new-weights.patch
+    #$ENTRYPOINT_DIR/entrypoint.sh patch weigth-with-limit.patch
+    $ENTRYPOINT_DIR/entrypoint.sh patch limit_subthread.patch
+    if [ ! -z "$USE_PATCH" ]; then
+	    echo "Using patches"
+	    $ENTRYPOINT_DIR/entrypoint.sh patch limit_subthread.patch
+    else
+	    echo "no patches"
+    fi
+    #exit 2
 
     mkdir -p $ASSEMBLY_DIR/build
     cp $ASSEMBLY_DIR/new-sched.txt $ASSEMBLY_DIR/build/new-sched.txt
 
+    sync
     start_time=$(date +%s)
     $ENTRYPOINT_DIR/entrypoint.sh build-yocto --no-layers
     end_time=$(date +%s)

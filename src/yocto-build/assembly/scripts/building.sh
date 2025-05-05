@@ -5,6 +5,8 @@ FRAGMENT_PATH=$POKY_DIR/meta/recipes-kernel/linux
 YOCTO_REPOSITORY=https://github.com/yoctoproject/poky.git
 
 LOG_FILE=$ASSEMBLY_DIR/logs/building_logs_$TRACING_TOOL.txt
+#IMAGE_NAME="core-image-full-cmdline"
+#IMAGE_NAME="core-image-minimal --runall=fetch"
 IMAGE_NAME="core-image-minimal"
 
 YOCTO_EXIT_CODE=0

@@ -1,8 +1,17 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..850aca2524 100644
+index ffb2d28494..979271c464 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -234,6 +234,42 @@ class RunQueueScheduler(object):
+@@ -163,6 +163,8 @@ class RunQueueScheduler(object):
+ 
+         self.rev_prio_map = None
+         self.is_pressure_usable()
++        self.task_limits = {limit.split(":")[0]:int(limit.split(":")[1]) for limit in (self.rq.cfgData.getVar("BB_MAX_TTYPE_COUNT") or "").split(" ") if limit}
++        #raise ValueError(f"Task limits are {self.task_limits}")
+ 
+     def is_pressure_usable(self):
+         """
+@@ -234,6 +236,43 @@ class RunQueueScheduler(object):
              return limit
          return False
  
@@ -28,7 +37,8 @@ index ffb2d28494..850aca2524 100644
 +        return task_name in self.rqdata.exclusive_tasks
 +
 +    def count_task_types(self):
-+        counts = {"do_compile": 2}
++        #counts = {"do_compile": 2}
++        counts = {}
 +        if not self.rq.stats.active:
 +            return counts
 +        for tid in self.rq.runq_running.difference(self.rq.runq_complete):
@@ -45,21 +55,21 @@ index ffb2d28494..850aca2524 100644
      def next_buildable_task(self):
          """
          Return the id of the first task we find that is buildable
-@@ -252,6 +288,13 @@ class RunQueueScheduler(object):
+@@ -252,6 +291,13 @@ class RunQueueScheduler(object):
          if self.rq.stats.active and self.exceeds_max_pressure():
              return None
  
 +        #if self.rq.stats.active and self.check_exclusive_task():
 +        #    return None
 +        #skip_compile = self.rq.stats.active and self.check_exclusive_task()
-+        task_counts = self.count_task_types()
-+        forb_type = {key: val >= 4 for key, val in task_counts.items()}
++        #task_counts = self.count_task_types()
++        #forb_type = {key: val >= self.task_limits.get(key, 9999) for key, val in task_counts.items()}
 +        #has_excl = self.rq.stats.active and self.check_exclusive_task()
 +
          # Filter out tasks that have a max number of threads that have been exceeded
          skip_buildable = {}
          for running in self.rq.runq_running.difference(self.rq.runq_complete):
-@@ -283,6 +326,16 @@ class RunQueueScheduler(object):
+@@ -283,6 +329,17 @@ class RunQueueScheduler(object):
          bestprio = None
          for tid in buildable:
              prio = self.rev_prio_map[tid]
@@ -67,8 +77,9 @@ index ffb2d28494..850aca2524 100644
 +            #    continue
 +            full_task_name = tid.split('/')[-1]
 +            full_task_name, ttype = full_task_name.rsplit(":", 2)
-+            if forb_type.get(ttype, False):
-+                continue
++            #if forb_type.get(ttype, False):
++                #bb.note(f"Skipping type {ttype} because of limits")
++            #    continue
 +            #if tid.find("do_fetch") != -1 and task_counts["do_fetch"] >= 4:
 +            #    continue
 +            #if skip_compile and taskname.find("do_compile") != -1:
@@ -76,7 +87,7 @@ index ffb2d28494..850aca2524 100644
              if bestprio is None or bestprio > prio:
                  taskname = taskname_from_tid(tid)
                  if taskname in skip_buildable and skip_buildable[taskname] >= int(self.skip_maxthread[taskname]):
-@@ -465,6 +518,8 @@ class RunQueueData:
+@@ -465,6 +522,8 @@ class RunQueueData:
          self.rq = rq
          self.warn_multi_bb = False
  
@@ -85,7 +96,7 @@ index ffb2d28494..850aca2524 100644
          self.multi_provider_allowed = (cfgData.getVar("BB_MULTI_PROVIDER_ALLOWED") or "").split()
          self.setscene_ignore_tasks = get_setscene_enforce_ignore_tasks(cfgData, targets)
          self.setscene_ignore_tasks_checked = False
-@@ -593,6 +648,76 @@ class RunQueueData:
+@@ -593,6 +652,76 @@ class RunQueueData:
  
          return msgs
  
@@ -162,11 +173,11 @@ index ffb2d28494..850aca2524 100644
      def calculate_task_weights(self, endpoints):
          """
          Calculate a number representing the "weight" of each task. Heavier weighted tasks
-@@ -612,6 +737,12 @@ class RunQueueData:
+@@ -612,6 +741,12 @@ class RunQueueData:
              weight[tid] = 1
              deps_left[tid] = len(self.runtaskentries[tid].revdeps)
  
-+        task_children = self.get_task_children("new-sched.txt")
++        #task_children = self.get_task_children("new-sched.txt")
 +        #weight, task_done, deps_left = self.change_weight(task_children, 1, 1)
 +        #for tid in self.runtaskentries:
 +        #    self.runtaskentries[tid].weight = weight[tid]
@@ -175,3 +186,11 @@ index ffb2d28494..850aca2524 100644
          for tid in endpoints:
              weight[tid] = 10
              task_done[tid] = True
+@@ -2043,6 +2178,7 @@ class RunQueueExecute:
+         return valid
+ 
+     def can_start_task(self):
++        return True
+         active = self.stats.active + len(self.sq_live)
+         can_start = active < self.number_tasks
+         return can_start

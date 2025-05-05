@@ -37,4 +37,4 @@ services:
       - ../yocto-patches:/home/yocto_user/project/yocto-patches
       - ./assembly:/home/yocto_user/project/assembly
       - ../conf:/home/yocto_user/project/conf
-
+    #cpuset: '0-11'
