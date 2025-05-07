@@ -40,7 +40,11 @@ function make_task_children_file() {
 function prepare_build() {
   #$ENTRYPOINT_DIR/entrypoint.sh clean-docker
   $ENTRYPOINT_DIR/entrypoint.sh clean-build
+<<<<<<< Updated upstream
   #$ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+=======
+  $ENTRYPOINT_DIR/entrypoint.sh build-env --no-perf
+>>>>>>> Stashed changes
   #cp $ANALYSIS_DIR/dep_graph/text-files/task-children.txt $ASSEMBLY_DIR
 }
 

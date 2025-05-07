@@ -1,8 +1,8 @@
 diff --git a/bitbake/lib/bb/runqueue.py b/bitbake/lib/bb/runqueue.py
-index ffb2d28494..98410f5d12 100644
+index bc7e18175d..be104a63c6 100644
 --- a/bitbake/lib/bb/runqueue.py
 +++ b/bitbake/lib/bb/runqueue.py
-@@ -22,7 +22,7 @@ from bb import msg, event
+@@ -21,10 +21,11 @@ from bb import msg, event
  from bb import monitordisk
  import subprocess
  import pickle
@@ -11,11 +11,27 @@ index ffb2d28494..98410f5d12 100644
  import shlex
  import pprint
  import time
-@@ -187,11 +187,41 @@ class RunQueueScheduler(object):
++import psutil
+ 
+ bblogger = logging.getLogger("BitBake")
+ logger = logging.getLogger("BitBake.RunQueue")
+@@ -185,11 +186,53 @@ class RunQueueScheduler(object):
          else:
              self.check_pressure = False
  
 +    def get_child_count(self, start_value: str = None):
++
++        def is_active_process(p):
++            try:
++                return p.status() == psutil.STATUS_RUNNING
++            except psutil.NoSuchProcess:
++                return False
++
++        cur_p = psutil.Process(os.getpid())
++        with cur_p.oneshot():
++            active_childs = list(filter(lambda x: is_active_process(x), cur_p.children(recursive=True)))
++        return len(active_childs)
++        # === old hand made implemetation ===
 +        if start_value is None:
 +            start_value = os.getpid()
 +        t = os.listdir(f"/proc/{start_value}/task/")
@@ -53,11 +69,23 @@ index ffb2d28494..98410f5d12 100644
          if self.check_pressure:
              with open("/proc/pressure/cpu") as cpu_pressure_fds, \
                  open("/proc/pressure/io") as io_pressure_fds, \
-@@ -279,10 +309,16 @@ class RunQueueScheduler(object):
+@@ -250,6 +293,10 @@ class RunQueueScheduler(object):
+         if self.rq.stats.active and self.exceeds_max_pressure():
+             return None
+ 
++        if self.rq.stats.active and self.get_child_count() >= os.cpu_count() * 0.8:
++            bb.note("Max thread is exceeded, skipping new task")
++            return None
++
+         # Filter out tasks that have a max number of threads that have been exceeded
+         skip_buildable = {}
+         for running in self.rq.runq_running.difference(self.rq.runq_complete):
+@@ -277,10 +324,17 @@ class RunQueueScheduler(object):
              for tid in self.rqdata.runtaskentries:
                  self.rev_prio_map[tid] = self.prio_map.index(tid)
  
-+        skip_compile = self.rq.stats.active and self.get_child_count() >= cpu_count()
++        #skip_compile = self.rq.stats.active and self.get_child_count() >= cpu_count()
++        skip_compile = False
 +
          best = None
          bestprio = None
