@@ -42,5 +42,9 @@
         "compose_indexfile.patch": {
                 "path": "/bitbake/lib/bb/",
                 "file": "runqueue.py"
+        },
+        "network_load_limitation.patch": {
+                "path": "/bitbake/lib/bb/",
+                "file": "runqueue.py"
         }
 }
