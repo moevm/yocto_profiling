@@ -1,74 +1,74 @@
-import os
-import re
 from oeqa.selftest.case import OESelftestTestCase
-from oeqa.utils.commands import runCmd
-
-SERVERS_NUM = 5
-PORT = 9000
-MANIPULATE_CACHE_SCRIPT_PATH = '../../os_profiling/src/experiment/cache_server_setuper/manipulate_cache.sh'
-
-
-def log(msg, filename='./logfile'):
-    with open(filename, 'a') as file:
-        file.write(f'{msg}\n')
-
+from oeqa.utils.httpserver import HTTPService
+import tempfile
+import shutil
+import os
+from pathlib import Path
+import logging
 
 class SstateMirrorsTests(OESelftestTestCase):
+    def setUpLocal(self):
+        self.logger = logging.getLogger("SstateMirrorsTests")
+        self.cache_dir = Path("/path/to/sstate-cache")
+        self.start_port = 9000
+        self.servers_num = 10
+        self.server_processes = []
+        self.server_dirs = []
+        self.server_urls = []
 
-    servers_num = SERVERS_NUM
-    port = PORT
+        self._prepare_servers()
+        self._start_servers()
+        self._set_sstate_mirrors()
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.script_path = MANIPULATE_CACHE_SCRIPT_PATH
-        runCmd(f'sudo {cls.script_path} start {cls.port} {cls.servers_num}')
 
-    @classmethod
-    def tearDownClass(cls):
-        runCmd(f'sudo {cls.script_path} kill')
-        super().tearDownClass()
+    def tearDownLocal(self):
+        for s in self.server_processes:
+            s.stop()
+        for d in self.server_dirs:
+            shutil.rmtree(d)
+    
+    def _set_sstate_mirrors(self):
+        mirrors = ""
+        for i, url in enumerate(self.server_urls):
+            mirrors += (
+                f'file://.* {url}/PATH;downloadfilename=PATH \\\n'
+            )
+        mirrors = mirrors.strip()
+        self.append_config(f'SSTATE_MIRRORS ?= "\\\n{mirrors}"')
 
-    def count_cache_containers(self):
-        result = runCmd("sudo docker ps --format '{{.Names}}'")
-        pattern = re.compile(r'^cache-part-\d+$|^cache-universal$')
-        matched = [name for name in result.output.splitlines() if pattern.match(name)]
-        return len(matched)
+    def _prepare_servers(self):
+        universal_path = self.cache_dir / "universal"
+        if not universal_path.exists():
+            raise RuntimeError("cache_dir must contain a 'universal' folder")
 
-    def configure_sstate_mirrors(self):
-        lines = []
+        other_dirs = [d for d in self.cache_dir.iterdir() if d.is_dir() and d.name != "universal"]
+        num_regular_servers = self.servers_num - 1
+        distributed = [[] for _ in range(num_regular_servers)]
+        for idx, d in enumerate(other_dirs):
+            distributed[idx % num_regular_servers].append(d)
+
         for i in range(self.servers_num):
-            port = self.port + i
-            line = f'file://.* http://localhost:{port}/sstate-cache/PATH;downloadfilename=PATH \\'
-            lines.append(line)
+            tempdir = tempfile.mkdtemp()
+            sstate_dir = Path(tempdir) / "sstate-cache"
+            sstate_dir.mkdir(parents=True)
+            if i == 0:
+                shutil.copytree(universal_path, sstate_dir / "universal", dirs_exist_ok=True)
+            else:
+                for d in distributed[i - 1]:
+                    shutil.copytree(d, sstate_dir / d.name, dirs_exist_ok=True)
+            self.server_dirs.append(tempdir)
 
-        sstate_mirrors = 'SSTATE_MIRRORS ?= "\\\n' + '\n'.join(lines) + '"'
-        self.append_config(sstate_mirrors)
-        return sstate_mirrors
-
-    def parse_sstate_mirrors(self, sstate_mirrors_var):
-        urls = re.findall(r'http://[^;\s]+', sstate_mirrors_var)
-        return [url.replace('/PATH', '/') for url in urls]
-
-    def check_url_accessible(self, url):
-        try:
-            runCmd(f'curl -sSf {url}')
-            return True
-        except Exception as e:
-            log(e)
-            return False
-
-    def test_expected_number_of_cache_containers(self):
-        self.configure_sstate_mirrors()
-        actual_count = self.count_cache_containers()
-        self.assertEqual(actual_count, self.servers_num, f"Expected {self.servers_num} cache containers, found {actual_count}")
+    def _start_servers(self):
+        for i, dir_path in enumerate(self.server_dirs):
+            port = self.start_port + i
+            service = HTTPService(dir_path, port=port, logger=self.logger)
+            service.start()
+            self.server_processes.append(service)
+            self.server_urls.append(f"http://127.0.0.1:{port}/sstate-cache")
 
     def test_mirrors_availability(self):
-        sstate_mirrors = self.parse_sstate_mirrors(self.configure_sstate_mirrors())
-        results = []
-        for mirror in sstate_mirrors:
-            url = mirror[mirror.find("http") : mirror.find('/PATH')] + '/'
-            results.append(self.check_url_accessible(url))
-        self.assertTrue(all(results), msg="One or more mirrors are not accessible\n")
-
-            
+        import urllib.request
+        for url in self.server_urls:
+            index_url = f"{url}/"
+            with urllib.request.urlopen(index_url) as resp:
+                self.assertEqual(resp.status, 200)
