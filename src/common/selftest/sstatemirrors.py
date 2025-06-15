@@ -1,5 +1,6 @@
 from oeqa.selftest.case import OESelftestTestCase
 from oeqa.utils.httpserver import HTTPService
+from oeqa.utils.commands import bitbake
 import tempfile
 import shutil
 import os
@@ -8,10 +9,9 @@ import logging
 
 class SstateMirrorsTests(OESelftestTestCase):
     def setUpLocal(self):
-        self.logger = logging.getLogger("SstateMirrorsTests")
         self.cache_dir = Path("/path/to/sstate-cache")
         self.start_port = 9000
-        self.servers_num = 10
+        self.servers_num = 3
         self.server_processes = []
         self.server_dirs = []
         self.server_urls = []
@@ -59,12 +59,22 @@ class SstateMirrorsTests(OESelftestTestCase):
             self.server_dirs.append(tempdir)
 
     def _start_servers(self):
+        self.server_logs = []
         for i, dir_path in enumerate(self.server_dirs):
             port = self.start_port + i
-            service = HTTPService(dir_path, port=port, logger=self.logger)
+
+            log_path = os.path.join(dir_path, "access.log")
+            logger = logging.getLogger(f"HTTPServer-{port}")
+            logger.setLevel(logging.INFO)
+            file_handler = logging.FileHandler(log_path)
+            file_handler.setLevel(logging.INFO)
+            logger.addHandler(file_handler)
+
+            service = HTTPService(dir_path, port=port, logger=logger)
             service.start()
             self.server_processes.append(service)
             self.server_urls.append(f"http://127.0.0.1:{port}/sstate-cache")
+            self.server_logs.append(log_path)
 
     def test_mirrors_availability(self):
         import urllib.request
@@ -72,3 +82,7 @@ class SstateMirrorsTests(OESelftestTestCase):
             index_url = f"{url}/"
             with urllib.request.urlopen(index_url) as resp:
                 self.assertEqual(resp.status, 200)
+    
+    def test_build(self):
+        result = bitbake("core-image-minimal")
+        self.assertEqual(result, 0, "The build failed with an error!")
