@@ -1,40 +1,57 @@
 from oeqa.selftest.case import OESelftestTestCase
 from oeqa.utils.httpserver import HTTPService
-from oeqa.utils.commands import bitbake
+from oeqa.utils.commands import bitbake, runCmd, CommandError
+import unittest
 import tempfile
 import shutil
 import os
 from pathlib import Path
 import logging
+import time
+import urllib.request
+
+SERVERS_COUNTS = [2, 3]
 
 class SstateMirrorsTests(OESelftestTestCase):
-    def setUpLocal(self):
+    def _start_sstate_servers(self, servers_num: int):
         self.cache_dir = Path("/path/to/sstate-cache")
         self.start_port = 9000
-        self.servers_num = 3
+        self.servers_num = servers_num
         self.server_processes = []
         self.server_dirs = []
         self.server_urls = []
+        self.server_logs = []
 
         self._prepare_servers()
         self._start_servers()
         self._set_sstate_mirrors()
 
-
-    def tearDownLocal(self):
+    def _stop_sstate_servers(self):
         for s in self.server_processes:
             s.stop()
         for d in self.server_dirs:
             shutil.rmtree(d)
-    
-    def _set_sstate_mirrors(self):
-        mirrors = ""
-        for i, url in enumerate(self.server_urls):
-            mirrors += (
-                f'file://.* {url}/PATH;downloadfilename=PATH \\\n'
-            )
-        mirrors = mirrors.strip()
-        self.append_config(f'SSTATE_MIRRORS ?= "\\\n{mirrors}"')
+
+    def _clear_sstate_cache(self):
+        tmp_cache = Path(self.builddir) / "tmp"
+        if tmp_cache.exists():
+            shutil.rmtree(tmp_cache)
+
+    def _exit_test(self):
+        self._stop_sstate_servers()
+        self.fail(f'Command failed to execute\n')
+
+    def _run_build_and_measure(self) -> float:
+        start = time.time()
+       
+        try:
+            result = bitbake("core-image-minimal", ignore_status=True)
+        except CommandError as e:
+            self._exit_test()
+        if result.status:
+            self._exit_test()
+        duration = time.time() - start
+        return duration
 
     def _prepare_servers(self):
         universal_path = self.cache_dir / "universal"
@@ -59,10 +76,8 @@ class SstateMirrorsTests(OESelftestTestCase):
             self.server_dirs.append(tempdir)
 
     def _start_servers(self):
-        self.server_logs = []
         for i, dir_path in enumerate(self.server_dirs):
             port = self.start_port + i
-
             log_path = os.path.join(dir_path, "access.log")
             logger = logging.getLogger(f"HTTPServer-{port}")
             logger.setLevel(logging.INFO)
@@ -76,13 +91,30 @@ class SstateMirrorsTests(OESelftestTestCase):
             self.server_urls.append(f"http://127.0.0.1:{port}/sstate-cache")
             self.server_logs.append(log_path)
 
-    def test_mirrors_availability(self):
-        import urllib.request
+    def _set_sstate_mirrors(self):
+        mirrors = ""
         for url in self.server_urls:
-            index_url = f"{url}/"
-            with urllib.request.urlopen(index_url) as resp:
-                self.assertEqual(resp.status, 200)
-    
-    def test_build(self):
-        result = bitbake("core-image-minimal")
-        self.assertEqual(result, 0, "The build failed with an error!")
+            mirrors += f'file://.* {url}/PATH;downloadfilename=PATH \\\n'
+        mirrors = mirrors.strip()
+        self.append_config(f'SSTATE_MIRRORS ?= "\\\n{mirrors}"')
+
+    def test_build_time_increases_with_more_mirrors(self):
+        timings = []
+
+        for mirrors in SERVERS_COUNTS:  
+            print(f"\n>>> Starting build with {mirrors} mirror(s)")
+            self._start_sstate_servers(servers_num=mirrors)
+            self._clear_sstate_cache()
+
+            build_time = self._run_build_and_measure()
+            timings.append(build_time)
+
+            print(f"<<< Build with {mirrors} mirror(s) took {build_time:.2f} seconds")
+            self._stop_sstate_servers()
+
+        print("\n=== Build timings by number of mirrors ===")
+        for i, duration in enumerate(timings):
+            print(f"{SERVERS_COUNTS[i]} mirror(s): {duration:.2f} seconds")
+
+        self.assertTrue(all(map(lambda i: timings[i] < timings[i + 1], range(len(timings) - 1))), 
+                           "Expected longer build time with more mirrors")
