@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 
 def draw(dotfilename):
     graph = nx.DiGraph(nx.nx_pydot.read_dot(dotfilename))
-    # Визуализация графа
+    # Graph visualization
     pos = nx.spring_layout(graph)
     edge_x, edge_y = [], []
     for edge in graph.edges():

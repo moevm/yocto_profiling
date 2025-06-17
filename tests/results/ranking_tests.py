@@ -22,25 +22,25 @@ class RankingTest(unittest.TestCase):
                         'package2': {'do_compile': {"PID": 4}, 'do_fetch': {"PID": 5}, 'do_install': {"PID": 6}},
                         'package3': {'do_compile': {"PID": 7}, 'do_fetch': {"PID": 8}, 'do_install': {"PID": 9}}}
 
-    def test1(self): #базовый тест
+    def test1(self): # basic test
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_compile', metric='Elapsed time')[0], ('package3', 7, 28))
 
-    def test2(self): #теперь ранжируем по другой метрике
+    def test2(self): # now let's rank by a different metric
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_compile', metric='utime')[0], ('package2', 4, 24))
 
-    def test3(self): #теперь ранжируем по другой задаче
+    def test3(self): # now let's rank by a different task.
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_fetch', metric='Elapsed time')[0], ('package2', 5, 545))
 
-    def test4(self): #ранжируем по возрастанию
+    def test4(self): # rank in ascending order
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_compile', metric='Elapsed time', reverse=False)[0], ('package1', 1, 1))
     
-    def test5(self): #при попытке ранжирования пустых данных получаем пустой список
+    def test5(self): # when attempting to rank empty data, we get an empty list.
         self.assertEqual(ranking_task_info({}, {}, 'do_compile', metric='Elapsed time'), [])
 
-    def test6(self): #при попытке ранжирования по несуществующей в статистике задаче получаем пустой список
+    def test6(self): # when attempting to rank by a task that does not exist in the statistics, we get an empty list.
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_build', metric='Elapsed time'), [])
 
-    def test7(self): #при попытке ранжирования по несуществующей метрике получаем пустой список
+    def test7(self): # when attempting to rank by a non-existent metric, we get an empty list.
         self.assertEqual(ranking_task_info(self.info, self.pid_info, 'do_compile', metric='ABCDEF'), [])
 
     

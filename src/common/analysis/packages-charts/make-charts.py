@@ -8,7 +8,7 @@ def create_fs_tree(path):
 
 
 def create_chart(tree, timestamp_list):
-    metrics = ['utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'rusage ru_utime', 'rusage ru_stime', 'rusage ru_maxrss', 'Child rusage ru_utime', 'Child rusage ru_stime'] #можно что-то добавить
+    metrics = ['utime', 'stime', 'cutime', 'cstime', 'IO rchar', 'IO wchar', 'rusage ru_utime', 'rusage ru_stime', 'rusage ru_maxrss', 'Child rusage ru_utime', 'Child rusage ru_stime'] # you can add other metrics
     num_metrics = len(metrics)
     
     for i in range(num_metrics):

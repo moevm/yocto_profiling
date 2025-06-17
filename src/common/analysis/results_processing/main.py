@@ -128,7 +128,7 @@ if __name__ == "__main__":
     plot_charts('Dependency of time on the number of servers', 'Build time, s', 'servers num', True,
                 chart_data_before, chart_data_after)
 
-    # Таблица с результатами
+    # Table with results
     # df = pd.DataFrame(avg_results_after)
     # df = df.T
     # df.insert(0, 'servers num', range(2, 54))
