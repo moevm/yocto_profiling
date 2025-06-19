@@ -1,5 +1,5 @@
 diff --git a/bitbake/lib/bb/cache.py b/bitbake/lib/bb/cache.py
-index ec7b023fc7..b4d501105f 100644
+index ec7b023fc7..d5eeb95a9b 100644
 --- a/bitbake/lib/bb/cache.py
 +++ b/bitbake/lib/bb/cache.py
 @@ -17,6 +17,7 @@
@@ -10,7 +10,15 @@ index ec7b023fc7..b4d501105f 100644
  import logging
  import pickle
  from collections import defaultdict
-@@ -515,6 +516,7 @@ class Cache(object):
+@@ -405,6 +406,7 @@ class Cache(object):
+         self.cacheclean = True
+         self.data_hash = data_hash
+         self.filelist_regex = re.compile(r'(?:(?<=:True)|(?<=:False))\s+')
++        self.log_filename = 'recipe_parsing_time.log'
+ 
+         if self.cachedir in [None, '']:
+             bb.fatal("Please ensure CACHE is set to the cache directory for BitBake to use")
+@@ -515,6 +517,7 @@ class Cache(object):
      def parse(self, filename, appends, layername):
          """Parse the specified filename, returning the recipe information"""
          self.logger.debug("Parsing %s", filename)
@@ -18,15 +26,18 @@ index ec7b023fc7..b4d501105f 100644
          infos = []
          datastores = self.databuilder.parseRecipeVariants(filename, appends, mc=self.mc, layername=layername)
          depends = []
-@@ -536,6 +538,8 @@ class Cache(object):
+@@ -535,7 +538,9 @@ class Cache(object):
+                 info = cache_class(filename, data)
                  info_array.append(info)
              infos.append((virtualfn, info_array))
- 
+-
 +        end_time = time.time()
-+        self.log_file.write(f'{filename}: {end_time - start_time:.2f} seconds\n')
++        with open(self.log_filename, 'a') as f:
++            f.write(f'{filename}: {end_time - start_time:.2f} seconds\n')
          return infos
  
      def loadCached(self, filename, appends):
+
 diff --git a/create_parsing_info.py b/create_parsing_info.py
 new file mode 100644
 index 0000000000..67eb5439e0
