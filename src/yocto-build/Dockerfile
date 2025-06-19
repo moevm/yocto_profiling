@@ -1,7 +1,7 @@
 ARG REQS_ARG=perf
 
 
-FROM ubuntu:20.04 AS requirements
+FROM ubuntu:22.04 AS requirements
 
 ARG UID
 ARG GID

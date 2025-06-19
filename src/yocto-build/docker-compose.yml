@@ -24,7 +24,7 @@ services:
       - POKY_DIR=/home/yocto_user/project/assembly/poky
       - PATCHES_DIR=/home/yocto_user/project/yocto-patches
       - STAGE_VAR
-      - YOCTO_COMMIT_HASH=59db27de565fb33f9e4326e76ebd6fa3935557b9
+      - YOCTO_COMMIT_HASH=7733ddf733b883d6fe75768d5f9b6d3519d47dc3
       - BRANCH_NAME=my-upstream_5.0.1
       - TRACING_TOOL
       - TRACING_OPTIONS
