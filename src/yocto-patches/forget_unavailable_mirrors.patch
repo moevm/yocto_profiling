@@ -1,0 +1,35 @@
+diff --git a/bitbake/lib/bb/fetch2/wget.py b/bitbake/lib/bb/fetch2/wget.py
+index 198426065b..0892189b6e 100644
+--- a/bitbake/lib/bb/fetch2/wget.py
++++ b/bitbake/lib/bb/fetch2/wget.py
+@@ -406,6 +406,30 @@ class Wget(FetchMethod):
+                 with opener.open(r, timeout=100) as response:
+                     pass
+             except (urllib.error.URLError, ConnectionResetError, TimeoutError) as e:
++                # try to forget unavailable mirror 
++                if e.code == 503:
++                    # debug log
++                    with open("/home/konstantin/loggggg", "a") as f:
++                        st = f'before! \n except {e}\n parts.scheme = {parts.scheme}\n parts.netloc = {parts.netloc}\n parts.path = {parts.path} \n parts = {parts} \n code = {e.code} \n ud.url = {ud.url} \n d.getVar(SSTATE_MIRRORS) = {d.getVar("SSTATE_MIRRORS") } \n \n \n \n'
++                        f.write(st)
++                    mirrors = d.getVar("SSTATE_MIRRORS") or ""
++                    target_mirror = f"{parts.scheme}://{parts.netloc}"
++                    mirrors_list = mirrors.split()
++                    i = 0
++                    while i < len(mirrors_list) - 1:
++                        if target_mirror in mirrors_list[i+1]:
++                            del mirrors_list[i:i+2]
++                        else:
++                            i += 2
++
++                    updated_mirrors = " ".join(mirrors_list)
++                    d.setVar("SSTATE_MIRRORS", updated_mirrors)
++                    # debug log
++                    with open("/home/konstantin/loggggg", "a") as f:
++                        st = f'after! \n except {e}\n parts.scheme = {parts.scheme}\n parts.netloc = {parts.netloc}\n parts.path = {parts.path} \n parts = {parts} \n code = {e.code} \n ud.url = {ud.url} \n d.getVar(SSTATE_MIRRORS) = {d.getVar("SSTATE_MIRRORS") } \n \n \n \n'
++                        f.write(st)
++
++
+                 if try_again:
+                     logger.debug2("checkstatus: trying again")
+                     return self.checkstatus(fetch, ud, d, False)
