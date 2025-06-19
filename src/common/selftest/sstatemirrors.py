@@ -99,6 +99,7 @@ class SstateMirrorsTests(OESelftestTestCase):
         self.append_config(f'SSTATE_MIRRORS ?= "\\\n{mirrors}"')
 
     def test_build_time_increases_with_more_mirrors(self):
+        self.append_config('SANITY_TESTED_DISTROS = ""')
         timings = []
 
         for mirrors in SERVERS_COUNTS:  
