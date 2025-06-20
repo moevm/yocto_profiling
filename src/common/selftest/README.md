@@ -4,7 +4,6 @@
   - в поле `self.cache_dir` путь до папки с `sstate-cache`, данный кэш будет распределяться по серверам
   - в поле `self.start_port` порт, с которого будут запускатсья сервера (то есть заняты будут порты с `self.start_port` до `self.start_port + <текущее_количество_серверов>`.
 2. Файл `sstatemirrors.py` кладем в `poky/meta/lib/oeqa/selftest/cases`.
-3. Для запуска `oe-selftest` необходимо в файле `poky/build/local.conf` добавить строчку: `SANITY_TESTED_DISTROS=""` (это верно для запуска всех oe-selftest, не только для кастомных).
-4. Из директории `poky` запускаем:
-  - `source ./oe-init-build-env`
+3. Из директории `poky` запускаем:
+  - `source ./oe-init-build-env`. После этого для запуска `oe-selftest` необходимо в файле `poky/build/local.conf` добавить строчку: `SANITY_TESTED_DISTROS=""` (это верно для запуска всех oe-selftest, не только для кастомных).
   - `oe-selftest -r sstatemirrors`. Флаг `-r` нужен для запуска тестов, также можно указать флаг `-K` чтобы после тестов сохранилась рабочая директория `build-st` (генерируется во время работы тестов на одном уровне с `build`), ее содержимое схоже с содержимым директории `build`, только `build` использутся для сборок, а `build-st` для тестов. 
