@@ -1,5 +1,7 @@
---- /bitbake/lib/bb/cache.py	2024-06-25 12:55:14.927976130 +0300
-+++ /bitbake/lib/bb/cache.py	2024-06-25 13:20:16.011004514 +0300
+diff --git a/bitbake/lib/bb/cache.py b/bitbake/lib/bb/cache.py
+index ec7b023fc7..d5eeb95a9b 100644
+--- a/bitbake/lib/bb/cache.py
++++ b/bitbake/lib/bb/cache.py
 @@ -17,6 +17,7 @@
  #
  
@@ -8,15 +10,15 @@
  import logging
  import pickle
  from collections import defaultdict
-@@ -405,6 +406,7 @@
+@@ -405,6 +406,7 @@ class Cache(object):
          self.cacheclean = True
          self.data_hash = data_hash
          self.filelist_regex = re.compile(r'(?:(?<=:True)|(?<=:False))\s+')
-+        self.log_file = open('recipe_parsing_time.log', 'a')
++        self.log_filename = 'recipe_parsing_time.log'
  
          if self.cachedir in [None, '']:
              bb.fatal("Please ensure CACHE is set to the cache directory for BitBake to use")
-@@ -515,6 +517,7 @@
+@@ -515,6 +517,7 @@ class Cache(object):
      def parse(self, filename, appends, layername):
          """Parse the specified filename, returning the recipe information"""
          self.logger.debug("Parsing %s", filename)
@@ -24,18 +26,23 @@
          infos = []
          datastores = self.databuilder.parseRecipeVariants(filename, appends, mc=self.mc, layername=layername)
          depends = []
-@@ -535,7 +538,8 @@
+@@ -535,7 +538,9 @@ class Cache(object):
                  info = cache_class(filename, data)
                  info_array.append(info)
              infos.append((virtualfn, info_array))
 -
 +        end_time = time.time()
-+        self.log_file.write(f'{filename}: {end_time - start_time:.2f} seconds\n')
++        with open(self.log_filename, 'a') as f:
++            f.write(f'{filename}: {end_time - start_time:.2f} seconds\n')
          return infos
  
      def loadCached(self, filename, appends):
---- /create_parsing_info.py	1970-01-01 03:00:00.000000000 +0300
-+++ /create_parsing_info.py	2024-06-25 13:21:20.616528879 +0300
+
+diff --git a/create_parsing_info.py b/create_parsing_info.py
+new file mode 100644
+index 0000000000..67eb5439e0
+--- /dev/null
++++ b/create_parsing_info.py
 @@ -0,0 +1,37 @@
 +def parse_recipe_times(file_path):
 +    layer_times = {}
