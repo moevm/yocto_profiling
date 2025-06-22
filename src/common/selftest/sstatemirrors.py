@@ -62,8 +62,6 @@ BB_HASHSERVE_UPSTREAM = "{self.HASH_SERVER_IP}:{self.HASH_SERVER_PORT}"
         if hasattr(self, 'hashserv_process'):
             self.hashserv_process.terminate()
             self.hashserv_process.wait()
-        if hasattr(self, 'hashserv_dir'):
-            shutil.rmtree(self.hashserv_dir)
 
     def _start_sstate_servers(self, servers_num: int):
         self.servers_num = servers_num
