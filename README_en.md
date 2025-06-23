@@ -1,3 +1,5 @@
+[Russian](README.md) | [English](README_en.md)
+
 # **Instructions**
 > The image will require at least 90Gb of memory. The build process will take over 2 hours (depending on allocated resources).
 
