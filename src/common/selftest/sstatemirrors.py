@@ -72,8 +72,23 @@ BB_HASHSERVE_UPSTREAM = "{self.HASH_SERVER_IP}:{self.HASH_SERVER_PORT}"
     def _stop_sstate_servers(self):
         for s in self.server_processes:
             s.stop()
+
+        for i, log_path in enumerate(self.server_logs):
+            port = self.HTTP_START_PORT + i
+            logger_name = f"HTTPServer-{port}"
+            logger = logging.getLogger(logger_name)
+            handlers = logger.handlers[:]
+            for handler in handlers:
+                handler.close()
+                logger.removeHandler(handler)
+
         for d in self.server_dirs:
             shutil.rmtree(d)
+
+        self.server_processes = []
+        self.server_dirs = []
+        self.server_urls = []
+        self.server_logs = []
 
     def _clear_sstate_cache(self):
         tmp_cache = Path(self.builddir) / "tmp"
