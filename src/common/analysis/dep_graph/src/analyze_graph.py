@@ -10,7 +10,7 @@ def analyze_graph(dotfilename, info, create_txt=False):
     G = nx.DiGraph(nx.nx_pydot.read_dot(dotfilename))
     sorted_tasks = sort_start_time(info)
     sorted_nodes = []
-    for node in G.nodes:  #для каждой вершины найти соответствующий ей индекс в sorted_tasks
+    for node in G.nodes:  # for each node, find the corresponding index in sorted_tasks
         index, start, end = match(node, sorted_tasks)
         sorted_nodes.append((index, node, start, end))
 

@@ -24,7 +24,7 @@ index 0649e40995..7b60f009c8 100644
 +                elif scheme == 'ftps':
 +                    return 990
 +                else:
-+                    return 8888 # TODO:  выбрать какое-то дефолтное значение
++                    return 8888 # TODO:  choose some default value
 +
 +            async def is_port_open(address, port, timeout=5):
 +                try:

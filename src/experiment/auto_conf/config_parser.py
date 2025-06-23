@@ -65,7 +65,7 @@ def print_config(file_name:str):
 if __name__ == '__main__':
 
     '''
-    примеры использования функций
+    Examples of function usage.
     '''
     print_config('experiment.conf')
 

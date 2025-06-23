@@ -173,7 +173,7 @@ cd $CURRENT_DIR
 mkdir -p $RESULTS_DIR
 for (( i=2; i<$max_servers; i+=$step ))
 do
-	# подъём серверов
+	# servers startup
  	ssh $hash_usr@$hash_ip "cd $HASH_SERVER_SETUPER_DIR && ./run_hash_container.sh $hash_port" 2> /dev/null
 	echo -e "\n\nHash server started at $hash_ip:$hash_port"
  

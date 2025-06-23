@@ -31,7 +31,7 @@ def create_parser_args():
 
 
 class Parser:
-    def __init__(self, poky_path):  # добавляем информацию о pid
+    def __init__(self, poky_path):  # adding information about the PID
         self.info = {}
         self.timeline = {}
         self.queue = {}
@@ -93,7 +93,7 @@ class Parser:
         if task_type and task_type not in target_info[pkg_name]:
             target_info[pkg_name].update({task_type: {}})
 
-    def get_data_from_buildstats(self, path):  # путь до buildstats/<timestamp>
+    def get_data_from_buildstats(self, path):  # path to buildstats/<timestamp>
         for log_file in log_files_iterator(path):
             timeline_files = ['reduced_proc_stat.log', 'reduced_proc_meminfo.log', 'reduced_proc_diskstats.log', 'monitor_disk.log']
             if os.path.basename(log_file) in timeline_files:
@@ -105,8 +105,8 @@ class Parser:
                     self.parse_buildstats_file(log_file)
 
 
-    # при итерировании по папкам вызываем метод add_package_info, подавая путь до файлов "do_*"
-    # парсинг данных из build/tmp/buildstats/<временная метка>/<имя пакета>/<имя файла>
+    # when iterating through folders, call the add_package_info method, passing the path to the "do_*" files
+    # parsing data from build/tmp/buildstats/<timestamp>/<package name>/<file name>
     def parse_buildstats_file(self, path):
         ignore_list = ['Event', 'Status']
         pkg_name, task_type = '', ''
@@ -170,7 +170,7 @@ class Parser:
                     data = [package_name]
                     for metric in metrics:
                         data.append(self.info.get(package_name).get(task_type).get(metric, 'None'))
-                    file.write((', '.join(data)) + '\n')  # для вызова нужны данные со всех пакетов
+                    file.write((', '.join(data)) + '\n')  # Data from all packages is needed for the call
 
 
     def write_data_about_package(self, pkg_name, metrics=None):
@@ -190,7 +190,7 @@ class Parser:
             self.write_data_about_package(pkg_name)
 
 
-def main():  # пример
+def main():  # example
     args = create_parser_args()
     timestamp = ''
     timestamp_list = []

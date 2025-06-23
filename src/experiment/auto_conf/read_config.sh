@@ -5,7 +5,7 @@ function process_config() {
     exit 1
     fi    
 
-    # Чтобы работать с одним файлом и в python и в bash сделаем костыль - временный файл, в котором преведен python синтаксис конфиг файлам к bash конфиг файлам
+    # To work with a single file in both Python and Bash, we'll make a workaround — a temporary file where Python syntax config files are converted to Bash config files
     cp "$1" temp_config.sh
 
     sed -i '/^\[.*\]$/d' temp_config.sh
@@ -17,5 +17,5 @@ function process_config() {
     rm temp_config.sh
 }
 
-# Экспортируем функцию
+# Export the function
 export -f process_config

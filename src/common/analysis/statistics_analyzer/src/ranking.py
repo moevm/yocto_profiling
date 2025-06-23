@@ -1,10 +1,13 @@
 import math
 from .parsing import all_tasks
 
-# Пока reverse=True, "в начале" будут пакеты с большей затратой ресурсов.
-# Можем ранжировать по любой метрике, по умолчанию ранжируется по времени выполнения задачи.
-# border - доля данных, которая нас интересует, т.е. если border=1, то это все имеющиеся данные,
-# например, если reverse=True и border=0.1, то найдем 10% самых затратных пакетов по этой задаче
+
+"""
+While reverse=True, the "beginning" will be packets with higher resource consumption.
+We can rank by any metric; by default, ranking is done by task execution time.
+border is the portion of data we are interested in, i.e., if border=1, that means all available data.
+For example, if reverse=True and border=0.1, we will find the top 10% most resource-consuming packets for this task.
+"""
 def ranking_task_info(info, task, metric='Elapsed time', border=1, reverse=True):
     task_info = []
     for package in info:

@@ -35,7 +35,7 @@ cd poky
 git apply async_filter_with_time.patch
 
 
-# В патче изменяются два файл - один замеряет время, а второй реализует функционал. Чтобы измерить исходную ситуацию - используем строку ниже 
+# Two files are changed in the patch — one measures time, and the other implements functionality. To measure the initial situation, we use the line below.
 git restore bitbake/lib/bb/cookerdata.py
 
 
@@ -94,7 +94,7 @@ done
 
 
 
-# ### Если нужно применить патч ###
+# ### If you need to apply the patch ###
 # cp -f async_filter_with_time.patch ./poky/
 # cd poky 
 # git apply async_filter_with_time.patch
