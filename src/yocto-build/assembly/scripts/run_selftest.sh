@@ -3,6 +3,8 @@
 CONF_FILE=./conf/local.conf
 LINE='SANITY_TESTED_DISTROS=""'
 
+cp ./selftest/sstatemirrors.py $POKY_DIR/meta/lib/oeqa/selftest/cases/sstatemirrors.py
+
 source "$POKY_DIR/oe-init-build-env"
 if grep -q "^SANITY_TESTED_DISTROS" "$CONF_FILE"; then
     sed -i "s|^SANITY_TESTED_DISTROS.*|$LINE|" "$CONF_FILE"
