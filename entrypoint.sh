@@ -262,6 +262,10 @@ case "$COMMAND" in
   check )
     docker_check
     ;;
+  st | selftest )
+    $SCRIPTS_DIR/run_selftest.sh $DOCKERFILE_DIR $CONTAINER_NAME
+    EXIT_CODE=$?
+    ;;
   * )
     echo -e "[ERROR]: Unexpected command found <$COMMAND>!\n"
     help
