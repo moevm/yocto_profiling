@@ -13,6 +13,7 @@ git config --global sendemail.smtpPass "<your-app-password>"
 git config --global sendemail.smtpServerPort 587
 git config --global sendemail.smtpEncryption tls
 ```
+3. Перед отправкой патча необходимо подписаться на соответствующий список рассылки: https://docs.yoctoproject.org/dev/contributor-guide/submit-changes.html#subscribing-to-the-mailing-list
 4. Далее можно отправлять письмо, простейший пример: ` git send-email --to <mailing-list-address> *.patch `, также вы можете указать кого-то в копию письма при помощи флага ` --cc `: `  git send-email --cc=someone@example.com --cc=another@example.com --to <mailing-list-address> *.patch `
 5. Важно: обратите внимание, что отправка письма может быть заблокирована, если при создании письма в поле `From: ` указана почта не того провайдера, который настроен в вашей конфигурации smtp. По умолчанию поле ` From: ` заполняется из автора коммита. Для явного обозначения, от какой почты вы хотите отправить письмо, вы можете указать флаг ` --from ` при отправке, пример: ` git send-email --from=<yourname@gmail.com> --to <recipient@gmail.com> `.
 
