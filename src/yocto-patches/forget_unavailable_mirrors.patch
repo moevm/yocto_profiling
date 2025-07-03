@@ -1,35 +1,102 @@
+diff --git a/bitbake/lib/bb/fetch2/__init__.py b/bitbake/lib/bb/fetch2/__init__.py
+index 0ad987c596..c3a81527ec 100644
+--- a/bitbake/lib/bb/fetch2/__init__.py
++++ b/bitbake/lib/bb/fetch2/__init__.py
+@@ -79,6 +79,19 @@ class FetchError(BBFetchException):
+         BBFetchException.__init__(self, msg)
+         self.args = (message, url)
+ 
++class Server5xxError(Exception):
++    """exception for 5xx server errors"""
++    def __init__(self, url, message="Server error (5xx)"):
++        self.url = url
++        self.msg = message
++        parsed = urllib.parse.urlparse(url)
++        self.mirror_host = parsed.netloc
++        super().__init__(self.msg)
++
++    def __str__(self):
++        return f"{self.msg} ({self.url})"
++
++
+ class ChecksumError(FetchError):
+     """Exception when mismatched checksum encountered"""
+     def __init__(self, message, url = None, checksum = None):
+@@ -1073,7 +1086,12 @@ def try_mirror_url(fetch, origud, ud, ld, check = False):
+     try:
+         if check:
+             found = ud.method.checkstatus(fetch, ud, ld)
+-            if found:
++            if found is None:                
++                parsed = urllib.parse.urlparse(ud.url)
++                mirror_host = parsed.netloc
++                # Raise errors until we can access the original data and modify the polling loop of mirrors
++                raise Server5xxError(ud.url, f"Server error (5xx) for mirror {mirror_host}")
++            elif found:
+                 return found
+             return False
+ 
+@@ -1167,10 +1185,31 @@ def try_mirrors(fetch, d, origud, mirrors, check = False):
+ 
+     uris, uds = build_mirroruris(origud, mirrors, ld)
+ 
++    '''
++    TBD: The issue with this loop is that if we don't interrupt it, there will be no effect, and we will iterate through all the addresses from build_mirror_uris. 
++    If we abruptly interrupt the loop, the progress of previous polls will be lost. We need to preserve the progress, for example, by restructuring it into a while loop. 
++    In this loop, we can iterate and, upon encountering an error, filter out only those addresses that haven't been processed yet.
++    '''
+     for index, uri in enumerate(uris):
+-        ret = try_mirror_url(fetch, origud, uds[index], ld, check)
+-        if ret:
+-            return ret
++        try:
++            ret = try_mirror_url(fetch, origud, uds[index], ld, check)
++            if ret:
++                return ret
++        except Exception as e:            
++            if isinstance(e, Server5xxError):
++                global_d = fetch.d
++                sstate_mirrors = global_d.getVar('SSTATE_MIRRORS') or ""
++                new_mirrors = []
++                '''
++                    Add mirror filtering — eliminate those that caused errors (.mirror_host) !!!
++                '''
++                new_value = " ".join(new_mirrors)
++                global_d.setVar('SSTATE_MIRRORS', new_value)          
++                logger.warning("Removed mirror %s from SSTATE_MIRRORS due to server error", e.mirror_host)
++                continue
++            else:
++                raise
++
+     return None
+ 
+ def trusted_network(d, url):
 diff --git a/bitbake/lib/bb/fetch2/wget.py b/bitbake/lib/bb/fetch2/wget.py
-index 198426065b..0892189b6e 100644
+index 7e43d3bc97..de695ff743 100644
 --- a/bitbake/lib/bb/fetch2/wget.py
 +++ b/bitbake/lib/bb/fetch2/wget.py
-@@ -406,6 +406,30 @@ class Wget(FetchMethod):
+@@ -401,6 +401,24 @@ class Wget(FetchMethod):
                  with opener.open(r, timeout=100) as response:
                      pass
              except (urllib.error.URLError, ConnectionResetError, TimeoutError) as e:
-+                # try to forget unavailable mirror 
-+                if e.code == 503:
-+                    # debug log
-+                    with open("/home/konstantin/loggggg", "a") as f:
-+                        st = f'before! \n except {e}\n parts.scheme = {parts.scheme}\n parts.netloc = {parts.netloc}\n parts.path = {parts.path} \n parts = {parts} \n code = {e.code} \n ud.url = {ud.url} \n d.getVar(SSTATE_MIRRORS) = {d.getVar("SSTATE_MIRRORS") } \n \n \n \n'
-+                        f.write(st)
-+                    mirrors = d.getVar("SSTATE_MIRRORS") or ""
-+                    target_mirror = f"{parts.scheme}://{parts.netloc}"
-+                    mirrors_list = mirrors.split()
-+                    i = 0
-+                    while i < len(mirrors_list) - 1:
-+                        if target_mirror in mirrors_list[i+1]:
-+                            del mirrors_list[i:i+2]
-+                        else:
-+                            i += 2
 +
-+                    updated_mirrors = " ".join(mirrors_list)
-+                    d.setVar("SSTATE_MIRRORS", updated_mirrors)
-+                    # debug log
-+                    with open("/home/konstantin/loggggg", "a") as f:
-+                        st = f'after! \n except {e}\n parts.scheme = {parts.scheme}\n parts.netloc = {parts.netloc}\n parts.path = {parts.path} \n parts = {parts} \n code = {e.code} \n ud.url = {ud.url} \n d.getVar(SSTATE_MIRRORS) = {d.getVar("SSTATE_MIRRORS") } \n \n \n \n'
-+                        f.write(st)
++                errno_code = None
++                if hasattr(e, 'errno') and e.errno:
++                    errno_code = e.errno
++                elif hasattr(e, 'reason') and hasattr(e.reason, 'errno') and e.reason.errno:
++                    errno_code = e.reason.errno
++                # Server (network) errors
++                server_side_errors = {
++                    errno.ECONNREFUSED,
++                    errno.ETIMEDOUT,
++                    errno.EHOSTUNREACH,
++                    errno.ENETUNREACH,
++                    errno.ECONNABORTED,
++                    errno.ECONNRESET,
++                }
 +
-+
++                if errno_code in server_side_errors:
++                    return None  
                  if try_again:
                      logger.debug2("checkstatus: trying again")
                      return self.checkstatus(fetch, ud, d, False)
