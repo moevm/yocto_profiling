@@ -55,9 +55,9 @@ options:
 
 ### Результат работы с флагом --standard_boxplot
 
-![Patch_analysis.png](./Patch_analysis.png)
+![Patch_analysis.png](./speeding_up_results/Patch_analysis_new_data_night.png)
 
 
 ### Результат работы без флага --standard_boxplot
 
-![Patch_analysis_full.png](./Patch_analysis_full.png)
+![Patch_analysis_full.png](./speeding_up_results/Patch_analysis_full_new_data_night.png)
