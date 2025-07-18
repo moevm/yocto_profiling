@@ -1,4 +1,13 @@
 # forget_unavailable_mirrors.patch
+
+> [!Warning]
+> This is a non-working solution -- it is a demonstration of an approach to server filtering.
+
+This patch and the one related to it were sent to Bitbake:
+
+1. https://lists.openembedded.org/g/bitbake-devel/message/17596 -- Explanation of the patch (this is where the main discussion is). The first version of the patch was noticed after I sent an email with the patch described in this file.
+2. https://lists.openembedded.org/g/bitbake-devel/message/17760 -- Email with the patch described in this file. There was no response to it. After sending it, I received responses to the previous version indicating that nothing should be modified in this part because it complicates the code, and there are few situations where this problem can be encountered.
+
 Attempt to implement "forgetting" unavailable servers with cache upon receiving an unavailability error (5** code)
 
 > [!IMPORTANT]
