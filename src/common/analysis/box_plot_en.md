@@ -52,8 +52,8 @@ The experiment saves the build results and elapsed time in the folder `src/build
 
 ### Result with the --standard_boxplot flag
 
-![Patch_analysis.png](./Patch_analysis.png)
+![Patch_analysis.png](./speeding_up_results/Patch_analysis_new_data_night.png)
 
 ### Result without the --standard_boxplot flag
 
-![Patch_analysis_full.png](./Patch_analysis_full.png)
+![Patch_analysis_full.png](./speeding_up_results/Patch_analysis_full_new_data_night.png)
